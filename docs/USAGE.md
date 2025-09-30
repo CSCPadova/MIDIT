@@ -64,6 +64,34 @@ uv run train \
     diffusion.beta_schedule=linear
 ```
 
+### Text Encoder (FLAN-T5) Configuration
+
+The model uses pretrained FLAN-T5 as the text encoder. You can choose different model sizes based on your requirements:
+
+#### Use smaller FLAN-T5 model (faster, less memory)
+```bash
+uv run train text_encoder.model_name=google/flan-t5-small
+```
+
+#### Use larger FLAN-T5 model (better performance)
+```bash
+uv run train text_encoder.model_name=google/flan-t5-large
+```
+
+#### Available FLAN-T5 models:
+- `google/flan-t5-small` (60M params) - Lightweight, fast training
+- `google/flan-t5-base` (250M params) - **Default**, balanced performance
+- `google/flan-t5-large` (780M params) - Better quality, more memory
+- `google/flan-t5-xl` (3B params) - High quality, requires significant GPU memory
+- `google/flan-t5-xxl` (11B params) - State-of-the-art, requires very large GPU
+
+#### Unfreeze text encoder for fine-tuning (not recommended)
+```bash
+uv run train text_encoder.freeze=false
+```
+
+**Note:** Keeping the encoder frozen (default) is recommended to leverage pretrained knowledge and save compute.
+
 ### Training Configuration
 
 #### Train on CPU

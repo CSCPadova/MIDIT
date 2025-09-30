@@ -2,10 +2,92 @@
 
 import torch
 from torch import nn
+from transformers import T5EncoderModel, T5Tokenizer
 
 
+class FlanT5TextEncoder(nn.Module):
+    """FLAN-T5 text encoder wrapper for conditioning the diffusion model.
+    
+    This encoder uses a pretrained FLAN-T5 model from HuggingFace and keeps it frozen
+    during training to leverage its pretrained semantic knowledge.
+    """
+    
+    def __init__(
+        self,
+        model_name: str = "google/flan-t5-base",
+        embed_dim: int = 512,
+        freeze: bool = True,
+    ):
+        """Initialize the FLAN-T5 text encoder.
+        
+        Args:
+            model_name: Name of the FLAN-T5 model from HuggingFace (e.g., 'google/flan-t5-small', 'google/flan-t5-base')
+            embed_dim: Target embedding dimension for the output
+            freeze: Whether to freeze the FLAN-T5 encoder weights
+        """
+        super().__init__()
+        
+        # Load pretrained FLAN-T5 encoder
+        self.encoder = T5EncoderModel.from_pretrained(model_name)
+        self.tokenizer = T5Tokenizer.from_pretrained(model_name)
+        
+        # Freeze encoder if specified
+        if freeze:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+        
+        # Get the hidden size from the encoder config
+        self.hidden_size = self.encoder.config.d_model
+        self.embed_dim = embed_dim
+        
+        # Projection layer to match target embedding dimension
+        if self.hidden_size != embed_dim:
+            self.projection = nn.Linear(self.hidden_size, embed_dim)
+        else:
+            self.projection = nn.Identity()
+    
+    def forward(self, text_tokens: torch.Tensor, attention_mask: torch.Tensor = None) -> torch.Tensor:
+        """Encode text tokens into embeddings.
+        
+        Args:
+            text_tokens: Input token IDs of shape (batch_size, seq_length)
+            attention_mask: Optional attention mask of shape (batch_size, seq_length)
+        
+        Returns:
+            Text embeddings of shape (batch_size, embed_dim)
+        """
+        # Forward pass through FLAN-T5 encoder
+        encoder_outputs = self.encoder(
+            input_ids=text_tokens,
+            attention_mask=attention_mask,
+        )
+        
+        # Get the last hidden states
+        hidden_states = encoder_outputs.last_hidden_state  # (batch_size, seq_length, hidden_size)
+        
+        # Pool the output (use mean pooling across sequence length)
+        if attention_mask is not None:
+            # Expand attention mask for broadcasting
+            mask_expanded = attention_mask.unsqueeze(-1).expand(hidden_states.size()).float()
+            sum_hidden = torch.sum(hidden_states * mask_expanded, dim=1)
+            sum_mask = torch.clamp(mask_expanded.sum(dim=1), min=1e-9)
+            pooled = sum_hidden / sum_mask
+        else:
+            pooled = hidden_states.mean(dim=1)
+        
+        # Project to target dimension
+        pooled = self.projection(pooled)
+        
+        return pooled
+
+
+# Keep the old TextEncoder for backward compatibility (but mark as deprecated)
 class TextEncoder(nn.Module):
-    """Simple text encoder using embeddings and transformer layers."""
+    """Simple text encoder using embeddings and transformer layers.
+    
+    DEPRECATED: This encoder is kept for backward compatibility. 
+    Use FlanT5TextEncoder instead for better performance.
+    """
     
     def __init__(
         self,

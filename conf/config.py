@@ -25,6 +25,12 @@ class Model:
 
 
 @dataclass
+class TextEncoder:
+    model_name: str
+    freeze: bool
+
+
+@dataclass
 class Diffusion:
     timesteps: int
     beta_schedule: str
@@ -55,6 +61,7 @@ class Logging:
 class Config:
     data: Data
     model: Model
+    text_encoder: TextEncoder
     diffusion: Diffusion
     train: Train
     optim: Optim
