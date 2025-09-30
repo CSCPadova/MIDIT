@@ -3,24 +3,39 @@ name = "midit"
 version = "0.1.0"
 description = "A Masked Diffusion Transformer for text-to-MIDI generation"
 readme = "README.md"
+license = "MIT"
 authors = [
     { name = "Matteo Spanio", email = "spanio@dei.unipd.it" }
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "torch>=2.7.0",
     "hydra-core>=1.3.2",
     "hydra-submitit-launcher>=1.2.0",
-    "lightning>=2.5.0.post0",
+    "lightning>=2.5.5",
     "requests>=2.32.3",
-    "tensorboard>=2.19.0",
-    "torchaudio>=2.6.0",
-    "torchmetrics>=1.6.3",
-    "torchvision>=0.21.0",
+    "tensorboard>=2.20.0",
+    "torchaudio>=2.7.0",
+    "torchmetrics>=1.8.0",
+    "torchvision>=0.22.0",
+    "wandb>=0.21.0",
 ]
 
 [project.scripts]
 train = "midit.train:train"
 infer = "midit.infer:infer"
+
+[tool.hatch.build.targets.wheel]
+packages = ["midit"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/midit/**",
+    "/conf",
+    "/README.md",
+    "/pyproject.toml",
+    "/LICENSE",
+]
 
 [build-system]
 requires = ["hatchling"]
