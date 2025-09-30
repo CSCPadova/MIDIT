@@ -177,3 +177,7 @@ multirun
 outputs
 data
 .vscode
+logs
+
+# Backup files
+*.bak
