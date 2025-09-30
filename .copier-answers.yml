@@ -1,0 +1,7 @@
+# Changes here will be overwritten by Copier
+_commit: v0.4
+_src_path: gh:CSCPadova/dei-blade-template
+author_email: spanio@dei.unipd.it
+author_name: Matteo Spanio
+project_description: A Masked Diffusion Transformer for text-to-MIDI generation
+project_name: midit

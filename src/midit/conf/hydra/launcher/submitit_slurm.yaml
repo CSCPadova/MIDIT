@@ -1,0 +1,18 @@
+# @package hydra.launcher
+
+_target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+
+partition: allgroups
+gres: "gpu:a40" # The number of GPUs you require
+tasks_per_node: 2 # If using ddp, this needs to be greater than or equal to the number of GPUs in each node
+timeout_min: 5
+mem_gb: 10
+
+submitit_folder: ${hydra.sweep.dir}/submitit/%j
+name: ${hydra.job.name}
+
+additional_parameters: 
+    mail-user: "spanio@dei.unipd.it"
+    mail-type: "ALL"
+    output: "logs/out/%j.txt"
+    error: "logs/err/%j.txt"
