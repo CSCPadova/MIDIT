@@ -20,6 +20,8 @@ dependencies = [
     "torchvision>=0.22.0",
     "wandb>=0.21.0",
     "transformers>=4.30.0",
+    "protobuf>=6.31.1",
+    "sentencepiece>=0.2.1",
 ]
 
 [project.scripts]
