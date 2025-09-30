@@ -18,12 +18,13 @@ def train(cfg: Config) -> int:
 
     # Setup loggers
     loggers = []
-    
+
     if cfg.logging.use_tensorboard:
         tb_logger = TensorBoardLogger(cfg.data.logs_dir, name="midit")
         loggers.append(tb_logger)
-    
-    if cfg.logging.use_wandb:
+
+    # Disable wandb for fast_run to avoid protobuf issues
+    if cfg.logging.use_wandb and not cfg.train.fast_run:
         wandb_logger = WandbLogger(
             project=cfg.logging.wandb_project or "midit",
             entity=cfg.logging.wandb_entity,
@@ -31,7 +32,7 @@ def train(cfg: Config) -> int:
             save_dir=cfg.data.logs_dir,
         )
         loggers.append(wandb_logger)
-    
+
     # Log hyperparameters to all loggers
     hparams = {
         "d_model": cfg.model.d_model,
@@ -46,7 +47,7 @@ def train(cfg: Config) -> int:
         "beta_schedule": cfg.diffusion.beta_schedule,
         "fast_run": cfg.train.fast_run,
     }
-    
+
     for logger in loggers:
         if hasattr(logger, "log_hyperparams"):
             logger.log_hyperparams(hparams)
@@ -95,7 +96,7 @@ def train(cfg: Config) -> int:
     max_epochs = cfg.train.epochs
     limit_train_batches = 1.0
     limit_val_batches = 1.0
-    
+
     if cfg.train.fast_run:
         max_epochs = 2
         limit_train_batches = 10  # Only 10 batches per epoch
@@ -112,9 +113,9 @@ def train(cfg: Config) -> int:
         limit_train_batches=limit_train_batches,
         limit_val_batches=limit_val_batches,
     )
-    
+
     trainer.fit(model, data_module)
-    
+
     # Only validate if not in fast_run mode
     if not cfg.train.fast_run:
         trainer.validate(model, data_module)
