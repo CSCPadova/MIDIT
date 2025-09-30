@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import lightning as L
 import math
 
-from .text_encoder import TextEncoder
+from .text_encoder import FlanT5TextEncoder
 
 
 class SinusoidalPositionEmbeddings(nn.Module):
@@ -56,12 +56,14 @@ class MaskedDiffusionTransformer(L.LightningModule):
         timesteps: int = 1000,
         lr: float = 1e-4,
         beta_schedule: str = "linear",
+        text_encoder_model: str = "google/flan-t5-base",
+        text_encoder_freeze: bool = True,
     ):
         """Initialize the Masked Diffusion Transformer.
         
         Args:
             midi_vocab_size: Size of MIDI token vocabulary
-            text_vocab_size: Size of text token vocabulary
+            text_vocab_size: Size of text token vocabulary (kept for backward compatibility but not used with FLAN-T5)
             d_model: Dimension of the model
             nhead: Number of attention heads
             num_encoder_layers: Number of encoder layers
@@ -72,6 +74,8 @@ class MaskedDiffusionTransformer(L.LightningModule):
             timesteps: Number of diffusion timesteps
             lr: Learning rate
             beta_schedule: Type of noise schedule ('linear', 'cosine')
+            text_encoder_model: Name of the FLAN-T5 model to use (e.g., 'google/flan-t5-small', 'google/flan-t5-base')
+            text_encoder_freeze: Whether to freeze the FLAN-T5 encoder weights
         """
         super().__init__()
         self.save_hyperparameters()
@@ -81,13 +85,11 @@ class MaskedDiffusionTransformer(L.LightningModule):
         self.timesteps = timesteps
         self.lr = lr
         
-        # Text encoder for conditioning
-        self.text_encoder = TextEncoder(
-            vocab_size=text_vocab_size,
+        # Text encoder for conditioning - using pretrained FLAN-T5
+        self.text_encoder = FlanT5TextEncoder(
+            model_name=text_encoder_model,
             embed_dim=d_model,
-            num_layers=4,
-            num_heads=nhead,
-            max_seq_length=256,
+            freeze=text_encoder_freeze,
         )
         
         # MIDI token embeddings

@@ -45,6 +45,8 @@ def train(cfg: Config) -> int:
         "accelerator": cfg.train.accelerator,
         "timesteps": cfg.diffusion.timesteps,
         "beta_schedule": cfg.diffusion.beta_schedule,
+        "text_encoder_model": cfg.text_encoder.model_name,
+        "text_encoder_freeze": cfg.text_encoder.freeze,
         "fast_run": cfg.train.fast_run,
     }
 
@@ -66,6 +68,8 @@ def train(cfg: Config) -> int:
         timesteps=cfg.diffusion.timesteps,
         lr=cfg.optim.lr,
         beta_schedule=cfg.diffusion.beta_schedule,
+        text_encoder_model=cfg.text_encoder.model_name,
+        text_encoder_freeze=cfg.text_encoder.freeze,
     )
 
     # Data module
