@@ -57,6 +57,12 @@ The project uses Hydra for configuration management. All settings can be modifie
 - `model.dim_feedforward`: Feedforward dimension (default: 2048)
 - `model.dropout`: Dropout rate (default: 0.1)
 
+#### Text Encoder Configuration
+
+- `text_encoder.model_name`: FLAN-T5 model to use (default: 'google/flan-t5-base')
+  - Options: `google/flan-t5-small`, `google/flan-t5-base`, `google/flan-t5-large`, `google/flan-t5-xl`, `google/flan-t5-xxl`
+- `text_encoder.freeze`: Freeze encoder weights during training (default: true, recommended)
+
 #### Diffusion Configuration
 
 - `diffusion.timesteps`: Number of diffusion timesteps (default: 1000)
@@ -95,6 +101,12 @@ uv run train train.fast_run=true
 
 # Change diffusion settings
 uv run train diffusion.timesteps=500 diffusion.beta_schedule=cosine
+
+# Use a smaller FLAN-T5 model for faster training
+uv run train text_encoder.model_name=google/flan-t5-small
+
+# Use a larger FLAN-T5 model for better performance (requires more GPU memory)
+uv run train text_encoder.model_name=google/flan-t5-large
 ```
 
 ### Fast Run Mode
@@ -176,10 +188,27 @@ uv run train logging.use_wandb=false
 
 MIDIT uses a Masked Diffusion Transformer architecture:
 
-1. **Text Encoder**: Encodes text descriptions using a transformer encoder
+1. **Text Encoder**: Uses a pretrained **FLAN-T5 encoder** (frozen during training) to encode text descriptions into rich semantic embeddings
 2. **Diffusion Process**: Gradually denoises MIDI sequences over multiple timesteps
-3. **Transformer Decoder**: Predicts the denoised MIDI tokens conditioned on text
+3. **Transformer Decoder**: Predicts the denoised MIDI tokens conditioned on text embeddings from FLAN-T5
 4. **Masking**: Supports variable-length sequences with attention masking
+
+### Text Encoder (FLAN-T5)
+
+The model uses Google's **FLAN-T5** (Flan-UL2) as the text encoder, leveraging its instruction-tuned capabilities for better text understanding. The encoder is **frozen during training** to:
+
+- Leverage pretrained semantic knowledge
+- Reduce computational requirements
+- Enable faster training
+- Improve generalization from the start
+
+You can configure different FLAN-T5 model sizes in the configuration:
+
+- `google/flan-t5-small` (60M parameters) - Faster, less memory
+- `google/flan-t5-base` (250M parameters) - **Default** - Balanced performance
+- `google/flan-t5-large` (780M parameters) - Better performance, more memory
+- `google/flan-t5-xl` (3B parameters) - Best performance, high memory requirements
+- `google/flan-t5-xxl` (11B parameters) - State-of-the-art, very high memory requirements
 
 ## Aknowledgements
 
