@@ -10,7 +10,7 @@ from midit.dataloader import MNISTDataModule
 from conf.config import Config
 
 
-@hydra.main(version_base=None, config_path="conf", config_name="config")
+@hydra.main(version_base=None, config_path="../conf", config_name="config")
 def train(cfg: Config) -> int:
 
     # makes torch happy, remove this line if you know your GPU
