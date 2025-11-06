@@ -181,3 +181,29 @@ logs
 
 # Backup files
 *.bak
+# Dataset cache
+amaai-lab___midi_caps/
+*.lock
+midicaps_preprocessed.json
+
+# Results & Checkpoints
+results/
+logs/
+*.ckpt
+*.pth
+
+# Python cache
+__pycache__/
+*.pyc
+
+# --- Simone local setup ---
+
+.vscode/
+.venv/
+**pycache**/
+logs/
+outputs/
+results/
+data/
+*.lock
+*.json

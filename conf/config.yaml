@@ -10,7 +10,7 @@ data:
     num_workers: 1
     max_midi_length: 1024
     max_text_length: 256
-    midi_vocab_size: 512
+    midi_vocab_size: 1024
     text_vocab_size: 10000
 
 model:
