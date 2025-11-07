@@ -389,6 +389,11 @@ class MaskedDiffusionTransformer(L.LightningModule):
             )
             
             # Sample from predicted distribution
-            midi_tokens = torch.argmax(predicted_logits, dim=-1)
+            # Probabilistic sampling (full softmax)
+            probs = F.softmax(predicted_logits, dim=-1)
+            midi_tokens = torch.multinomial(
+                probs.view(-1, probs.size(-1)), 
+                num_samples=1
+            ).view(probs.size(0), probs.size(1))
         
         return midi_tokens
