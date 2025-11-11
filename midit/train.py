@@ -6,7 +6,7 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 
 from midit.model import MaskedDiffusionTransformer
-from midit.Midicaps_dataloader1 import MidiCapsDataModule
+from midit.Midicaps_dataloader import MidiCapsDataModule
 from conf.config import Config
 
 
@@ -74,13 +74,13 @@ def train(cfg: Config) -> int:
 
     # Data module
     data_module = MidiCapsDataModule(
-        data_dir=cfg.data.data_dir,
+        data_dir=cfg.data.data_dir+"/midi_files",
         batch_size=cfg.train.batch_size,
         num_workers=cfg.data.num_workers,
         max_midi_length=cfg.data.max_midi_length,
         max_text_length=cfg.data.max_text_length,
-        midi_vocab_size=cfg.data.midi_vocab_size,
-        text_vocab_size=cfg.data.text_vocab_size,
+        #midi_vocab_size=cfg.data.midi_vocab_size,  Non serve? 11/11
+        #text_vocab_size=cfg.data.text_vocab_size,
         fast_run=cfg.train.fast_run,
     )
 
