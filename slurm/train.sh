@@ -6,7 +6,7 @@
 #SBATCH --time 2-20:00:00
 #SBATCH --ntasks-per-node 2
 #SBATCH --partition allgroups
-#SBATCH --mem 10G
+#SBATCH --mem 32G
 #SBATCH --gres=gpu:rtx
 
 source .env

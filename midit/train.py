@@ -6,7 +6,7 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 
 from midit.model import MaskedDiffusionTransformer
-from midit.Midicaps_dataloader import MidiCapsDataModule
+from midit.midicaps_dataloader import MidiCapsDataModule
 from conf.config import Config
 
 

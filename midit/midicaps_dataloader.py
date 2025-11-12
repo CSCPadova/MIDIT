@@ -124,10 +124,10 @@ class MidiCapsDataset(Dataset):
             for i, line in enumerate(f):
                 sample = json.loads(line)
             
-                # ✅ FILTRA CARTELLA 1 (vuota)
-                if sample['location'].startswith(('lmd_full/0/', 'lmd_full/1/')):
-                    skipped += 1
-                    continue
+                # ✅ FILTRA CARTELLA 1 (vuota) NON SERVESU COMPUTER ? CI SONO I FILE.
+                #if sample['location'].startswith(('lmd_full/0/', 'lmd_full/1/')):
+                #    skipped += 1
+                #    continue
             
                 self.samples.append(sample)
             
@@ -221,24 +221,55 @@ class MidiCapsDataModule(L.LightningDataModule):
         self.fast_run = fast_run
     
     def setup(self, stage: Optional[str] = None):
-        max_samples = 100 if self.fast_run else None
-        
-        if stage == "fit" or stage is None:
-            self.train_dataset = MidiCapsDataset(
-                data_dir=self.data_dir,
-                split="train",
-                max_midi_length=self.max_midi_length,
-                max_text_length=self.max_text_length,
-                max_samples=max_samples,
-            )
-            self.val_dataset = MidiCapsDataset(
-                data_dir=self.data_dir,
-                split="train",
-                max_midi_length=self.max_midi_length,
-                max_text_length=self.max_text_length,
-                max_samples=50 if self.fast_run else 1000,
-            )
+        """Setup train/val/test datasets with proper split"""
     
+        if stage == "fit" or stage is None:
+            if self.fast_run:
+                # Fast run: usa pochi sample
+                self.train_dataset = MidiCapsDataset(
+                    data_dir=self.data_dir,
+                    split="train",
+                    max_midi_length=self.max_midi_length,
+                    max_text_length=self.max_text_length,
+                    max_samples=100,
+                )
+                self.val_dataset = MidiCapsDataset(
+                    data_dir=self.data_dir,
+                    split="train",
+                    max_midi_length=self.max_midi_length,
+                    max_text_length=self.max_text_length,
+                    max_samples=50,
+                )
+            else:
+                # Full training: split corretto 90/10
+                import torch
+                from torch.utils.data import random_split
+                
+                # Carica dataset completo
+                full_dataset = MidiCapsDataset(
+                    data_dir=self.data_dir,
+                    split="train",
+                    max_midi_length=self.max_midi_length,
+                    max_text_length=self.max_text_length,
+                    max_samples=None,
+                )
+                
+                # Split 90% train, 10% val
+                total_size = len(full_dataset)
+                train_size = int(0.9 * total_size)  # 151,547
+                val_size = total_size - train_size  # 16,838
+                
+                # Random split con seed fisso per reproducibilità
+                self.train_dataset, self.val_dataset = random_split(
+                    full_dataset,
+                    [train_size, val_size],
+                    generator=torch.Generator().manual_seed(42)
+                )
+                
+                print(f"📊 Dataset split:")
+                print(f"   Train: {len(self.train_dataset)} samples (90%)")
+                print(f"   Val:   {len(self.val_dataset)} samples (10%)")
+
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
             self.train_dataset,

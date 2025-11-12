@@ -23,6 +23,7 @@ dependencies = [
     "protobuf>=6.31.1",
     "sentencepiece>=0.2.1",
     "datasets>=4.3.0",
+    "pretty-midi==0.2.10",
 ]
 
 [project.scripts]
