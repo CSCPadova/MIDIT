@@ -33,6 +33,14 @@ def train(cfg: Config) -> int:
         )
         loggers.append(wandb_logger)
 
+    if cfg.train.fast_run:
+        cfg.model.d_model = 256
+        cfg.model.nhead = 4
+        cfg.model.num_encoder_layers = 4
+        cfg.model.num_decoder_layers = 4
+        cfg.model.dim_feedforward = 1024
+        cfg.train.batch_size = 4
+        cfg.train.accumulate_grad_batches = 2
     # Log hyperparameters to all loggers
     hparams = {
         "d_model": cfg.model.d_model,
@@ -53,7 +61,7 @@ def train(cfg: Config) -> int:
     for logger in loggers:
         if hasattr(logger, "log_hyperparams"):
             logger.log_hyperparams(hparams)
-
+    
     # Model
     model = MaskedDiffusionTransformer(
         midi_vocab_size=cfg.data.midi_vocab_size,
@@ -82,29 +90,47 @@ def train(cfg: Config) -> int:
         #midi_vocab_size=cfg.data.midi_vocab_size,  Non serve? 11/11
         #text_vocab_size=cfg.data.text_vocab_size,
         fast_run=cfg.train.fast_run,
+        max_samples=cfg.data.max_samples,  # ← AGGIUNGI QUESTA RIGA
     )
 
     # Callbacks
+    # Callbacks
     callbacks = [
         EarlyStopping(monitor="val_loss", patience=5, mode="min"),
-        ModelCheckpoint(
-            dirpath=os.path.join(cfg.data.logs_dir, "checkpoints"),
-            filename="midit-{epoch:02d}-{val_loss:.2f}",
-            monitor="val_loss",
-            mode="min",
-            save_top_k=3,
-        ),
     ]
+
+    # Only save checkpoints if NOT in fast_run mode
+    if not cfg.train.fast_run:
+        callbacks.append(
+            ModelCheckpoint(
+                dirpath=os.path.join(cfg.data.logs_dir, "checkpoints"),
+                filename="midit-{epoch:02d}-{val_loss:.2f}",
+                monitor="val_loss",
+                mode="min",
+                save_top_k=3,
+            )
+        )
+
+    # Determine max_epochs and steps for fast_run
+    # max_epochs = cfg.train.epochs
+    # limit_train_batches = 1.0
+    # limit_val_batches = 1.0
 
     # Determine max_epochs and steps for fast_run
     max_epochs = cfg.train.epochs
     limit_train_batches = 1.0
     limit_val_batches = 1.0
-
     if cfg.train.fast_run:
         max_epochs = 2
-        limit_train_batches = 10  # Only 10 batches per epoch
-        limit_val_batches = 5  # Only 5 validation batches
+        limit_train_batches = 10
+        limit_val_batches = 5
+
+
+    
+    #if cfg.train.fast_run:
+        #max_epochs = 2
+        #limit_train_batches = 10  # Only 10 batches per epoch
+        #limit_val_batches = 5  # Only 5 validation batches
 
     # Train model
     trainer = L.Trainer(

@@ -211,6 +211,7 @@ class MidiCapsDataModule(L.LightningDataModule):
         max_midi_length: int = 1024,
         max_text_length: int = 256,
         fast_run: bool = False,
+        max_samples: int = None,  # ← AGGIUNGI
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -219,6 +220,7 @@ class MidiCapsDataModule(L.LightningDataModule):
         self.max_midi_length = max_midi_length
         self.max_text_length = max_text_length
         self.fast_run = fast_run
+        self.max_samples = max_samples  # ← AGGIUNGI
     
     def setup(self, stage: Optional[str] = None):
         """Setup train/val/test datasets with proper split"""
@@ -251,7 +253,7 @@ class MidiCapsDataModule(L.LightningDataModule):
                     split="train",
                     max_midi_length=self.max_midi_length,
                     max_text_length=self.max_text_length,
-                    max_samples=None,
+                    max_samples=self.max_samples,
                 )
                 
                 # Split 90% train, 10% val

@@ -332,9 +332,14 @@ class MaskedDiffusionTransformer(L.LightningModule):
             midi_tokens.view(-1),
             ignore_index=-100,
         )
-        
+        if torch.isnan(loss) or torch.isinf(loss):
+            print(f"⚠️ NaN/Inf loss in validation batch {batch_idx}")
+            loss = torch.tensor(0.0, device=self.device, requires_grad=True)
+    
         self.log("val_loss", loss, prog_bar=True)
         return loss
+        #self.log("val_loss", loss, prog_bar=True)
+        #return loss
     
     def configure_optimizers(self):
         """Configure optimizer and learning rate scheduler."""

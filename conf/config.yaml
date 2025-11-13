@@ -12,6 +12,7 @@ data:
     max_text_length: 256
     midi_vocab_size: 768 #1024
     text_vocab_size: 32128 #10000
+    max_samples: null  # null = usa tutto
 
 model:
     d_model: 512
@@ -36,10 +37,10 @@ train:
     epochs: 10
     fast_run: false
     accumulate_grad_batches: 4 #nuovo
-    gradient_clip_val: 1.0     #nuovo
+    gradient_clip_val: 0.5    #nuovo
 
 optim:
-    lr: 0.00005   #cambiato
+    lr: 0.00003  #cambiato
 
 logging:
     use_wandb: true
