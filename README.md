@@ -153,11 +153,39 @@ midit/
 
 The model is designed to work with the [MidiCaps dataset](https://huggingface.co/datasets/amaai-lab/MidiCaps) from HuggingFace, which provides paired text descriptions and MIDI files.
 
-**Note**: The current implementation uses synthetic data for development. To use the real MidiCaps dataset, you'll need to:
+## 📦 Dataset Setup
 
-1. Install the `datasets` library: `uv pip install datasets`
-2. Update the dataloader in `midit/midicaps_dataloader.py` to load from HuggingFace
+### Download MidiCaps Dataset
+```bash
+# Install Hugging Face CLI (if not already installed)
+pip install huggingface-hub
 
+# Download complete dataset (~1.6GB compressed, ~19GB extracted)
+hf download amaai-lab/MidiCaps --repo-type dataset --local-dir data/midi_files
+
+# Extract (if needed)
+cd data/midi_files
+tar -xzf midicaps.tar.gz
+```
+
+### Dataset Structure
+```
+data/midi_files/
+├── train.json          # Metadata (168k samples)
+└── lmd_full/           # MIDI files organized by hash
+    ├── 0/
+    ├── 1/
+    └── ...
+```
+
+### Verify Installation
+```bash
+python -c "
+from pathlib import Path
+print(f'MIDI files: {len(list(Path(\"data/midi_files/lmd_full\").rglob(\"*.mid\")))}')
+"
+# Expected: ~168,000 files
+```
 ## Logging and Monitoring
 
 ### TensorBoard

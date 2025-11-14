@@ -9,7 +9,7 @@ data:
     logs_dir: logs
     num_workers: 4
     max_midi_length: 1024
-    max_text_length: 256
+    max_text_length: 128 #prima era 256, ma osservando le statistiche il 98% dei testi sta sotto i 128 token. Quindi tagliamo fuori 1600 samples 'outliers' per velocizzare il processo di training.
     midi_vocab_size: 768 #1024
     text_vocab_size: 32128 #10000
     max_samples: null  # null = usa tutto
