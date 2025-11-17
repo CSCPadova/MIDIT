@@ -92,9 +92,9 @@ class MaskedDiffusionTransformer(L.LightningModule):
             freeze=text_encoder_freeze,
         )
         
-        # MIDI token embeddings
-        self.midi_embedding = nn.Embedding(midi_vocab_size, d_model)
+        # MIDI token embeddings - Linear for continuous tokens
         self.midi_embedding = nn.Linear(1, d_model)
+        self.position_embedding = nn.Embedding(max_seq_length, d_model)
         
         # Timestep embeddings
         self.time_mlp = nn.Sequential(
@@ -125,7 +125,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
         )
         self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_decoder_layers)
         
-        # Output projection
+        # Output projection - outputs continuous values [0, 1]
         self.output_projection = nn.Linear(d_model, 1)
         
         # Layer norm
@@ -181,7 +181,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
             midi_attention_mask: Attention mask for MIDI (batch_size, seq_length)
         
         Returns:
-            Predicted noise or denoised tokens of shape (batch_size, seq_length, vocab_size)
+            Predicted noise or denoised tokens of shape (batch_size, seq_length)
         """
         batch_size, seq_length = midi_tokens.shape
         
@@ -190,8 +190,8 @@ class MaskedDiffusionTransformer(L.LightningModule):
         
         # Get MIDI embeddings
         positions = torch.arange(seq_length, device=midi_tokens.device).unsqueeze(0).expand(batch_size, -1)
-        midi_embeds = self.midi_embedding(midi_tokens.unsqueeze(-1))
-        pos_embeds = self.position_embedding(positions)
+        midi_embeds = self.midi_embedding(midi_tokens.unsqueeze(-1))  # (batch, seq, 1) -> (batch, seq, d_model)
+        pos_embeds = self.position_embedding(positions)  # (batch, seq, d_model)
         
         # Add timestep embeddings
         time_embeds = self.time_mlp(timestep)  # (batch_size, d_model)
@@ -216,7 +216,6 @@ class MaskedDiffusionTransformer(L.LightningModule):
             tgt_key_padding_mask=midi_attention_mask,
         )
         
-        # Project to vocabulary
         # Project to continuous values [0, 1]
         output = self.output_projection(decoded)  # (batch, seq, 1)
         output = output.squeeze(-1)  # (batch, seq)
@@ -269,7 +268,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
         # Add noise to MIDI tokens
         noisy_midi = self.add_noise(midi_tokens, t, noise)
         
-        # Convert back to token space (simplified for now)
+        # Clamp to valid range
         noisy_midi_tokens = noisy_midi.clamp(0.0, 1.0)
         
         # Predict the noise
@@ -281,13 +280,15 @@ class MaskedDiffusionTransformer(L.LightningModule):
             midi_attention_mask,
         )
         
-        # Calculate loss (cross-entropy with original tokens)
-        loss = F.mse_loss(predicted_logits, midi_tokens)
+        # Calculate loss (MSE for continuous tokens)
+        loss = F.mse_loss(predicted_logits, midi_tokens, reduction='none')
 
-        # Applica mask per ignorare padding
+        # Apply mask to ignore padding
         if midi_attention_mask is not None:
-            mask = midi_attention_mask.unsqueeze(-1)  # (batch, seq, 1)
-            loss = (loss * mask).sum() / mask.sum()
+            loss = loss * midi_attention_mask
+            loss = loss.sum() / midi_attention_mask.sum()
+        else:
+            loss = loss.mean()
         
         self.log("train_loss", loss, prog_bar=True)
         return loss
@@ -318,9 +319,8 @@ class MaskedDiffusionTransformer(L.LightningModule):
         # Add noise to MIDI tokens
         noisy_midi = self.add_noise(midi_tokens, t, noise)
         
-        # Convert back to token space
+        # Clamp to valid range
         noisy_midi_tokens = noisy_midi.clamp(0.0, 1.0)
-
         
         # Predict the noise
         predicted_logits = self(
@@ -331,13 +331,15 @@ class MaskedDiffusionTransformer(L.LightningModule):
             midi_attention_mask,
         )
         
-        # Calculate loss
-        loss = F.mse_loss(predicted_logits, midi_tokens)
+        # Calculate loss (MSE for continuous tokens)
+        loss = F.mse_loss(predicted_logits, midi_tokens, reduction='none')
 
-# Applica mask per ignorare padding
+        # Apply mask to ignore padding
         if midi_attention_mask is not None:
-            mask = midi_attention_mask.unsqueeze(-1)
-            loss = (loss * mask).sum() / mask.sum()
+            loss = loss * midi_attention_mask
+            loss = loss.sum() / midi_attention_mask.sum()
+        else:
+            loss = loss.mean()
 
         # Check NaN
         if torch.isnan(loss) or torch.isinf(loss):
@@ -381,9 +383,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
         batch_size = text_tokens.shape[0]
         
         # Start with random noise
-        midi_tokens = torch.randint(
-            0, self.midi_vocab_size, (batch_size, max_length), device=self.device
-        )
+        midi_tokens = torch.rand((batch_size, max_length), device=self.device)
         
         # Denoising loop
         timesteps = torch.linspace(self.timesteps - 1, 0, num_inference_steps, dtype=torch.long, device=self.device)
@@ -392,19 +392,14 @@ class MaskedDiffusionTransformer(L.LightningModule):
             t_batch = t.repeat(batch_size)
             
             # Predict
-            predicted_logits = self(
+            predicted_tokens = self(
                 midi_tokens,
                 text_tokens,
                 t_batch,
                 text_attention_mask,
             )
             
-            # Sample from predicted distribution
-            # Probabilistic sampling (full softmax)
-            probs = F.softmax(predicted_logits, dim=-1)
-            midi_tokens = torch.multinomial(
-                probs.view(-1, probs.size(-1)), 
-                num_samples=1
-            ).view(probs.size(0), probs.size(1))
+            # Update tokens
+            midi_tokens = predicted_tokens.clamp(0.0, 1.0)
         
         return midi_tokens

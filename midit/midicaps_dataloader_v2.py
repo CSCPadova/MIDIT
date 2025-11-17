@@ -29,6 +29,8 @@ def normalize_tokens_by_type(tokens):
             normalized.append((token - 512) / 255.0)
     
     return normalized
+
+
 # -----------------------
 # Helper Functions
 # -----------------------
@@ -143,15 +145,9 @@ class MidiCapsDataset(Dataset):
         with open(json_path, 'r', encoding='utf-8') as f:
             for i, line in enumerate(f):
                 sample = json.loads(line)
-            
-                # ✅ FILTRA CARTELLA 1 (vuota) NON SERVESU COMPUTER ? CI SONO I FILE.
-                #if sample['location'].startswith(('lmd_full/0/', 'lmd_full/1/')):
-                #    skipped += 1
-                #    continue
-            
                 self.samples.append(sample)
             
-            # Stop se raggiungiamo max_samples
+                # Stop se raggiungiamo max_samples
                 if max_samples and len(self.samples) >= max_samples:
                     break
     
@@ -168,7 +164,6 @@ class MidiCapsDataset(Dataset):
         sample = self.samples[idx]
         
         midi_path = self.data_dir / sample['location']
-
         
         try:
             midi = pretty_midi.PrettyMIDI(str(midi_path))
@@ -182,6 +177,7 @@ class MidiCapsDataset(Dataset):
         if midi_length > self.max_midi_length:
             midi_data = midi_data[:self.max_midi_length]
             midi_length = self.max_midi_length
+            
         if midi_length > 0:
             normalized_data = normalize_tokens_by_type(midi_data)
             padded_midi = torch.zeros(self.max_midi_length, dtype=torch.float)
@@ -233,7 +229,7 @@ class MidiCapsDataModule(L.LightningDataModule):
         max_midi_length: int = 1024,
         max_text_length: int = 256,
         fast_run: bool = False,
-        max_samples: int = None,  # ← AGGIUNGI
+        max_samples: int = None,
     ):
         super().__init__()
         self.data_dir = data_dir
@@ -242,7 +238,7 @@ class MidiCapsDataModule(L.LightningDataModule):
         self.max_midi_length = max_midi_length
         self.max_text_length = max_text_length
         self.fast_run = fast_run
-        self.max_samples = max_samples  # ← AGGIUNGI
+        self.max_samples = max_samples
     
     def setup(self, stage: Optional[str] = None):
         """Setup train/val/test datasets with proper split"""
@@ -280,8 +276,8 @@ class MidiCapsDataModule(L.LightningDataModule):
                 
                 # Split 90% train, 10% val
                 total_size = len(full_dataset)
-                train_size = int(0.9 * total_size)  # 151,547
-                val_size = total_size - train_size  # 16,838
+                train_size = int(0.9 * total_size)
+                val_size = total_size - train_size
                 
                 # Random split con seed fisso per reproducibilità
                 self.train_dataset, self.val_dataset = random_split(
@@ -301,7 +297,7 @@ class MidiCapsDataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=True,
             pin_memory=True,
-            collate_fn=collate_fn,  # ✅ AGGIUNGI QUESTO!
+            collate_fn=collate_fn,
         )
     
     def val_dataloader(self) -> DataLoader:
@@ -311,7 +307,7 @@ class MidiCapsDataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=False,
             pin_memory=True,
-            collate_fn=collate_fn,  # ✅ AGGIUNGI QUESTO!
+            collate_fn=collate_fn,
         )
 
 
