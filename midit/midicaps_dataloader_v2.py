@@ -182,10 +182,12 @@ class MidiCapsDataset(Dataset):
         if midi_length > self.max_midi_length:
             midi_data = midi_data[:self.max_midi_length]
             midi_length = self.max_midi_length
-        
-        padded_midi = torch.zeros(self.max_midi_length, dtype=torch.long)
         if midi_length > 0:
-            padded_midi[:midi_length] = torch.tensor(midi_data, dtype=torch.long)
+            normalized_data = normalize_tokens_by_type(midi_data)
+            padded_midi = torch.zeros(self.max_midi_length, dtype=torch.float)
+            padded_midi[:midi_length] = torch.tensor(normalized_data, dtype=torch.float)
+        else:
+            padded_midi = torch.zeros(self.max_midi_length, dtype=torch.float)   
         
         midi_attention_mask = torch.zeros(self.max_midi_length, dtype=torch.float)
         midi_attention_mask[:midi_length] = 1.0
