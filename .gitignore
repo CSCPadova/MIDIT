@@ -51,3 +51,6 @@ amaai-lab___midi_caps/
 !logs/err/.gitkeep
 !results/.gitkeep
 logs/
+
+tmp/
+*.tar.gz
