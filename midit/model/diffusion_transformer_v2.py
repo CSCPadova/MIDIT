@@ -186,7 +186,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
         batch_size, seq_length = midi_tokens.shape
         
         # Encode text conditioning
-        text_embedding = self.text_encoder(text_tokens, text_attention_mask)  # (batch_size, d_model)
+        text_embedding = self.text_encoder(text_tokens, text_attention_mask)  
         
         # Get MIDI embeddings
         positions = torch.arange(seq_length, device=midi_tokens.device).unsqueeze(0).expand(batch_size, -1)
@@ -201,7 +201,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
         midi_embeds = self.layer_norm(midi_embeds)
         
         # Expand text embedding to match MIDI sequence
-        text_memory = text_embedding.unsqueeze(1).expand(-1, seq_length, -1)
+        text_memory = text_embedding  # (batch, text_seq_len, d_model)
         
         # Apply transformer encoder to text
         text_encoded = self.transformer_encoder(text_memory)
