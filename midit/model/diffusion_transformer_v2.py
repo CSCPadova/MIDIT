@@ -94,7 +94,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
         
         # MIDI token embeddings
         self.midi_embedding = nn.Embedding(midi_vocab_size, d_model)
-        self.position_embedding = nn.Embedding(max_seq_length, d_model)
+        self.midi_embedding = nn.Linear(1, d_model)
         
         # Timestep embeddings
         self.time_mlp = nn.Sequential(
@@ -126,7 +126,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
         self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_decoder_layers)
         
         # Output projection
-        self.output_projection = nn.Linear(d_model, midi_vocab_size)
+        self.output_projection = nn.Linear(d_model, 1)
         
         # Layer norm
         self.layer_norm = nn.LayerNorm(d_model)
@@ -190,7 +190,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
         
         # Get MIDI embeddings
         positions = torch.arange(seq_length, device=midi_tokens.device).unsqueeze(0).expand(batch_size, -1)
-        midi_embeds = self.midi_embedding(midi_tokens)
+        midi_embeds = self.midi_embedding(midi_tokens.unsqueeze(-1))
         pos_embeds = self.position_embedding(positions)
         
         # Add timestep embeddings
@@ -217,9 +217,12 @@ class MaskedDiffusionTransformer(L.LightningModule):
         )
         
         # Project to vocabulary
-        logits = self.output_projection(decoded)
-        
-        return logits
+        # Project to continuous values [0, 1]
+        output = self.output_projection(decoded)  # (batch, seq, 1)
+        output = output.squeeze(-1)  # (batch, seq)
+        output = torch.sigmoid(output)  # Map to [0, 1]
+
+        return output
     
     def add_noise(self, x: torch.Tensor, t: torch.Tensor, noise: torch.Tensor = None) -> torch.Tensor:
         """Add noise to the input according to the diffusion schedule.
@@ -279,8 +282,7 @@ class MaskedDiffusionTransformer(L.LightningModule):
         )
         
         # Calculate loss (cross-entropy with original tokens)
-        predicted_tokens = torch.sigmoid(predicted_logits)  # Map to 0-1
-        loss = F.mse_loss(predicted_tokens, midi_tokens)
+        loss = F.mse_loss(predicted_logits, midi_tokens)
 
         # Applica mask per ignorare padding
         if midi_attention_mask is not None:
@@ -330,20 +332,21 @@ class MaskedDiffusionTransformer(L.LightningModule):
         )
         
         # Calculate loss
-        loss = F.cross_entropy(
-            predicted_logits.view(-1, self.midi_vocab_size),
-            midi_tokens.view(-1),
-            ignore_index=-100,
-        )
+        loss = F.mse_loss(predicted_logits, midi_tokens)
+
+# Applica mask per ignorare padding
+        if midi_attention_mask is not None:
+            mask = midi_attention_mask.unsqueeze(-1)
+            loss = (loss * mask).sum() / mask.sum()
+
+        # Check NaN
         if torch.isnan(loss) or torch.isinf(loss):
             print(f"⚠️ NaN/Inf loss in validation batch {batch_idx}")
             loss = torch.tensor(0.0, device=self.device, requires_grad=True)
-    
+
         self.log("val_loss", loss, prog_bar=True)
         return loss
-        #self.log("val_loss", loss, prog_bar=True)
-        #return loss
-    
+        
     def configure_optimizers(self):
         """Configure optimizer and learning rate scheduler."""
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.lr)
