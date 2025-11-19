@@ -30,7 +30,22 @@ def normalize_tokens_by_type(tokens):
     
     return normalized
 
-
+def denormalize_tokens_by_type(normalized):
+    """Riporta token normalizzati ai range originali."""
+    tokens = []
+    for i, val in enumerate(normalized):
+        token_type = i % 4
+        
+        if token_type == 0:  # Pitch
+            tokens.append(int(round(val * 127.0)))
+        elif token_type == 1:  # Velocity
+            tokens.append(int(round(val * 127.0 + 128)))
+        elif token_type == 2:  # Duration
+            tokens.append(int(round(val * 255.0 + 256)))
+        elif token_type == 3:  # Delta
+            tokens.append(int(round(val * 255.0 + 512)))
+    
+    return tokens
 # -----------------------
 # Helper Functions
 # -----------------------

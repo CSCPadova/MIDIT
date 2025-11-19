@@ -79,18 +79,32 @@ def tokens_to_midi(tokens, output_path="output.mid", tempo=120):
     print(f"  📊 Notes: {len(instrument.notes)}, Duration: {current_time:.2f}s")
 
 # Generate MIDIs
-prompts = [
-    ("tokens_0.npy", "piano_c_major.mid", "A simple piano melody in C major"),
-    ("tokens_1.npy", "relaxing_piano.mid", "Relaxing piano music"),
-    ("tokens_2.npy", "drums.mid", "Fast energetic drums"),
-]
+test_sets = {
+    "simple": [
+        ("simple_0.npy", "simple_piano_c_major.mid", "Simple: Piano in C major"),
+        ("simple_1.npy", "simple_relaxing.mid", "Simple: Relaxing piano"),
+        ("simple_2.npy", "simple_drums.mid", "Simple: Drums"),
+    ],
+    "detailed": [
+        ("detailed_0.npy", "detailed_piano_c_major.mid", "Detailed: Piano white keys only"),
+        ("detailed_1.npy", "detailed_relaxing.mid", "Detailed: Relaxing no sharps"),
+        ("detailed_2.npy", "detailed_drums.mid", "Detailed: Drums low pitch"),
+    ],
+}
 
-print("🎵 Converting tokens to MIDI...\n")
+print("🎵 Converting ALL test tokens to MIDI...\n")
 
-for token_file, midi_file, prompt in prompts:
-    print(f"Prompt: {prompt}")
-    tokens = np.load(f"tmp/{token_file}")
-    tokens_to_midi(tokens, output_path=f"outputs/{midi_file}")
-    print()
+for test_type, prompts in test_sets.items():
+    print(f"=== {test_type.upper()} PROMPTS ===")
+    for token_file, midi_file, prompt in prompts:
+        print(f"  {prompt}")
+        try:
+            tokens = np.load(f"tmp/{token_file}")
+            tokens_to_midi(tokens, output_path=f"outputs/{midi_file}")
+        except FileNotFoundError:
+            print(f"  ⚠️  File not found: tmp/{token_file}")
+        print()
 
-print("✅ Done! Listen to outputs/*.mid")
+print("✅ Done! Compare in outputs/")
+print("  - simple_*.mid (prompt semplici)")
+print("  - detailed_*.mid (prompt dettagliati)")
