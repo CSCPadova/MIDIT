@@ -1,141 +1,64 @@
-"""
-Analizza dataset MidiCaps per contare file single vs multi-instrument.
-"""
+"""Esplora REMI+ tokenization per capire come funziona."""
 
-import json
+from miditok import REMI, TokenizerConfig
 from pathlib import Path
-from collections import Counter, defaultdict
+import pretty_midi
 
+print("🎹 Setup REMI+ Tokenizer\n")
 
-def analyze_instruments(json_path):
-    """Analizza distribuzione strumenti nel dataset."""
-    
-    single_instrument = []
-    multi_instrument = []
-    instrument_counts = Counter()
-    instruments_per_file = []
-    
-    print(f"📖 Analyzing {json_path}...")
-    
-    with open(json_path, 'r', encoding='utf-8') as f:
-        for i, line in enumerate(f):
-            sample = json.loads(line)
-            
-            # Get instruments (escludi drums)
-            instruments = sample.get('instrument_summary', [])
-            non_drum_instruments = [inst for inst in instruments if inst.lower() != 'drums']
-            
-            num_instruments = len(non_drum_instruments)
-            instruments_per_file.append(num_instruments)
-            
-            # Count per instrument
-            for inst in non_drum_instruments:
-                instrument_counts[inst] += 1
-            
-            # Classify
-            if num_instruments == 1:
-                single_instrument.append({
-                    'location': sample['location'],
-                    'instrument': non_drum_instruments[0],
-                    'caption': sample['caption'][:100] + '...',
-                    'tempo': sample.get('tempo'),
-                    'key': sample.get('key')
-                })
-            elif num_instruments > 1:
-                multi_instrument.append({
-                    'location': sample['location'],
-                    'instruments': non_drum_instruments,
-                    'num': num_instruments
-                })
-            
-            # Progress
-            if (i + 1) % 10000 == 0:
-                print(f"   Processed {i+1} samples...")
-    
-    return {
-        'single': single_instrument,
-        'multi': multi_instrument,
-        'instrument_counts': instrument_counts,
-        'instruments_per_file': instruments_per_file
-    }
+config = TokenizerConfig(
+    pitch_range=(21, 109),
+    beat_res={(0, 4): 8},
+    num_velocities=32,
+    use_chords=False,
+    use_rests=True,
+    use_tempos=True,
+    use_time_signatures=True,
+)
 
+tokenizer = REMI(config)
 
-def print_statistics(results):
-    """Stampa statistiche."""
-    
-    single = results['single']
-    multi = results['multi']
-    total = len(single) + len(multi)
-    
-    print("\n" + "="*80)
-    print("📊 DATASET STATISTICS")
-    print("="*80)
-    
-    print(f"\n📁 Total files: {total:,}")
-    print(f"   ✅ Single-instrument: {len(single):,} ({len(single)/total*100:.1f}%)")
-    print(f"   ⚠️  Multi-instrument:  {len(multi):,} ({len(multi)/total*100:.1f}%)")
-    
-    # Distribuzione numero strumenti
-    from collections import Counter
-    inst_dist = Counter(results['instruments_per_file'])
-    
-    print(f"\n🎵 Instruments per file distribution:")
-    for num in sorted(inst_dist.keys())[:10]:  # Top 10
-        count = inst_dist[num]
-        print(f"   {num} instruments: {count:,} files ({count/total*100:.1f}%)")
-    
-    # Top instruments in single-instrument files
-    print(f"\n🎹 Top 10 instruments (single-instrument files):")
-    single_inst_counter = Counter([s['instrument'] for s in single])
-    for inst, count in single_inst_counter.most_common(10):
-        print(f"   {inst}: {count:,} files")
-    
-    # Esempi single-instrument
-    print(f"\n📝 Example single-instrument files:")
-    for i, sample in enumerate(single[:5]):
-        print(f"\n   [{i+1}] {sample['instrument']}")
-        print(f"       Key: {sample['key']}, Tempo: {sample['tempo']} BPM")
-        print(f"       Caption: {sample['caption']}")
-        print(f"       File: {sample['location']}")
-    
-    # Esempi multi-instrument
-    print(f"\n📝 Example multi-instrument files:")
-    for i, sample in enumerate(multi[:5]):
-        print(f"\n   [{i+1}] {sample['num']} instruments: {', '.join(sample['instruments'][:3])}")
-        if len(sample['instruments']) > 3:
-            print(f"       ... and {len(sample['instruments'])-3} more")
-        print(f"       File: {sample['location']}")
+print("✅ Tokenizer creato!")
+print(f"   Vocab size: {len(tokenizer.vocab)}")
+print()
 
+print("📂 Carico MIDI Piano di esempio...\n")
 
-def save_single_instrument_list(single_files, output_path):
-    """Salva lista file single-instrument per reference."""
-    
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(single_files, f, indent=2, ensure_ascii=False)
-    
-    print(f"\n💾 Saved single-instrument list to: {output_path}")
+midi_path = "data/midi_files/lmd_full/1/1a20c7ecf60469366d1121ea48fd3f6e.mid"
 
-
-if __name__ == "__main__":
-    # Path al dataset
-    data_dir = Path("data/midi_files")  # ← Modifica se necessario
-    json_path = data_dir / "train.json"
+try:
+    tokens = tokenizer(midi_path)
     
-    if not json_path.exists():
-        print(f"❌ File not found: {json_path}")
-        print("   Please update data_dir in script")
-        exit(1)
+    print(f"✅ MIDI tokenizzato!")
+    print(f"   Numero token: {len(tokens[0])}")
+    print(f"\n📝 Primi 50 token:")
     
-    # Analyze
-    results = analyze_instruments(json_path)
+    for i, token_id in enumerate(tokens[0][:50]):
+        token_name = list(tokenizer.vocab.keys())[list(tokenizer.vocab.values()).index(token_id)]
+        print(f"   [{i:2d}] {token_id:3d} → {token_name}")
+        
+    print("\n" + "="*60)
+    print("🎯 CONFRONTO: 4-token vs REMI+")
+    print("="*60)
     
-    # Print stats
-    print_statistics(results)
+    midi = pretty_midi.PrettyMIDI(midi_path)
+    notes = []
+    for inst in midi.instruments:
+        if not inst.is_drum:
+            notes.extend(inst.notes)
+    notes.sort(key=lambda x: x.start)
     
-    # Save single-instrument list
-    output_path = data_dir / "single_instrument_files.json"
-    save_single_instrument_list(results['single'], output_path)
+    print(f"\n4-token encoding:")
+    print(f"   Note MIDI: {len(notes)}")
+    print(f"   Token totali: {len(notes) * 4}")
     
-    print("\n" + "="*80)
-    print("✅ Analysis complete!")
-    print("="*80)
+    print(f"\nREMI+ encoding:")
+    print(f"   Token totali: {len(tokens[0])}")
+    print(f"   Token per nota: ~{len(tokens[0])/len(notes):.1f}")
+    
+    print("\n✅ Script completato!")
+    
+except Exception as e:
+    print(f"❌ Errore: {e}")
+    import traceback
+    traceback.print_exc()
