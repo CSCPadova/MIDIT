@@ -25,6 +25,7 @@ dependencies = [
     "datasets>=4.3.0",
     "pretty-midi==0.2.10",
     "miditok>=3.0.6.post1",
+    "kaggle>=1.8.0",
 ]
 
 [project.scripts]
