@@ -26,6 +26,8 @@ dependencies = [
     "pretty-midi==0.2.10",
     "miditok>=3.0.6.post1",
     "kaggle>=1.8.0",
+    "miditoolkit>=1.0.1",
+    "symusic>=0.5.9",
 ]
 
 [project.scripts]

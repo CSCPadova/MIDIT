@@ -1,0 +1,49 @@
+defaults:
+    - /hydra/callbacks:
+        - log_job_return_callback
+    - override /hydra/launcher: submitit_slurm
+    - _self_
+
+data:
+    data_dir: data
+    logs_dir: logs
+    num_workers: 4
+    max_midi_length: 1024
+    max_text_length: 128 #prima era 256, ma osservando le statistiche il 98% dei testi sta sotto i 128 token. Quindi tagliamo fuori 1600 samples 'outliers' per velocizzare il processo di training.
+    midi_vocab_size: 768 #1024
+    text_vocab_size: 32128 #10000
+    max_samples: null  # null = usa tutto
+
+model:
+    d_model: 512
+    nhead: 8
+    num_encoder_layers: 6
+    num_decoder_layers: 6
+    dim_feedforward: 2048
+    dropout: 0.1
+    max_seq_length: 1024
+
+text_encoder:
+    model_name: google/flan-t5-base
+    freeze: true
+
+diffusion:
+    timesteps: 1000
+    beta_schedule: linear
+
+train:
+    accelerator: gpu
+    batch_size: 8
+    epochs: 10
+    fast_run: false
+    accumulate_grad_batches: 4 #nuovo
+    gradient_clip_val: 0.5    #nuovo
+
+optim:
+    lr: 0.00003  #cambiato
+
+logging:
+    use_wandb: true
+    use_tensorboard: true
+    wandb_project: midit
+    wandb_entity: null
