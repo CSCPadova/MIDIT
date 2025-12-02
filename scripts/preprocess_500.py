@@ -87,7 +87,8 @@ def process_single_file(args):
         
         # Descriptive filename
         source_id = midi_path.stem[:20]
-        output_filename = f"lakh_{file_idx:04d}_{source_id}.pt"
+        output_filename = f"lakh_{file_idx:05d}_{source_id}.pt"
+        #output_filename = f"lakh_{file_idx:04d}_{source_id}.pt" 
         output_path = output_dir / output_filename
         
         # Save
@@ -118,12 +119,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_dir', type=str, default='data/lakh_clean')
     parser.add_argument('--output_dir', type=str, default='data/preprocessed_phase1')
-    parser.add_argument('--max_files', type=int, default=500)
+    parser.add_argument('--max_files', type=int, default=None)
+    #parser.add_argument('--max_files', type=int, default=500) passo a tutto il dataset.
     parser.add_argument('--num_workers', type=int, default=4)
     args = parser.parse_args()
     
     print("\n" + "="*70)
-    print("🎵 LAKH MIDI PREPROCESSING - 500 FILES")
+    print("🎵 LAKH MIDI PREPROCESSING - FULL DATASET")
     print("="*70 + "\n")
     
     # Setup tokenizer
@@ -156,8 +158,11 @@ def main():
     # Find files
     midi_files = list(input_dir.rglob("*.mid"))
     
-    if args.max_files:
+    if args.max_files is not None:
         midi_files = midi_files[:args.max_files]
+    
+    #if args.max_files:
+    #   midi_files = midi_files[:args.max_files]
     
     print(f"📁 Input: {input_dir}")
     print(f"📁 Output: {output_dir}")
