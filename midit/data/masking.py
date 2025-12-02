@@ -1,0 +1,160 @@
+"""
+Bar-Level Masking Strategy for MIDI Sequences
+Following MusicBERT approach: mask all tokens of same type within a bar
+"""
+
+import torch
+import random
+from typing import Dict, List, Tuple, Optional
+
+
+class BarLevelMasking:
+    """Bar-level masking strategy for MLM pre-training.
+    
+    Following MusicBERT: mask all tokens of the same type within a bar
+    to prevent information leakage.
+    """
+    
+    def __init__(
+        self,
+        tokenizer_vocab: Dict[str, int],
+        mask_token_id: int,
+        bar_mask_prob: float = 0.15,
+        type_mask_ratio: float = 0.3,
+    ):
+        """Initialize masking strategy.
+        
+        Args:
+            tokenizer_vocab: Tokenizer vocabulary (token_name -> token_id)
+            mask_token_id: ID of [MASK] token
+            bar_mask_prob: Probability of masking a bar
+            type_mask_ratio: Ratio of token types to mask within a bar
+        """
+        self.vocab = tokenizer_vocab
+        self.mask_token_id = mask_token_id
+        self.bar_mask_prob = bar_mask_prob
+        self.type_mask_ratio = type_mask_ratio
+        
+        # Create reverse vocab (token_id -> token_name)
+        self.id_to_token = {v: k for k, v in tokenizer_vocab.items()}
+        
+        # Token type categories
+        self.token_types = {
+            'pitch': ['Pitch_'],
+            'velocity': ['Velocity_'],
+            'duration': ['Duration_'],
+            'program': ['Program_'],
+            'position': ['Position_'],
+            'bar': ['Bar_'],
+            'tempo': ['Tempo_'],
+            'timesig': ['TimeSig_'],
+            'rest': ['Rest_'],
+            'pitchdrum': ['PitchDrum_'],
+        }
+        
+        print(f"✅ BarLevelMasking initialized")
+        print(f"   Bar mask prob: {bar_mask_prob}")
+        print(f"   Type mask ratio: {type_mask_ratio}")
+        print(f"   Mask token ID: {mask_token_id}\n")
+    
+    def get_token_type(self, token_id: int) -> Optional[str]:
+        """Get token type from token ID.
+        
+        Args:
+            token_id: Token ID
+        
+        Returns:
+            Token type string or None
+        """
+        if token_id not in self.id_to_token:
+            return None
+        
+        token_name = self.id_to_token[token_id]
+        
+        # Find which type this token belongs to
+        for type_name, prefixes in self.token_types.items():
+            for prefix in prefixes:
+                if token_name.startswith(prefix):
+                    return type_name
+        
+        return None
+    
+    def apply_masking(
+        self,
+        tokens: torch.Tensor,
+        bar_positions: List[int],
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Apply bar-level masking to token sequence.
+        
+        Args:
+            tokens: Token IDs [seq_len]
+            bar_positions: Bar boundary positions
+        
+        Returns:
+            Tuple of (masked_tokens, mask_labels):
+                - masked_tokens: Tokens with [MASK] applied [seq_len]
+                - mask_labels: 1 where masked, 0 otherwise [seq_len]
+        """
+        masked_tokens = tokens.clone()
+        mask_labels = torch.zeros_like(tokens, dtype=torch.bool)
+        
+        num_bars = len(bar_positions) - 1
+        
+        # Iterate through bars
+        for bar_idx in range(num_bars):
+            # Decide if we mask this bar
+            if random.random() > self.bar_mask_prob:
+                continue
+            
+            start_pos = bar_positions[bar_idx]
+            end_pos = bar_positions[bar_idx + 1]
+            
+            # Get tokens in this bar
+            bar_tokens = tokens[start_pos:end_pos]
+            
+            # Find unique token types in this bar
+            types_in_bar = set()
+            for pos in range(len(bar_tokens)):
+                token_type = self.get_token_type(bar_tokens[pos].item())
+                if token_type is not None:
+                    types_in_bar.add(token_type)
+            
+            if len(types_in_bar) == 0:
+                continue
+            
+            # Select token types to mask
+            num_types_to_mask = max(1, int(len(types_in_bar) * self.type_mask_ratio))
+            types_to_mask = random.sample(list(types_in_bar), k=num_types_to_mask)
+            
+            # Mask all tokens of selected types in this bar
+            for local_pos in range(len(bar_tokens)):
+                global_pos = start_pos + local_pos
+                token_type = self.get_token_type(tokens[global_pos].item())
+                
+                if token_type in types_to_mask:
+                    masked_tokens[global_pos] = self.mask_token_id
+                    mask_labels[global_pos] = 1
+        
+        return masked_tokens, mask_labels
+    
+    def get_masking_stats(
+        self,
+        mask_labels: torch.Tensor,
+    ) -> Dict[str, float]:
+        """Get statistics about masking.
+        
+        Args:
+            mask_labels: Mask labels [seq_len]
+        
+        Returns:
+            Dictionary with masking statistics
+        """
+        total_tokens = len(mask_labels)
+        masked_tokens = mask_labels.sum().item()
+        mask_ratio = masked_tokens / total_tokens if total_tokens > 0 else 0
+        
+        return {
+            'total_tokens': total_tokens,
+            'masked_tokens': masked_tokens,
+            'mask_ratio': mask_ratio,
+        }
