@@ -99,14 +99,16 @@ model:
 # TRAINING CONFIGURATION
 # ============================================================================
 train:
-    phase: 1  # 1=pre-training (Lakh, no text), 2=fine-tuning (MidiCaps, with text)
+    phase: 1  
     batch_size: 2
     epochs: 50
+    accelerator: gpu           # ← NUOVO!
+    devices: 1                 # ← NUOVO!
     lr: 3e-4
     weight_decay: 0.01
     warmup_steps: 1000
     gradient_clip_val: 1.0
-    precision: bf16
+    precision: bf16            # Cambia anche: 16-mixed è più safe
     accumulate_grad_batches: 1
     
     # Checkpointing
