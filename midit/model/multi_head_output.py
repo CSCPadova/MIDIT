@@ -45,17 +45,10 @@ class MultiHeadOutput(nn.Module):
         
         # Default vocab sizes (from analysis)
         if vocab_sizes is None:
-            vocab_sizes = {
-                'pitch': 89,      # MIDI 21-109
-                'velocity': 32,   # 32 bins
-                'duration': 128,  # REMI duration tokens
-                'program': 129,   # 128 GM + Program -1 (drums)
-                'position': 32,   # 8th note resolution × 4 beats
-                'bar': 2,         # Bar_None, Bar_End
-                'tempo': 20,      # Tempo change tokens
-                'timesig': 10,    # Common time signatures
-                'rest': 50,       # Rest duration tokens
-            }
+            raise ValueError(
+                "vocab_sizes MUST be provided from LakhDataset.actual_vocab_sizes. "
+                "Never use default values as they don't match actual tokenizer output."
+            )
         
         self.vocab_sizes = vocab_sizes
         
@@ -184,7 +177,8 @@ class MultiHeadOutput(nn.Module):
             loss = nn.functional.cross_entropy(
                 logits[token_type].reshape(-1, self.vocab_sizes[token_type]),
                 targets[token_type].reshape(-1),
-                reduction='none'
+                reduction='none',
+                ignore_index=-100  # ← CRITICO! Ignora padding tokens
             )
             
             # Reshape back to (batch, seq)
@@ -193,7 +187,8 @@ class MultiHeadOutput(nn.Module):
             # Apply mask if provided
             if mask is not None:
                 loss = loss * mask
-                loss = loss.sum() / mask.sum()
+                den = mask.sum()
+                loss = loss.sum() / den.clamp(min=1)  # Evita divisione per zero
             else:
                 loss = loss.mean()
             

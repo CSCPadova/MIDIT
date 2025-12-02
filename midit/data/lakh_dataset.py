@@ -118,7 +118,7 @@ class LakhDataset(Dataset):
                 
         # Store actual vocab sizes
         self.actual_vocab_sizes = {
-            'pitch': len(self.pitch_tokens),
+            'pitch': len(self.pitch_tokens) + len(self.pitchdrum_tokens),
             'velocity': len(self.velocity_tokens),
             'duration': len(self.duration_tokens),
             'program': len(self.program_tokens),
