@@ -39,9 +39,33 @@ class LakhDataset(Dataset):
         self.chunking = chunking_config
         self.split = split
         self.apply_masking = apply_masking
-        
+
         # Load all .pt files
-        self.files = sorted(list(self.data_dir.glob("*.pt")))
+        all_files = sorted(list(self.data_dir.glob("*.pt")))
+
+        # Split deterministically with fixed seed
+        import numpy as np
+        np.random.seed(42)  # Fixed seed for reproducibility
+        indices = np.arange(len(all_files))
+        np.random.shuffle(indices)
+
+        # Split: 80% train, 10% val, 10% test
+        n_train = int(0.8 * len(all_files))
+        n_val = int(0.1 * len(all_files))
+
+        train_indices = indices[:n_train]
+        val_indices = indices[n_train:n_train + n_val]
+        test_indices = indices[n_train + n_val:]
+
+        # Select files based on split
+        if split == 'train':
+            self.files = [all_files[i] for i in sorted(train_indices)]
+        elif split == 'val':
+            self.files = [all_files[i] for i in sorted(val_indices)]
+        elif split == 'test':
+            self.files = [all_files[i] for i in sorted(test_indices)]
+        else:
+            raise ValueError(f"Invalid split: {split}. Must be 'train', 'val', or 'test'")
         
         if len(self.files) == 0:
             raise ValueError(f"No .pt files found in {data_dir}")
