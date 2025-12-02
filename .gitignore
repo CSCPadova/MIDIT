@@ -10,9 +10,8 @@ ENV/
 *.egg-info/
 
 # Data (too large)
-data/
-*.mid
-*.midi
+/data/
+!midit/data/
 
 # Logs
 logs/checkpoints/*.ckpt
