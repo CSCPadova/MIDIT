@@ -53,3 +53,19 @@ logs/
 
 tmp/
 *.tar.gz
+
+# Generated MIDI outputs
+generated_*/
+
+# Environment files
+.env
+
+# Temporary files
+
+# Generated MIDI outputs
+generated_*/
+
+# Environment files
+.env
+
+# Temporary files
