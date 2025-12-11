@@ -69,3 +69,15 @@ generated_*/
 .env
 
 # Temporary files
+
+preprocessed_phase1.zip
+*.zip
+# Large files
+*.zip
+*.ckpt
+*.tar.gz
+preprocessed_phase1.zip
+logs/checkpoints_phase1/
+
+# Data files
+token_frequencies.pt
