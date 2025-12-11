@@ -169,17 +169,19 @@ def train_phase1(cfg: DictConfig) -> None:
             raise ValueError(f"Vocab size for {token_type} is 0! Check tokenizer config.")
     
     # Lambda weights (from config)
-    lambda_weights = {
-        'pitch': 1.0,
-        'velocity': 1.0,
-        'duration': 1.0,
-        'program': 1.0,
-        'position': 4.5,
-        'rest': 10.0,
-        'bar': 10.0,
-        'timesig': 10.0,
-        'tempo': 20.0,
-    }
+    from omegaconf import OmegaConf
+    lambda_weights = OmegaConf.to_container(cfg.lambda_weights, resolve=True)
+    #lambda_weights = {
+    #    'pitch': 1.0,
+    #    'velocity': 1.0,
+    #    'duration': 1.0,
+    #    'program': 1.0,
+    #    'position': 4.5,
+    #    'rest': 10.0,
+    #    'bar': 10.0,
+    #    'timesig': 10.0,
+    #    'tempo': 20.0,
+    #}
     
     model = MaskedTransformerREMI(
         phase=1,
