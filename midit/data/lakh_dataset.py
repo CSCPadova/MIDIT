@@ -9,7 +9,7 @@ from pathlib import Path
 import random
 from typing import Dict, Optional
 from omegaconf import DictConfig
-from miditok import REMI, TokenizerConfig  # ← Aggiungi questo se non c'è
+from miditok import REMI, TokenizerConfig 
 from midit.data.masking import BarLevelMasking
 
 
@@ -162,8 +162,8 @@ class LakhDataset(Dataset):
             self.masker = BarLevelMasking(
                 tokenizer_vocab=self.tokenizer.vocab,
                 mask_token_id=self.mask_token_id,
-                bar_mask_prob=0.15,
-                type_mask_ratio=0.3,
+                bar_mask_prob=0.4,       # 0.15 → 0.6 ✅
+                type_mask_ratio=0.8,     # 0.3 → 0.8 ✅
             )
         else:
             self.masker = None
