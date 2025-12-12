@@ -48,21 +48,23 @@ chunking:
 masking:
     mask_prob: 0.15
     bar_level: true
-    mask_strategy: bert  # 80% MASK, 10% random, 10% unchanged
+    bar_mask_prob: 0.6      # ← AGGIUNGI! (60% barre mascherate)
+    type_mask_ratio: 0.8    # ← AGGIUNGI! (80% tipi per barra)
+    mask_strategy: bert     # 80% MASK, 10% random, 10% unchanged
 
 # ============================================================================
 # LAMBDA WEIGHTS (Per-token-type loss weights)
 # ============================================================================
 lambda_weights:
     pitch: 1.0
-    velocity: 1.0
-    duration: 1.0
+    velocity: 0.5      # 1.0 → 0.5
+    duration: 0.8      # 1.0 → 0.8
     program: 1.0
-    position: 4.5
-    rest: 10.0
-    bar: 10.0
-    timesig: 10.0
-    tempo: 20.0
+    position: 0.2      # 4.5 → 0.2 (22× riduzione!)
+    rest: 0.5          # 10.0 → 0.5 (20× riduzione!)
+    bar: 0.1           # 10.0 → 0.1 (100× riduzione!)
+    timesig: 2.0       # 10.0 → 2.0 (5× riduzione!)
+    tempo: 2.0         # 20.0 → 2.0 (10× riduzione!)
 
 # ============================================================================
 # MODEL CONFIGURATION
