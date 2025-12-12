@@ -171,6 +171,12 @@ def train_phase1(cfg: DictConfig) -> None:
     # Lambda weights (from config)
     from omegaconf import OmegaConf
     lambda_weights = OmegaConf.to_container(cfg.lambda_weights, resolve=True)
+    
+    print(f"\n{'='*70}")
+    print(f"🔍 LAMBDA WEIGHTS FROM CONFIG:")
+    for k, v in lambda_weights.items():
+        print(f"   {k:10s}: {v}")
+    print(f"{'='*70}\n")
     #lambda_weights = {
     #    'pitch': 1.0,
     #    'velocity': 1.0,
