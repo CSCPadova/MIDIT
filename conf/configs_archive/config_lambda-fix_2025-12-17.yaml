@@ -1,0 +1,138 @@
+# ============================================================================
+# MIDIT Configuration - Masked Transformer for REMI+ MIDI Generation
+# ============================================================================
+
+# ============================================================================
+# TOKENIZER CONFIGURATION
+# ============================================================================
+tokenizer:
+    type: REMI
+    pitch_range: [21, 109]
+    beat_res: {0: 4, 4: 8}
+    use_programs: true
+    one_token_stream_for_programs: true
+    use_chords: true
+    use_rests: true
+    use_tempos: true
+    use_time_signatures: true
+    use_controls: false
+    vocab_size: 521
+
+# ============================================================================
+# CHUNKING CONFIGURATION (Flexible preprocessing)
+# ============================================================================
+chunking:
+    # Chunking strategy
+    strategy: bar_based  # 'bar_based' or 'token_based'
+    
+    # Bar-based chunking parameters
+    bars_per_chunk: 8  # Number of bars per chunk (8, 16, 24, 32)
+    overlap_bars: 2     # Overlap between chunks (sliding window)
+    
+    # Token-based chunking parameters  
+    tokens_per_chunk: 4096  # Fixed token count per chunk
+    overlap_tokens: 512     # Overlap between chunks
+    
+    # Filtering and limits
+    max_tokens: 8192        # Hard limit (safety)
+    min_tokens_per_bar: 10  # Filter out empty bars
+    filter_empty_bars: true
+    
+    # Preprocessing paths
+    raw_data_dir: data/lakh_clean
+    preprocessed_dir: data/preprocessed_phase1
+
+# ============================================================================
+# MASKING CONFIGURATION
+# ============================================================================
+masking:
+    mask_prob: 0.15
+    bar_level: true
+    bar_mask_prob: 0.6      # ← AGGIUNGI! (60% barre mascherate)
+    type_mask_ratio: 0.8    # ← AGGIUNGI! (80% tipi per barra)
+    mask_strategy: bert     # 80% MASK, 10% random, 10% unchanged
+
+# ============================================================================
+# LAMBDA WEIGHTS (Per-token-type loss weights)
+# ============================================================================
+lambda_weights:
+    pitch: 1.0
+    velocity: 0.5      # 1.0 → 0.5
+    duration: 0.8      # 1.0 → 0.8
+    program: 1.0
+    position: 0.2      # 4.5 → 0.2 (22× riduzione!)
+    rest: 0.5          # 10.0 → 0.5 (20× riduzione!)
+    bar: 0.1           # 10.0 → 0.1 (100× riduzione!)
+    timesig: 2.0       # 10.0 → 2.0 (5× riduzione!)
+    tempo: 2.0         # 20.0 → 2.0 (10× riduzione!)
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
+model:
+    type: masked_transformer
+    d_model: 512
+    nhead: 8
+    num_encoder_layers: 12
+    dim_feedforward: 2048
+    dropout: 0.1
+    max_seq_length: 8192
+    
+    # Vocab sizes per token type
+    vocab_sizes:
+        pitch: 89
+        velocity: 32
+        duration: 128
+        program: 129
+        position: 32
+        bar: 2
+        tempo: 20
+        timesig: 10
+        rest: 50
+    
+    # Special tokens
+    special_tokens:
+        pad: 515
+        bos: 516
+        eos: 517
+        mask: 518
+
+# ============================================================================
+# TRAINING CONFIGURATION
+# ============================================================================
+train:
+    phase: 1  
+    batch_size: 2
+    epochs: 50
+    accelerator: gpu           # ← NUOVO!
+    devices: 1                 # ← NUOVO!
+    lr: 3e-4
+    weight_decay: 0.01
+    warmup_steps: 1000
+    gradient_clip_val: 1.0
+    precision: bf16            # Cambia anche: 16-mixed è più safe
+    accumulate_grad_batches: 1
+    
+    # Checkpointing
+    save_top_k: 3
+    monitor: val_loss
+    
+    # Logging
+    log_every_n_steps: 50
+    val_check_interval: 0.25
+
+# ============================================================================
+# DATA PATHS
+# ============================================================================
+paths:
+    # Phase 1: Pre-training
+    lakh_dir: data/lakh_clean
+    preprocessed_phase1: data/preprocessed_phase1
+    
+    # Phase 2: Fine-tuning
+    midicaps_dir: data/midicaps
+    preprocessed_phase2: data/preprocessed_phase2
+    
+    # Outputs
+    checkpoints_dir: checkpoints
+    logs_dir: logs
