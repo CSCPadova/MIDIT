@@ -15,11 +15,11 @@ if __name__ == "__main__":
     
     # Now use absolute imports for testing
     from midit.model.text_encoder import FlanT5TextEncoder
-    from midit.model.multi_head_output import MultiHeadOutput
+    from midit.model.multi_head_output1 import MultiHeadOutput
 else:
     # Normal relative imports when used as package
     from .text_encoder import FlanT5TextEncoder
-    from .multi_head_output import MultiHeadOutput    
+    from .multi_head_output1 import MultiHeadOutput    
 
 import torch
 from torch import nn
@@ -66,6 +66,7 @@ class MaskedTransformerREMI(L.LightningModule):
         
         # Loss config
         lambda_weights: Optional[Dict[str, float]] = None,
+        class_weights: Optional[Dict] = None,  # ← NEW!
         
         # Optimizer config
         lr: float = 3e-4,
@@ -88,6 +89,7 @@ class MaskedTransformerREMI(L.LightningModule):
             mask_prob: Masking probability
             bar_level_masking: Use bar-level masking
             lambda_weights: Loss weights per token type
+            class_weights: Class weights config for imbalanced tokens (NEW!)
             lr: Learning rate
             weight_decay: Weight decay
             warmup_steps: Warmup steps for scheduler
@@ -147,6 +149,61 @@ class MaskedTransformerREMI(L.LightningModule):
                 'tempo': 20.0,
             }
         self.lambda_weights = lambda_weights
+        
+        # ====================================================================
+        # CLASS WEIGHTS (NEW!) - Backward compatible
+        # ====================================================================
+        self.class_weights_config = class_weights
+        
+        if class_weights is not None and class_weights.get('enabled', False):
+            print(f"\n{'='*70}")
+            print("⚖️  CLASS WEIGHTS ENABLED")
+            print(f"{'='*70}")
+            
+            scaling = class_weights.get('scaling', 'raw')
+            max_weight = class_weights.get('max_weight', None)
+            
+            import json
+            weights_file = Path(class_weights.get('weights_file', 'class_weights.json'))
+            
+            if weights_file.exists():
+                with open(weights_file, 'r') as f:
+                    raw_weights = json.load(f)
+                
+                for token_type in class_weights.get('token_types', []):
+                    if token_type in raw_weights:
+                        weights = raw_weights[token_type]
+                        
+                        # Apply scaling
+                        if scaling == 'sqrt':
+                            import math
+                            weights = [math.sqrt(w) for w in weights]
+                        elif scaling == 'log':
+                            import math
+                            weights = [math.log(1 + w) for w in weights]
+                        
+                        # Apply max cap
+                        if max_weight is not None:
+                            weights = [min(w, max_weight) for w in weights]
+                        
+                        # Register buffer (Lightning-safe!)
+                        weight_tensor = torch.tensor(weights, dtype=torch.float32)
+                        self.register_buffer(
+                            f"class_weight_{token_type}",
+                            weight_tensor,
+                            persistent=False
+                        )
+                        
+                        print(f"  {token_type:10s}: {len(weights):3d} weights")
+                        print(f"    Scaling: {scaling}")
+                        print(f"    Range: [{min(weights):.2f}, {max(weights):.2f}]")
+                        if max_weight:
+                            print(f"    Max cap: {max_weight}")
+            else:
+                print(f"  ⚠️  Weights file not found: {weights_file}")
+                print(f"  Continuing without class weights")
+            
+            print(f"{'='*70}\n")
         
         # ====================================================================
         # TEXT ENCODER (PHASE 2 ONLY)
@@ -222,73 +279,92 @@ class MaskedTransformerREMI(L.LightningModule):
         print(f"   Trainable parameters: {trainable_params:,}")
         print(f"{'='*70}\n")
     
-    def apply_bar_masking(
-        self,
-        tokens: torch.Tensor,
-        bar_positions: Optional[torch.Tensor] = None,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Apply bar-level masking.
-        
-        Args:
-            tokens: Token IDs (batch, seq)
-            bar_positions: Bar positions (batch, num_bars) - optional
+    def get_class_weights_dict(self) -> Dict[str, torch.Tensor]:
+        """Get class weights as dictionary for passing to loss computation.
         
         Returns:
-            masked_tokens: Tokens with masking applied
-            mask_indices: Boolean mask of masked positions
+            Dictionary {token_type: weight_tensor} or empty dict if no weights
         """
-        batch_size, seq_length = tokens.shape
-        device = tokens.device
+        class_weights_dict = {}
         
-        # Create mask
-        mask_indices = torch.zeros(batch_size, seq_length, dtype=torch.bool, device=device)
+        if self.class_weights_config is not None and self.class_weights_config.get('enabled', False):
+            for token_type in self.class_weights_config.get('token_types', []):
+                weight = getattr(self, f"class_weight_{token_type}", None)
+                if weight is not None:
+                    class_weights_dict[token_type] = weight
         
-        if self.bar_level_masking and bar_positions is not None:
-            # Bar-level masking
-            for b in range(batch_size):
-                bar_pos = bar_positions[b]
-                num_bars = len(bar_pos[bar_pos >= 0])  # Count valid bars
-                
-                if num_bars == 0:
-                    continue
-                
-                # Select bars to mask (15%)
-                num_mask = max(1, int(num_bars * self.mask_prob))
-                mask_bar_indices = torch.randperm(num_bars, device=device)[:num_mask]
-                
-                # Mask all tokens in selected bars
-                for bar_idx in mask_bar_indices:
-                    if bar_idx >= len(bar_pos) - 1:
-                        continue
-                    start_pos = bar_pos[bar_idx]
-                    end_pos = bar_pos[bar_idx + 1] if bar_idx + 1 < num_bars else seq_length
-                    if start_pos >= 0 and end_pos <= seq_length:
-                        mask_indices[b, start_pos:end_pos] = True
-        else:
-            # Token-level masking (fallback)
-            mask_indices = torch.rand(batch_size, seq_length, device=device) < self.mask_prob
-        
-        # Apply masking: 80% MASK, 10% random, 10% unchanged
-        masked_tokens = tokens.clone()
-        mask_token_id = self.special_token_ids['mask']
-        
-        for b in range(batch_size):
-            masked_positions = mask_indices[b].nonzero(as_tuple=True)[0]
+        return class_weights_dict
+    
+    def apply_bar_masking(
+            self,
+            tokens: torch.Tensor,
+            bar_positions: Optional[torch.Tensor] = None,
+        ) -> tuple[torch.Tensor, torch.Tensor]:
+            """Apply bar-level masking.
             
-            for pos in masked_positions:
-                rand = torch.rand(1, device=device).item()
+            Args:
+                tokens: Token IDs (batch, seq)
+                bar_positions: Bar positions (batch, num_bars) - optional
+            
+            Returns:
+                masked_tokens: Tokens with masking applied
+                mask_indices: Boolean mask of masked positions
+            """
+            batch_size, seq_length = tokens.shape
+            device = tokens.device
+            
+            # Create mask
+            mask_indices = torch.zeros(batch_size, seq_length, dtype=torch.bool, device=device)
+            
+            if self.bar_level_masking and bar_positions is not None:
+                # Bar-level masking
+                for b in range(batch_size):
+                    bar_pos = bar_positions[b]
+                    num_bars = len(bar_pos[bar_pos >= 0])  # Count valid bars
+                    
+                    if num_bars == 0:
+                        continue
+                    
+                    # Select bars to mask (15%)
+                    num_mask = max(1, int(num_bars * self.mask_prob))
+                    mask_bar_indices = torch.randperm(num_bars, device=device)[:num_mask]
+                    
+                    # Mask all tokens in selected bars
+                    for bar_idx in mask_bar_indices:
+                        if bar_idx >= len(bar_pos) - 1:
+                            continue
+                        start_pos = bar_pos[bar_idx]
+                        end_pos = bar_pos[bar_idx + 1] if bar_idx + 1 < num_bars else seq_length
+                        if start_pos >= 0 and end_pos <= seq_length:
+                            mask_indices[b, start_pos:end_pos] = True
+            else:
+                # Token-level masking (fallback)
+                mask_indices = torch.rand(batch_size, seq_length, device=device) < self.mask_prob
+            
+            # Apply masking: 80% MASK, 10% random, 10% unchanged
+            masked_tokens = tokens.clone()
+            mask_token_id = self.special_token_ids['mask']
+            
+            for b in range(batch_size):
+                masked_positions = mask_indices[b].nonzero(as_tuple=True)[0]
                 
-                if rand < 0.8:
-                    masked_tokens[b, pos] = mask_token_id
-                elif rand < 0.9:
-                    random_token = torch.randint(
-                        0, sum(self.vocab_sizes.values()),
-                        (1,), device=device
-                    ).item()
-                    masked_tokens[b, pos] = random_token
-                # else: 10% unchanged
-        
-        return masked_tokens, mask_indices
+                for pos in masked_positions:
+                    rand = torch.rand(1, device=device).item()
+                    
+                    if rand < 0.8:
+                        # 80%: Replace with [MASK]
+                        masked_tokens[b, pos] = mask_token_id
+                    elif rand < 0.9:
+                        # 10%: Replace with random token
+                        # ✅ FIX: Use correct vocab size including special tokens
+                        random_token = torch.randint(
+                            0, self.token_embedding.num_embeddings,  # ← FIXED!
+                            (1,), device=device
+                        ).item()
+                        masked_tokens[b, pos] = random_token
+                    # else: 10% unchanged
+            
+            return masked_tokens, mask_indices
     
     def forward(
         self,
@@ -386,12 +462,16 @@ class MaskedTransformerREMI(L.LightningModule):
             midi_attention_mask,
         )
         
-        # Compute multi-head loss
+        # Get class weights
+        class_weights_dict = self.get_class_weights_dict()
+        
+        # Compute multi-head loss (with class weights)
         losses = self.multi_head_output.compute_loss(
             hidden_states,
             targets,
             self.lambda_weights,
             mask=mask_indices,
+            class_weights=class_weights_dict,  # ← NEW!
         )
         
         # Log losses
@@ -432,12 +512,16 @@ class MaskedTransformerREMI(L.LightningModule):
             midi_attention_mask,
         )
         
-        # Compute loss
+        # Get class weights
+        class_weights_dict = self.get_class_weights_dict()
+        
+        # Compute loss (with class weights)
         losses = self.multi_head_output.compute_loss(
             hidden_states,
             targets,
             self.lambda_weights,
             mask=mask_indices,
+            class_weights=class_weights_dict,  # ← NEW!
         )
         
         # Log
@@ -475,10 +559,6 @@ class MaskedTransformerREMI(L.LightningModule):
             },
         }
 
-
-# ============================================================================
-# Testing
-# ============================================================================
 
 # ============================================================================
 # Testing

@@ -1,41 +1,35 @@
-# Configuration for Phase 1 Training - FIXED VERSION
-# Changes: Token-level masking + Class weights
+# Configuration for Phase 1 Training - EXPERIMENT 1
+# Test: Sqrt Class Weights + Bar-Level Masking (Current)
+# ONE VARIABLE AT A TIME!
 
-# ============================================================================
-# Experiment Info
-# ============================================================================
 experiment:
-  name: "phase1_fixed"
-  description: "Phase 1 with token-level masking and class weights"
+  name: "phase1_exp1_classweights"
+  description: "Test sqrt class weights with bar-level masking"
   version: "1.0"
-  tags: ["phase1", "token-masking", "class-weights", "fix"]
+  tags: ["phase1", "class-weights", "sqrt-scaling", "experiment-1"]
 
 # ============================================================================
 # Paths
 # ============================================================================
 paths:
   data_dir: "data/preprocessed_phase1"
-  checkpoint_dir: "logs/checkpoints_phase1_fixed"  # ← NUOVO! Separato da originale
+  checkpoint_dir: "logs/checkpoints_phase1_exp1"  # ← Separato!
   log_dir: "logs"
-  class_weights_path: "class_weights.json"  # ← NUOVO!
+  class_weights_path: "class_weights.json"
 
 # ============================================================================
-# Model Architecture
+# Model Architecture (SAME AS EPOCH 47)
 # ============================================================================
 model:
-  # Input/Output
   vocab_size: 518
   d_model: 512
-  
-  # Transformer
   nhead: 8
   num_layers: 12
   dim_feedforward: 2048
   dropout: 0.1
   
-  # Multi-head output vocab sizes (keep same as original)
   vocab_sizes:
-    pitch: 151      # 89 pitch + 62 pitchdrum
+    pitch: 151
     velocity: 32
     duration: 32
     program: 129
@@ -46,7 +40,7 @@ model:
     rest: 32
 
 # ============================================================================
-# Lambda Weights (SAME AS EPOCH 47 - BEST CONFIG)
+# Lambda Weights (SAME AS EPOCH 47 - BEST)
 # ============================================================================
 lambda_weights:
   pitch: 1.0
@@ -60,105 +54,65 @@ lambda_weights:
   rest: 0.5
 
 # ============================================================================
-# Class Weights (NEW!)
+# Class Weights (EXPERIMENT 1 - ONLY CHANGE!)
 # ============================================================================
 class_weights:
-  enabled: true  # ← Toggle on/off
-  token_types: ["velocity", "program"]  # Which types to apply weights
-  weights_file: "class_weights.json"  # Computed weights
-  # Optionally cap max weight to avoid exploding gradients
-  max_weight: 100.0  # Cap rare tokens at 100× (invece di 8000×)
+  enabled: true
+  scaling: "sqrt"  # ← KEY: sqrt(imbalance) instead of raw
+  token_types: ["velocity", "program"]
+  weights_file: "class_weights.json"
+  max_weight: 150.0  # Safety cap (dopo sqrt dovrebbe essere ~89)
 
 # ============================================================================
-# Data & Masking (CHANGED TO TOKEN-LEVEL!)
+# Data & Masking (KEEP BAR-LEVEL - NO CHANGE!)
 # ============================================================================
 data:
-  # Chunking strategy
   chunking:
-    strategy: "bar_based"  # Keep bar-based chunking
+    strategy: "bar_based"
     bars_per_chunk: 8
     tokens_per_chunk: 4096
     max_tokens: 8192
   
-  # Masking strategy (CHANGED!)
   masking:
-    strategy: "token_level"  # ← WAS: "bar_level"
-    mask_ratio: 0.15  # Standard BERT (15%)
-    mask_type: "bert"  # 80% MASK, 10% random, 10% unchanged
-    
-    # Old bar-level params (kept for backwards compat, not used)
+    strategy: "bar_level"  # ← KEEP CURRENT (buggy ma noto)
     bar_mask_prob: 0.4
     type_mask_ratio: 0.8
+    # Token-level params (not used yet)
+    mask_ratio: 0.15
+    mask_type: "bert"
 
 # ============================================================================
-# Training
+# Training (SAME AS BEFORE)
 # ============================================================================
 training:
-  # Optimization
   batch_size: 32
   learning_rate: 1e-4
   weight_decay: 0.01
   max_epochs: 50
-  
-  # Scheduler
   warmup_steps: 1000
   scheduler: "cosine"
-  
-  # Checkpointing
   save_top_k: 3
   monitor: "val_loss"
   mode: "min"
-  
-  # Early stopping
   patience: 10
   min_delta: 0.001
-  
-  # Mixed precision
   precision: "16-mixed"
-  
-  # Gradient
   gradient_clip_val: 1.0
   accumulate_grad_batches: 1
 
-# ============================================================================
-# Validation
-# ============================================================================
 validation:
   batch_size: 32
   check_val_every_n_epoch: 1
 
-# ============================================================================
-# Logging
-# ============================================================================
 logging:
   project: "midit"
-  run_name: "phase1_fixed"
+  run_name: "phase1_exp1_classweights"
   log_every_n_steps: 50
-  logger: "wandb"  # or "tensorboard"
+  logger: "wandb"
 
-# ============================================================================
-# Hardware
-# ============================================================================
 hardware:
   accelerator: "gpu"
   devices: 1
   num_workers: 4
   
-# ============================================================================
-# Seed
-# ============================================================================
 seed: 42
-```
-
-**Salva file:** `conf/config_fixed.yaml`
-
----
-
-## **✅ Cosa Abbiamo Fatto:**
-```
-1. ✅ Nuovo config separato (non tocca config.yaml originale)
-2. ✅ checkpoint_dir diverso: logs/checkpoints_phase1_fixed
-3. ✅ Lambda weights = Epoch 47 (best baseline)
-4. ✅ Masking strategy: "token_level" (invece di "bar_level")
-5. ✅ Class weights: enabled con max_weight cap
-6. ✅ Backward compatible (vecchio config funziona ancora)
