@@ -354,9 +354,9 @@ class MaskedTransformerREMI(L.LightningModule):
                     if rand < 0.8:
                         # 80%: Replace with [MASK]
                         masked_tokens[b, pos] = mask_token_id
+
                     elif rand < 0.9:
-                        # 10%: Replace with random token
-                        # ✅ FIX: Use correct vocab size including special tokens
+                        # 10%: Replace with random token (include special tokens)
                         random_token = torch.randint(
                             0, self.token_embedding.num_embeddings,  # ← FIXED!
                             (1,), device=device
@@ -446,32 +446,32 @@ class MaskedTransformerREMI(L.LightningModule):
         targets = batch["targets"]  # Dict of targets per token type
         midi_attention_mask = batch.get("midi_attention_mask", None)
         bar_positions = batch.get("bar_positions", None)
-        
+        mask_labels = batch.get("mask_labels", None)  # From dataset masking
+
         # Phase 2: optional text
         text_tokens = batch.get("text_tokens", None) if self.phase == 2 else None
         text_attention_mask = batch.get("text_attention_mask", None) if self.phase == 2 else None
-        
-        # Apply masking
-        masked_tokens, mask_indices = self.apply_bar_masking(midi_tokens, bar_positions)
-        
+
+        # midi_tokens already masked by dataset — no second masking applied here
+
         # Forward pass
         hidden_states = self(
-            masked_tokens,
+            midi_tokens,
             text_tokens,
             text_attention_mask,
             midi_attention_mask,
         )
-        
+
         # Get class weights
         class_weights_dict = self.get_class_weights_dict()
-        
+
         # Compute multi-head loss (with class weights)
         losses = self.multi_head_output.compute_loss(
             hidden_states,
             targets,
             self.lambda_weights,
-            mask=mask_indices,
-            class_weights=class_weights_dict,  # ← NEW!
+            mask=mask_labels,
+            class_weights=class_weights_dict,
         )
         
         # Log losses
@@ -496,32 +496,32 @@ class MaskedTransformerREMI(L.LightningModule):
         targets = batch["targets"]
         midi_attention_mask = batch.get("midi_attention_mask", None)
         bar_positions = batch.get("bar_positions", None)
-        
+        mask_labels = batch.get("mask_labels", None)  # From dataset masking
+
         # Phase 2: optional text
         text_tokens = batch.get("text_tokens", None) if self.phase == 2 else None
         text_attention_mask = batch.get("text_attention_mask", None) if self.phase == 2 else None
-        
-        # Apply masking
-        masked_tokens, mask_indices = self.apply_bar_masking(midi_tokens, bar_positions)
-        
+
+        # midi_tokens already masked by dataset — no second masking applied here
+
         # Forward pass
         hidden_states = self(
-            masked_tokens,
+            midi_tokens,
             text_tokens,
             text_attention_mask,
             midi_attention_mask,
         )
-        
+
         # Get class weights
         class_weights_dict = self.get_class_weights_dict()
-        
+
         # Compute loss (with class weights)
         losses = self.multi_head_output.compute_loss(
             hidden_states,
             targets,
             self.lambda_weights,
-            mask=mask_indices,
-            class_weights=class_weights_dict,  # ← NEW!
+            mask=mask_labels,
+            class_weights=class_weights_dict,
         )
         
         # Log

@@ -32,6 +32,7 @@ class DataLoaderWrapper:
                 'targets': batch['targets'],
                 'midi_attention_mask': batch['attention_mask'],
                 'bar_positions': batch.get('bar_positions', None),
+                'mask_labels': batch.get('mask_labels', None),
             }
             
             yield adapted_batch
@@ -202,7 +203,7 @@ def train_phase1(cfg: DictConfig) -> None:
         mask_prob=0.15,
         bar_level_masking=True,
         lambda_weights=lambda_weights,
-        class_weights=OmegaConf.to_container(cfg.get('class_weights', None), resolve=True) if 'class_weights' in cfg else None
+        class_weights=OmegaConf.to_container(cfg.get('class_weights', None), resolve=True) if 'class_weights' in cfg else None,
         lr=lr,
         weight_decay=0.01,
         warmup_steps=1000,
