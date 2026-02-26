@@ -10,7 +10,7 @@ import random
 from typing import Dict, Optional
 from omegaconf import DictConfig
 from miditok import REMI, TokenizerConfig 
-from midit.data.masking import BarLevelMasking
+from midit.data.masking import BarLevelMasking, TokenLevelMasking
 
 
 class LakhDataset(Dataset):
@@ -26,6 +26,7 @@ class LakhDataset(Dataset):
         chunking_config: DictConfig,
         split: str = 'train',
         apply_masking: bool = True,
+        masking_config: Optional[DictConfig] = None,
     ):
         """Initialize dataset.
         
@@ -157,14 +158,24 @@ class LakhDataset(Dataset):
         for token_type, size in self.actual_vocab_sizes.items():
             print(f"   {token_type:10s}: {size:>4d}")
         print()
-        # ← NUOVO: Initialize masker
+        # Initialize masker based on config strategy
         if self.apply_masking:
-            self.masker = BarLevelMasking(
-                tokenizer_vocab=self.tokenizer.vocab,
-                mask_token_id=self.mask_token_id,
-                bar_mask_prob=0.4,       # 0.15 → 0.6 ✅
-                type_mask_ratio=0.8,     # 0.3 → 0.8 ✅
-            )
+            use_bar_level = getattr(masking_config, 'bar_level', True) if masking_config is not None else True
+
+            if use_bar_level:
+                self.masker = BarLevelMasking(
+                    tokenizer_vocab=self.tokenizer.vocab,
+                    mask_token_id=self.mask_token_id,
+                    bar_mask_prob=getattr(masking_config, 'bar_mask_prob', 0.4) if masking_config is not None else 0.4,
+                    type_mask_ratio=getattr(masking_config, 'type_mask_ratio', 0.8) if masking_config is not None else 0.8,
+                )
+            else:
+                self.masker = TokenLevelMasking(
+                    mask_token_id=self.mask_token_id,
+                    mask_ratio=getattr(masking_config, 'mask_prob', 0.15),
+                    mask_strategy=getattr(masking_config, 'mask_strategy', 'bert'),
+                    vocab_size=len(self.tokenizer.vocab),
+                )
         else:
             self.masker = None
         

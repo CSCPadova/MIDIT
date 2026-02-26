@@ -47,10 +47,10 @@ chunking:
 # ============================================================================
 masking:
     mask_prob: 0.15
-    bar_level: true
-    bar_mask_prob: 0.6      # ← AGGIUNGI! (60% barre mascherate)
-    type_mask_ratio: 0.8    # ← AGGIUNGI! (80% tipi per barra)
-    mask_strategy: bert     # 80% MASK, 10% random, 10% unchanged
+    bar_level: false         # true = BarLevelMasking, false = TokenLevelMasking (BERT-style)
+    bar_mask_prob: 0.4       # usato solo se bar_level: true
+    type_mask_ratio: 0.8     # usato solo se bar_level: true
+    mask_strategy: bert      # 80% MASK, 10% random, 10% unchanged
 
 # ============================================================================
 # LAMBDA WEIGHTS (Per-token-type loss weights)
