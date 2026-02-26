@@ -57,14 +57,14 @@ masking:
 # ============================================================================
 lambda_weights:
     pitch: 1.0
-    velocity: 5.0      # 0.5 → 5.0 (10× aumento!)
+    velocity: 1.5      # ridotto: TokenLevelMasking = tutti i token visti ugualmente
     duration: 1.0
-    program: 10.0      # 1.0 → 10.0 (10× aumento!)
-    position: 0.2
-    bar: 0.1
-    tempo: 5.0         # 2.0 → 5.0
-    timesig: 5.0       # 2.0 → 5.0
-    rest: 2.0
+    program: 2.0       # ridotto: 10.0 → 2.0 (era instabile con TokenLevelMasking)
+    position: 0.5
+    bar: 0.5
+    tempo: 2.0         # leggera enfasi (token raro ma importante)
+    timesig: 2.0       # leggera enfasi (token raro ma importante)
+    rest: 1.0
 
 # ============================================================================
 # MODEL CONFIGURATION
