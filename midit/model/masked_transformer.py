@@ -541,11 +541,13 @@ class MaskedTransformerREMI(L.LightningModule):
             betas=(0.9, 0.999),
         )
         
-        # Cosine with warmup
+        # Cosine with warmup — use actual total steps instead of hardcoded 10000
+        total_steps = self.trainer.estimated_stepping_batches
+
         def lr_lambda(current_step):
             if current_step < self.warmup_steps:
                 return float(current_step) / float(max(1, self.warmup_steps))
-            progress = float(current_step - self.warmup_steps) / float(max(1, 10000 - self.warmup_steps))
+            progress = float(current_step - self.warmup_steps) / float(max(1, total_steps - self.warmup_steps))
             return max(0.0, 0.5 * (1.0 + torch.cos(torch.tensor(3.141592653589793 * progress))))
         
         scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)

@@ -198,9 +198,10 @@ class MultiHeadOutput(nn.Module):
             
             # Apply mask if provided
             if mask is not None:
-                loss = loss * mask
-                den = mask.sum()
-                loss_mean = loss.sum() / den.clamp(min=1)  # Avoid division by zero
+                # Normalize by masked tokens of THIS type only (not all masked tokens)
+                # Avoids diluting rare types (Tempo, TimeSig) whose freq << avg
+                valid_mask = mask & (targets[token_type] != -100)
+                loss_mean = (loss * mask).sum() / valid_mask.sum().clamp(min=1)
             else:
                 loss_mean = loss.mean()
             
