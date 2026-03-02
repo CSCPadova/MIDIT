@@ -102,7 +102,7 @@ model:
 # ============================================================================
 train:
     phase: 1  
-    batch_size: 2
+    batch_size: 16
     epochs: 50
     accelerator: gpu           # ← NUOVO!
     devices: 1                 # ← NUOVO!

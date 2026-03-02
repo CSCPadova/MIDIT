@@ -6,7 +6,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --partition=allgroups
 #SBATCH --mem=32G
-#SBATCH --gres=gpu:rtx:1
+#SBATCH --gres=gpu:a40:1
 
 cd ~/MIDIT
 source .venv/bin/activate
