@@ -106,7 +106,7 @@ train:
     epochs: 50
     accelerator: gpu           # ← NUOVO!
     devices: 1                 # ← NUOVO!
-    lr: 3e-4
+    lr: 8e-4
     weight_decay: 0.01
     warmup_steps: 1000
     gradient_clip_val: 1.0
