@@ -56,15 +56,15 @@ masking:
 # LAMBDA WEIGHTS (Per-token-type loss weights)
 # ============================================================================
 lambda_weights:
-    pitch: 1.0
-    velocity: 1.5      # ridotto: TokenLevelMasking = tutti i token visti ugualmente
-    duration: 1.0
-    program: 2.0       # ridotto: 10.0 → 2.0 (era instabile con TokenLevelMasking)
-    position: 0.5
-    bar: 0.5
-    tempo: 2.0         # leggera enfasi (token raro ma importante)
-    timesig: 2.0       # leggera enfasi (token raro ma importante)
-    rest: 1.0
+    pitch: 3.0         # triplicato — il tipo più importante e più difficile
+    velocity: 1.5      # invariato
+    duration: 1.0      # invariato
+    program: 1.5       # ridotto leggermente (già buono a 55%)
+    position: 0.5      # invariato
+    bar: 0.0           # azzerato — 100% accuracy, non contribuisce all'apprendimento
+    tempo: 2.0         # invariato — raro ma importante
+    timesig: 0.5       # ridotto: 97% accuracy, quasi banale
+    rest: 1.0          # invariato
 
 # ============================================================================
 # MODEL CONFIGURATION
@@ -102,11 +102,11 @@ model:
 # ============================================================================
 train:
     phase: 1  
-    batch_size: 16
+    batch_size: 2
     epochs: 50
     accelerator: gpu           # ← NUOVO!
     devices: 1                 # ← NUOVO!
-    lr: 8e-4
+    lr: 3e-4
     weight_decay: 0.01
     warmup_steps: 1000
     gradient_clip_val: 1.0
