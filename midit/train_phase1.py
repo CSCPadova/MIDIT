@@ -56,21 +56,9 @@ def train_phase1(cfg: DictConfig) -> None:
     # ========================================
     print("📦 Loading datasets...\n")
     
-    train_dataset = LakhDataset(
-        data_dir="data/preprocessed_phase1",
-        chunking_config=cfg.chunking,
-        split='train',
-        apply_masking=True,
-        masking_config=cfg.masking,
-    )
+    train_dataset = LakhDataset(cfg, split='train', apply_masking=True)
 
-    val_dataset = LakhDataset(
-        data_dir="data/preprocessed_phase1",
-        chunking_config=cfg.chunking,
-        split='val',
-        apply_masking=True,
-        masking_config=cfg.masking,
-    )
+    val_dataset = LakhDataset(cfg, split='val', apply_masking=False)
     
     batch_size = getattr(cfg.train, 'batch_size', 8)
     
