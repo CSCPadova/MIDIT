@@ -51,9 +51,9 @@ def train_phase1(cfg: DictConfig) -> None:
     
     torch.set_float32_matmul_precision("high")
     
-    # ========================================
+    # =================================
     # Dataset & DataLoader
-    # ========================================
+    # =================================
     print("📦 Loading datasets...\n")
     
     train_dataset = LakhDataset(cfg, split='train', apply_masking=True)
@@ -88,9 +88,9 @@ def train_phase1(cfg: DictConfig) -> None:
     print(f"✅ Val dataset: {len(val_dataset)} files")
     print(f"✅ Batch size: {batch_size}\n")
     
-    # ========================================
+    # =================================
     # Model Config
-    # ========================================
+    # =================================
     print("🤖 Initializing MaskedTransformerREMI...\n")
     
     d_model = getattr(cfg.model, 'd_model', 512)
@@ -119,14 +119,14 @@ def train_phase1(cfg: DictConfig) -> None:
     print(f"   max_seq_length: {max_seq_length}")
     print(f"   lr: {lr}\n")
     
-    # ========================================
+    # =================================
     # Model - Use Existing Architecture!
-    # ========================================
+    # =================================
     
     # Vocab sizes from our analysis
-    # ========================================
+    # =================================
     # Get actual vocab sizes from dataset
-    # ========================================
+    # =================================
     print("📊 Retrieving actual vocab sizes from dataset...\n")
 
     # Get from train dataset (already initialized)
@@ -137,9 +137,9 @@ def train_phase1(cfg: DictConfig) -> None:
         print(f"   {token_type:10s}: {size:>4d}")
     print()
 
-    # ========================================
+    # =================================
     # Get tokenizer vocab size (for input embedding)
-    # ========================================
+    # =================================
     tokenizer_vocab_size = len(train_dataset.tokenizer.vocab)
 
     print(f"📊 Tokenizer info:")
@@ -204,9 +204,9 @@ def train_phase1(cfg: DictConfig) -> None:
     model.token_embedding = torch.nn.Embedding(tokenizer_vocab_size, d_model)
     print(f"✅ Token embedding size: {tokenizer_vocab_size} → {d_model}\n")
     
-    # ========================================
+    # =================================
     # Logger & Callbacks
-    # ========================================
+    # =================================
     if hasattr(cfg, 'data') and hasattr(cfg.data, 'logs_dir'):
         logs_dir = cfg.data.logs_dir
     elif hasattr(cfg, 'logging') and hasattr(cfg.logging, 'logs_dir'):
@@ -227,15 +227,18 @@ def train_phase1(cfg: DictConfig) -> None:
             filename="phase1-{epoch:02d}-{val_loss:.4f}",
             monitor="val_loss",
             mode="min",
-            save_top_k=2,
+
+
+            save_top_k=1,
+
             save_last=True,
         ),
         LearningRateMonitor(logging_interval='step'),
     ]
     
-    # ========================================
+    # =================================
     # Trainer
-    # ========================================
+    # =================================
     max_epochs = getattr(cfg.train, 'epochs', 10)
     accelerator = getattr(cfg.train, 'accelerator', 'cpu')
     fast_run = getattr(cfg.train, 'fast_run', False)
@@ -254,9 +257,9 @@ def train_phase1(cfg: DictConfig) -> None:
         limit_val_batches=20 if fast_run else 1.0,
     )
     
-    # ========================================
+    # =================================
     # Train
-    # ========================================
+    # =================================
     print("🚀 Starting training...\n")
     print("="*70 + "\n")
     
