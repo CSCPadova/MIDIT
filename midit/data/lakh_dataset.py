@@ -22,20 +22,21 @@ class LakhDataset(Dataset):
     
     def __init__(
         self,
-        data_dir: str,
-        chunking_config: DictConfig,
+        cfg: DictConfig,
         split: str = 'train',
         apply_masking: bool = True,
-        masking_config: Optional[DictConfig] = None,
     ):
         """Initialize dataset.
-        
+
         Args:
-            data_dir: Directory containing .pt files
-            chunking_config: Chunking configuration from Hydra
+            cfg: Full Hydra config (reads cfg.chunking.preprocessed_dir, cfg.chunking, cfg.masking)
             split: 'train' or 'val'
             apply_masking: Whether to apply masking (True for train, False for val)
         """
+        data_dir = cfg.chunking.preprocessed_dir
+        chunking_config = cfg.chunking
+        masking_config = cfg.masking
+
         self.data_dir = Path(data_dir)
         self.chunking = chunking_config
         self.split = split
@@ -74,7 +75,7 @@ class LakhDataset(Dataset):
         # ← NUOVO: Initialize tokenizer (for vocab)
         config = TokenizerConfig(
             pitch_range=(21, 109),
-            beat_res={(0, 4): 8},
+            beat_res={(0, 4): 8, (4, 12): 4},
             num_velocities=32,
             use_chords=False,
             use_rests=True,
@@ -83,6 +84,8 @@ class LakhDataset(Dataset):
             use_programs=True,
             special_tokens=["PAD", "BOS", "EOS", "MASK"],
             use_controls=False,
+            delete_equal_successive_tempo_changes=True,
+            delete_equal_successive_time_sig_changes=True,
         )
         
         self.tokenizer = REMI(config)
@@ -100,7 +103,7 @@ class LakhDataset(Dataset):
         # ========================================
         # Pre-compute token type lists (OPTIMIZATION)
         # ========================================
-        print(f"\n🔍 Pre-computing vocab token lists...")
+        print(f"\n[INFO] Pre-computing vocab token lists...")
                 
         # Build reverse vocab for fast lookup
         self.id_to_token = {v: k for k, v in self.tokenizer.vocab.items()}
@@ -130,7 +133,7 @@ class LakhDataset(Dataset):
         # Build time signature mapping
         self.timesig_to_class = {token: idx for idx, token in enumerate(self.timesig_tokens)}
 
-        print(f"✅ Token lists pre-computed:")
+        print(f"[OK] Token lists pre-computed:")
         print(f"   Pitch tokens: {len(self.pitch_tokens)}")
         print(f"   Velocity tokens: {len(self.velocity_tokens)}")
         print(f"   Duration tokens: {len(self.duration_tokens)}")
@@ -154,7 +157,7 @@ class LakhDataset(Dataset):
             'rest': len(self.rest_tokens),
         }
                 
-        print(f"\n📊 Actual vocab sizes:")
+        print(f"\n[INFO] Actual vocab sizes:")
         for token_type, size in self.actual_vocab_sizes.items():
             print(f"   {token_type:10s}: {size:>4d}")
         print()
@@ -179,7 +182,7 @@ class LakhDataset(Dataset):
         else:
             self.masker = None
         
-        print(f"\n✅ LakhDataset initialized")
+        print(f"\n[OK] LakhDataset initialized")
         print(f"   Split: {split}")
         print(f"   Files: {len(self.files)}")
         print(f"   Chunking strategy: {self.chunking.strategy}")

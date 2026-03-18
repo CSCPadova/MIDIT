@@ -250,7 +250,7 @@ class TokenLevelMasking:
         self.mask_strategy = mask_strategy
         self.vocab_size = vocab_size
         
-        print(f"✅ TokenLevelMasking initialized")
+        print(f"[OK] TokenLevelMasking initialized")
         print(f"   Mask ratio: {mask_ratio} ({mask_ratio*100:.1f}%)")
         print(f"   Strategy: {mask_strategy}")
         print(f"   Mask token ID: {mask_token_id}")

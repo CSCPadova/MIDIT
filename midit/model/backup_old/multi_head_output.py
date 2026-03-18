@@ -147,27 +147,22 @@ class MultiHeadOutput(nn.Module):
         targets: Dict[str, torch.Tensor],
         lambda_weights: Dict[str, float],
         mask: Optional[torch.Tensor] = None,
-        class_weights: Optional[Dict[str, torch.Tensor]] = None,  # ← NEW!
     ) -> Dict[str, torch.Tensor]:
-        """Compute weighted multi-head loss with optional class weights.
+        """Compute weighted multi-head loss.
         
         Args:
             hidden_states: Hidden representations (batch, seq, d_model)
             targets: Dictionary of target token IDs for each type
                     {token_type: (batch, seq)}
-                    Non-supervised positions should have value -100
             lambda_weights: Dictionary of loss weights for each type
             mask: Optional attention mask (batch, seq) - 1 for real tokens, 0 for padding
-            class_weights: Optional dictionary of class weight tensors per token type
-                          {token_type: tensor of shape (vocab_size,)}
-                          Used to handle class imbalance (e.g., velocity, program)
         
         Returns:
             Dictionary containing:
-                - 'total': Weighted sum of all losses (tensor for backprop)
-                - '{token_type}': Unweighted loss for this type (tensor)
-                - '{token_type}_weighted': Lambda-weighted loss (tensor)
-                - '{token_type}_has_class_weights': 1.0 if class weights applied (tensor)
+                - 'total': Weighted sum of all losses
+                - 'pitch': Pitch classification loss
+                - 'velocity': Velocity classification loss
+                - ... (one per token type)
         """
         logits = self.forward(hidden_states)
         
@@ -178,19 +173,12 @@ class MultiHeadOutput(nn.Module):
             if token_type not in targets:
                 continue
             
-            # Get class weights for this token type (if available)
-            weight = None
-            if class_weights is not None and token_type in class_weights:
-                weight = class_weights[token_type]
-            
             # Compute cross-entropy loss
-            # reduction='none' to apply mask manually afterwards
             loss = nn.functional.cross_entropy(
                 logits[token_type].reshape(-1, self.vocab_sizes[token_type]),
                 targets[token_type].reshape(-1),
-                weight=weight,  # ← CLASS WEIGHTS APPLIED HERE!
                 reduction='none',
-                ignore_index=-100  # ← CRITICAL: Ignores non-supervised positions
+                ignore_index=-100  # ← CRITICO! Ignora padding tokens
             )
             
             # Reshape back to (batch, seq)
@@ -200,26 +188,14 @@ class MultiHeadOutput(nn.Module):
             if mask is not None:
                 loss = loss * mask
                 den = mask.sum()
-                loss_mean = loss.sum() / den.clamp(min=1)  # Avoid division by zero
+                loss = loss.sum() / den.clamp(min=1)  # Evita divisione per zero
             else:
-                loss_mean = loss.mean()
+                loss = loss.mean()
             
             # Apply lambda weight
-            weighted_loss = lambda_weights.get(token_type, 1.0) * loss_mean
+            weighted_loss = lambda_weights.get(token_type, 1.0) * loss
             
-            # Store losses (unweighted, weighted, and flag)
-            losses[token_type] = loss_mean  # Tensor (for Lightning logging)
-            losses[f'{token_type}_weighted'] = weighted_loss  # Tensor
-            
-            # Flag if class weights were applied
-            if weight is not None:
-                losses[f'{token_type}_has_class_weights'] = torch.tensor(
-                    1.0, 
-                    device=loss_mean.device,
-                    dtype=loss_mean.dtype
-                )
-            
-            # Accumulate for total loss
+            losses[token_type] = loss
             total_loss = total_loss + weighted_loss
         
         losses['total'] = total_loss
@@ -242,19 +218,6 @@ def test_multi_head_output():
     seq_length = 128
     d_model = 512
     
-    # Vocab sizes (must match dataset!)
-    vocab_sizes = {
-        'pitch': 151,      # 89 + 62 pitchdrum
-        'velocity': 32,
-        'duration': 32,
-        'program': 129,
-        'position': 96,
-        'bar': 1,
-        'tempo': 32,
-        'timesig': 9,
-        'rest': 32,
-    }
-    
     print(f"📊 Test configuration:")
     print(f"   Batch size: {batch_size}")
     print(f"   Sequence length: {seq_length}")
@@ -262,7 +225,7 @@ def test_multi_head_output():
     
     # Create module
     print("[TEST 1] Creating MultiHeadOutput module...")
-    multi_head = MultiHeadOutput(d_model=d_model, vocab_sizes=vocab_sizes)
+    multi_head = MultiHeadOutput(d_model=d_model)
     
     total_params = sum(p.numel() for p in multi_head.parameters())
     print(f"✅ Module created")
@@ -296,20 +259,20 @@ def test_multi_head_output():
         print(f"   {token_type:10s}: {tuple(pred_tensor.shape)}")
     print()
     
-    # Test loss computation WITHOUT class weights
-    print("[TEST 4] Testing compute_loss (no class weights)...")
+    # Test loss computation
+    print("[TEST 4] Testing compute_loss...")
     
     # Create dummy targets
     targets = {
-        'pitch': torch.randint(0, vocab_sizes['pitch'], (batch_size, seq_length)),
-        'velocity': torch.randint(0, vocab_sizes['velocity'], (batch_size, seq_length)),
-        'duration': torch.randint(0, vocab_sizes['duration'], (batch_size, seq_length)),
-        'program': torch.randint(0, vocab_sizes['program'], (batch_size, seq_length)),
-        'position': torch.randint(0, vocab_sizes['position'], (batch_size, seq_length)),
-        'bar': torch.randint(0, vocab_sizes['bar'], (batch_size, seq_length)),
-        'tempo': torch.randint(0, vocab_sizes['tempo'], (batch_size, seq_length)),
-        'timesig': torch.randint(0, vocab_sizes['timesig'], (batch_size, seq_length)),
-        'rest': torch.randint(0, vocab_sizes['rest'], (batch_size, seq_length)),
+        'pitch': torch.randint(0, 89, (batch_size, seq_length)),
+        'velocity': torch.randint(0, 32, (batch_size, seq_length)),
+        'duration': torch.randint(0, 128, (batch_size, seq_length)),
+        'program': torch.randint(0, 129, (batch_size, seq_length)),
+        'position': torch.randint(0, 32, (batch_size, seq_length)),
+        'bar': torch.randint(0, 2, (batch_size, seq_length)),
+        'tempo': torch.randint(0, 20, (batch_size, seq_length)),
+        'timesig': torch.randint(0, 10, (batch_size, seq_length)),
+        'rest': torch.randint(0, 50, (batch_size, seq_length)),
     }
     
     # Lambda weights from config
@@ -332,38 +295,11 @@ def test_multi_head_output():
     
     print(f"✅ Loss computation successful")
     print(f"   Individual losses:")
-    for token_type in vocab_sizes.keys():
-        if token_type in losses:
-            unweighted = losses[token_type].item()
-            weighted_key = f'{token_type}_weighted'
-            weighted = losses[weighted_key].item() if weighted_key in losses else unweighted
-            print(f"   {token_type:10s}: {unweighted:>8.4f} (weighted: {weighted:>8.4f})")
+    for token_type, loss_value in losses.items():
+        if token_type != 'total':
+            weighted = loss_value.item() * lambda_weights.get(token_type, 1.0)
+            print(f"   {token_type:10s}: {loss_value.item():>8.4f} (weighted: {weighted:>8.4f})")
     print(f"\n   Total weighted loss: {losses['total'].item():.4f}\n")
-    
-    # Test loss computation WITH class weights
-    print("[TEST 5] Testing compute_loss (WITH class weights)...")
-    
-    # Create dummy class weights (sqrt scaled for velocity/program)
-    class_weights_dict = {
-        'velocity': torch.ones(vocab_sizes['velocity']) * 2.0,  # Dummy: all 2×
-        'program': torch.ones(vocab_sizes['program']) * 3.0,    # Dummy: all 3×
-    }
-    
-    losses_with_weights = multi_head.compute_loss(
-        hidden_states, 
-        targets, 
-        lambda_weights, 
-        mask,
-        class_weights=class_weights_dict
-    )
-    
-    print(f"✅ Loss computation with class weights successful")
-    print(f"   Checking flags:")
-    for token_type in vocab_sizes.keys():
-        flag_key = f'{token_type}_has_class_weights'
-        if flag_key in losses_with_weights:
-            print(f"   {token_type:10s}: ✅ Class weights applied")
-    print(f"\n   Total weighted loss: {losses_with_weights['total'].item():.4f}\n")
     
     print("="*70)
     print("✅ ALL TESTS PASSED!")

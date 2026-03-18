@@ -1,0 +1,120 @@
+# ============================================================================
+# MIDIT Configuration - BASELINE (Epoch 44)
+# ============================================================================
+# Date: 2025-12-11
+# Problem: Lambda weights HARDCODED in train_phase1.py, config ignored
+# Result: 22.58% avg accuracy, pitch only 7.34%
+# ============================================================================
+
+# ============================================================================
+# TOKENIZER CONFIGURATION
+# ============================================================================
+tokenizer:
+    type: REMI
+    pitch_range: [21, 109]
+    beat_res: {0: 4, 4: 8}
+    use_programs: true
+    one_token_stream_for_programs: true
+    use_chords: true
+    use_rests: true
+    use_tempos: true
+    use_time_signatures: true
+    use_controls: false
+    vocab_size: 521
+
+# ============================================================================
+# CHUNKING CONFIGURATION
+# ============================================================================
+chunking:
+    strategy: bar_based
+    bars_per_chunk: 8
+    overlap_bars: 2
+    tokens_per_chunk: 4096
+    overlap_tokens: 512
+    max_tokens: 8192
+    min_tokens_per_bar: 10
+    filter_empty_bars: true
+    raw_data_dir: data/lakh_clean
+    preprocessed_dir: data/preprocessed_phase1
+
+# ============================================================================
+# MASKING CONFIGURATION
+# ============================================================================
+masking:
+    mask_prob: 0.15
+    bar_level: true
+    mask_strategy: bert
+
+# ============================================================================
+# LAMBDA WEIGHTS (IGNORED - HARDCODED IN CODE!)
+# ============================================================================
+lambda_weights:
+    pitch: 1.0
+    velocity: 1.0
+    duration: 1.0
+    program: 1.0
+    position: 4.5      # ❌ Config ignored, code used 4.5
+    rest: 10.0         # ❌ Config ignored, code used 10.0
+    bar: 10.0          # ❌ Config ignored, code used 10.0
+    timesig: 10.0      # ❌ Config ignored, code used 10.0
+    tempo: 20.0        # ❌ Config ignored, code used 20.0
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
+model:
+    type: masked_transformer
+    d_model: 512
+    nhead: 8
+    num_encoder_layers: 12
+    dim_feedforward: 2048
+    dropout: 0.1
+    max_seq_length: 8192
+    
+    vocab_sizes:
+        pitch: 89
+        velocity: 32
+        duration: 128
+        program: 129
+        position: 32
+        bar: 2
+        tempo: 20
+        timesig: 10
+        rest: 50
+    
+    special_tokens:
+        pad: 515
+        bos: 516
+        eos: 517
+        mask: 518
+
+# ============================================================================
+# TRAINING CONFIGURATION
+# ============================================================================
+train:
+    phase: 1
+    batch_size: 2
+    epochs: 50
+    accelerator: gpu
+    devices: 1
+    lr: 3e-4
+    weight_decay: 0.01
+    warmup_steps: 1000
+    gradient_clip_val: 1.0
+    precision: bf16
+    accumulate_grad_batches: 1
+    save_top_k: 3
+    monitor: val_loss
+    log_every_n_steps: 50
+    val_check_interval: 0.25
+
+# ============================================================================
+# DATA PATHS
+# ============================================================================
+paths:
+    lakh_dir: data/lakh_clean
+    preprocessed_phase1: data/preprocessed_phase1
+    midicaps_dir: data/midicaps
+    preprocessed_phase2: data/preprocessed_phase2
+    checkpoints_dir: checkpoints
+    logs_dir: logs

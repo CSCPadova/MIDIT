@@ -40,7 +40,7 @@ chunking:
     
     # Preprocessing paths
     raw_data_dir: data/lakh_clean
-    preprocessed_dir: data/preprocessed_phase1
+    preprocessed_dir: data/preprocessed_v2_test
 
 # ============================================================================
 # MASKING CONFIGURATION
@@ -71,6 +71,7 @@ lambda_weights:
 # ============================================================================
 model:
     type: masked_transformer
+    vocab_size: 550
     d_model: 512
     nhead: 8
     num_encoder_layers: 12
@@ -82,7 +83,7 @@ model:
     vocab_sizes:
         pitch: 89
         velocity: 32
-        duration: 128
+        duration: 64
         program: 129
         position: 32
         bar: 2

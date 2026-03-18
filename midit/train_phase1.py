@@ -239,7 +239,7 @@ def train_phase1(cfg: DictConfig) -> None:
             filename="phase1-{epoch:02d}-{val_loss:.4f}",
             monitor="val_loss",
             mode="min",
-            save_top_k=3,
+            save_top_k=2,
             save_last=True,
         ),
         LearningRateMonitor(logging_interval='step'),
