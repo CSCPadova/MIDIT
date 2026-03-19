@@ -15,11 +15,11 @@ if __name__ == "__main__":
     
     # Now use absolute imports for testing
     from midit.model.text_encoder import FlanT5TextEncoder
-    from midit.model.multi_head_output1 import MultiHeadOutput
+    from midit.model.multi_head_output import MultiHeadOutput
 else:
     # Normal relative imports when used as package
     from .text_encoder import FlanT5TextEncoder
-    from .multi_head_output1 import MultiHeadOutput    
+    from .multi_head_output import MultiHeadOutput    
 
 import torch
 from torch import nn

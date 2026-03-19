@@ -58,7 +58,7 @@ def train_phase1(cfg: DictConfig) -> None:
     
     train_dataset = LakhDataset(cfg, split='train', apply_masking=True)
 
-    val_dataset = LakhDataset(cfg, split='val', apply_masking=False)
+    val_dataset = LakhDataset(cfg, split='val', apply_masking=True)
     
     batch_size = getattr(cfg.train, 'batch_size', 8)
     
