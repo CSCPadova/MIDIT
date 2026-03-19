@@ -6,7 +6,7 @@ import torch
 import lightning as L
 from torch.utils.data import DataLoader
 from lightning.pytorch.callbacks import ModelCheckpoint, LearningRateMonitor
-from lightning.pytorch.loggers import TensorBoardLogger
+from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 from omegaconf import DictConfig
 
 from midit.data.lakh_dataset import LakhDataset, collate_fn
@@ -216,11 +216,19 @@ def train_phase1(cfg: DictConfig) -> None:
 
     print(f"📁 Logs directory: {logs_dir}\n")
     
-    logger = TensorBoardLogger(
+    tb_logger = TensorBoardLogger(
         save_dir=logs_dir,
         name="phase1_pretraining",
     )
-    
+
+    loggers = [tb_logger]
+    use_wandb = getattr(getattr(cfg, 'logging', None), 'use_wandb', False)
+    if use_wandb:
+        wandb_project = getattr(cfg.logging, 'wandb_project', 'MIDIT-Phase1')
+        wandb_logger = WandbLogger(project=wandb_project, save_dir=logs_dir)
+        loggers.append(wandb_logger)
+        print(f"[INFO] WandbLogger enabled: project={wandb_project}\n")
+
     callbacks = [
         ModelCheckpoint(
             dirpath=os.path.join(logs_dir, "checkpoints_phase1"),
@@ -244,7 +252,7 @@ def train_phase1(cfg: DictConfig) -> None:
     fast_run = getattr(cfg.train, 'fast_run', False)
     
     trainer = L.Trainer(
-        logger=logger,
+        logger=loggers,
         callbacks=callbacks,
         max_epochs=max_epochs,
         accelerator=accelerator,
