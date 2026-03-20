@@ -1,0 +1,105 @@
+========================================================================
+V2 PREPROCESSING VALIDATION -- MIDIT
+Data dir : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\data\preprocessed_v2_test
+Date     : 2026-03-18 15:09:07
+Vocab    : 550 tokens  (V2, IDs 0-549)
+MASK ID  : 3
+========================================================================
+
+  Total .pt files : 4,488
+  Files for T1 (vocab)   : 100
+  Files for T2 (bar pos) : 100
+  Pairs for T3 (shift)   : up to 10
+  Files for T4 (chunk)   : 50
+  Files for T5 (mask)    : 20
+
+Building V2 tokenizer for pitch/vocab lookup...
+  Pitch tokens    : 89
+  PitchDrum tokens: 62
+
+
+========================================================================
+TEST 1 -- VOCAB RANGE  (all token IDs in [0, 549])
+========================================================================
+  Checking 100 random .pt files...
+
+  All 100 files: token IDs strictly in [0, 549]
+
+  [PASS]  VOCAB RANGE  100/100 passed
+
+========================================================================
+TEST 2 -- BAR POSITIONS INTEGRITY
+========================================================================
+  Checking 100 .pt files...
+
+  Bar count stats (passing files):
+    Mean   : 84.2
+    Median : 87
+    Min    : 9
+    Max    : 187
+
+  [PASS]  BAR POSITIONS INTEGRITY  100/100 passed
+
+========================================================================
+TEST 3 -- PITCH SHIFT VERIFICATION  (shift=0 vs shift+1)
+========================================================================
+  Found 10 base+shift+1 pairs to check
+
+
+  OK  003fcb9eba78a1e25ff2543d98c1f411.pt  1545 melody pitches all +1  drums unchanged
+  OK  00b397316a27bb41dea895ed60d046e0.pt  1777 melody pitches all +1  drums unchanged
+  OK  00ded1cc69c31be51ad86700576ff76a.pt  2520 melody pitches all +1  drums unchanged
+  OK  0154ebe0f016e48d14fb166ab570c057.pt  5130 melody pitches all +1  drums unchanged
+  OK  01725d565a7a450e4c699b71167b8877.pt  2245 melody pitches all +1  drums unchanged
+  OK  0294fac1020ebc7e33fef8319bebe233.pt  1293 melody pitches all +1  drums unchanged
+  OK  0316f49f559e679eb67d010a6d5c40ed.pt  3972 melody pitches all +1  drums unchanged
+  OK  03a147e78eb0bc62dc228955adb144fa.pt  2464 melody pitches all +1  drums unchanged
+  OK  03c29877e156b66655ffdcab0ec99248.pt  1899 melody pitches all +1  drums unchanged
+  OK  046a174dc81c71f876e97b3d7402cbc6.pt  1783 melody pitches all +1  drums unchanged
+
+  [PASS]  PITCH SHIFT VERIFICATION  10/10 passed
+
+========================================================================
+TEST 4 -- CHUNKING SIMULATION  (8-bar chunks, lakh_dataset style)
+========================================================================
+  Simulating __getitem__ chunking on 50 files...
+
+  Chunk length stats (passing files):
+    Mean   : 2022 tokens
+    Median : 1734 tokens
+    Min    : 144 tokens
+    Max    : 6601 tokens
+    > 8192 tokens (would truncate): 0
+
+  [PASS]  CHUNKING SIMULATION  50/50 passed
+
+========================================================================
+TEST 5 -- MASKING SIMULATION  (TokenLevelMasking, ratio=0.15)
+========================================================================
+  Applying masking to 20 random chunks...
+
+  Actual mask ratio stats across 20 chunks:
+    Mean   : 0.1496  (target 0.15, tolerance +-0.05)
+    Min    : 0.1483
+    Max    : 0.1500
+    StdDev : 0.0004
+
+  [PASS]  MASKING SIMULATION  20/20 passed
+
+========================================================================
+FINAL SUMMARY  --  ALL TESTS PASSED
+========================================================================
+
+  [PASS]  VOCAB RANGE  100/100 passed
+  [PASS]  BAR POSITIONS INTEGRITY  100/100 passed
+  [PASS]  PITCH SHIFT VERIFICATION  10/10 passed
+  [PASS]  CHUNKING SIMULATION  50/50 passed
+  [PASS]  MASKING SIMULATION  20/20 passed
+
+  Total checks : 280
+  Passed       : 280
+  Failed       : 0
+
+  Elapsed      : 6.8s
+  Report saved : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\logs\v2_preprocessing_validation.txt
+========================================================================

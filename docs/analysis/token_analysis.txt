@@ -1,0 +1,184 @@
+======================================================================
+LAKH MIDI — TOKEN COUNT ANALYSIS
+Tokenizer : MidiTok REMI  (config from preprocess_batch_improved.py)
+Dataset   : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\data\midi_files\lmd_full
+Date      : 2026-03-17 15:46:32
+======================================================================
+
+[1] DATASET SIZE SCAN
+----------------------------------------------------------------------
+  Top-level subdirs : 16  (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, a, b, c, d, e, f)
+  Total MIDI files  : 168,385
+  Sample size       : 200  (seed=42)
+
+[2] TOKENIZER CONFIG
+----------------------------------------------------------------------
+  Type              : REMI
+  pitch_range       : (21, 109)
+  beat_res          : {(0, 4): 8}
+  num_velocities    : 32
+  use_programs      : True
+  use_tempos        : True
+  use_time_sigs     : True
+  use_rests         : True
+  use_chords        : False
+  special_tokens    : [PAD, BOS, EOS, MASK]
+  Vocab size        : 518
+
+[3] PARALLEL TOKENIZATION  (4 workers, 200 files)
+----------------------------------------------------------------------
+  Done in 25.9s  (0.13s/file)
+  Tokenized OK :  200 / 200
+  Failed       :    0 / 200
+
+[4] TOKEN COUNTS PER FILE
+----------------------------------------------------------------------
+  Count  : 200
+  Mean   : 17231 tokens
+  Median : 15058 tokens
+  Min    : 93 tokens
+  Max    : 60754 tokens
+  StdDev : 13541 tokens
+
+  Percentiles:
+    p10:    2,505 tokens
+    p25:    5,711 tokens
+    p50:   15,058 tokens
+    p75:   24,964 tokens
+    p90:   35,795 tokens
+    p95:   42,728 tokens
+    p99:   55,560 tokens
+
+  Buckets:
+  < 500             :    4  (  2.0%)  [----------------------------]
+  500 – 1 000       :    4  (  2.0%)  [----------------------------]
+  1 000 – 5 000     :   34  ( 17.0%)  [####------------------------]
+  5 000 – 10 000    :   34  ( 17.0%)  [####------------------------]
+  10 000 – 20 000   :   56  ( 28.0%)  [#######---------------------]
+  > 20 000          :   68  ( 34.0%)  [#########-------------------]
+
+[5] BAR COUNTS PER FILE
+----------------------------------------------------------------------
+  Count  : 200
+  Mean   : 86 bars
+  Median : 80 bars
+  Min    : 1 bars
+  Max    : 365 bars
+  StdDev : 52 bars
+
+  Percentiles:
+    p10:     24 bars
+    p25:     51 bars
+    p50:     80 bars
+    p75:    112 bars
+    p90:    140 bars
+    p95:    172 bars
+    p99:    237 bars
+
+  Tokens per bar (derived):
+  Count  : 200
+  Mean   : 221.1 tokens/bar
+  Median : 180.8 tokens/bar
+  Min    : 23.1 tokens/bar
+  Max    : 4490.0 tokens/bar
+  StdDev : 332.3 tokens/bar
+
+  Bar count buckets:
+  < 8  (no chunks)    :    6  (  3.0%)  [----------------------------]
+  8 – 16              :    5  (  2.5%)  [----------------------------]
+  16 – 32             :   18  (  9.0%)  [##--------------------------]
+  32 – 64             :   37  ( 18.5%)  [#####-----------------------]
+  64 – 128            :  101  ( 50.5%)  [##############--------------]
+  > 128               :   33  ( 16.5%)  [####------------------------]
+
+  Files skipped (< 8 bars): 6  (3.0%)
+
+[6] 8-BAR CHUNK COUNTS PER FILE  (non-overlapping: num_bars // 8)
+----------------------------------------------------------------------
+  Count  : 200
+  Mean   : 10.3 chunks
+  Median : 10.0 chunks
+  Min    : 0.0 chunks
+  Max    : 45.0 chunks
+  StdDev : 6.5 chunks
+
+  Percentiles:
+    p10:   2.9 chunks/file
+    p25:   6.0 chunks/file
+    p50:  10.0 chunks/file
+    p75:  14.0 chunks/file
+    p90:  17.0 chunks/file
+    p95:  21.1 chunks/file
+    p99:  29.0 chunks/file
+
+  Most common chunk counts (top 15):
+    9 chunks:   18 files  (  9.0%)  [#-------------------]
+   10 chunks:   16 files  (  8.0%)  [#-------------------]
+    8 chunks:   13 files  (  6.5%)  [#-------------------]
+   14 chunks:   13 files  (  6.5%)  [#-------------------]
+   13 chunks:   13 files  (  6.5%)  [#-------------------]
+   12 chunks:   13 files  (  6.5%)  [#-------------------]
+    5 chunks:   12 files  (  6.0%)  [#-------------------]
+   16 chunks:   10 files  (  5.0%)  [#-------------------]
+    7 chunks:    9 files  (  4.5%)  [--------------------]
+    3 chunks:    9 files  (  4.5%)  [--------------------]
+    2 chunks:    9 files  (  4.5%)  [--------------------]
+   11 chunks:    8 files  (  4.0%)  [--------------------]
+    6 chunks:    8 files  (  4.0%)  [--------------------]
+    4 chunks:    8 files  (  4.0%)  [--------------------]
+   15 chunks:    7 files  (  3.5%)  [--------------------]
+
+[7] FULL DATASET EXTRAPOLATION
+----------------------------------------------------------------------
+  Full dataset file count          :      168,385
+  Estimated readable files         :      168,385  (100.0%)
+  Estimated files with ≥8 bars     :      163,333  (97.0% of readable)
+  Estimated total 8-bar chunks     :    1,679,879
+    (= avg 10.3 chunks/file × 163,333 usable files)
+
+  Chunk yield sensitivity (avg tokens/file = 17,231):
+    If avg =   32 bars/file → 4 chunks/file →    653,333 total chunks
+    If avg =   64 bars/file → 8 chunks/file →  1,306,667 total chunks
+    If avg =  128 bars/file → 16 chunks/file →  2,613,335 total chunks
+
+[8] DISK SPACE ESTIMATE  (.pt files, dtype=torch.long)
+----------------------------------------------------------------------
+  Model:  num_tokens × 8 bytes  +  num_bars × 8 bytes  +  1 KB overhead
+
+  Per file:
+    Mean tokens/file          :     17,231
+    Mean bars/file            :       85.6
+    Estimated bytes/file      :        136.3 KB
+
+  For 168,385 readable files (lmd_full):
+    Total estimated size      :         21.9 GB
+    (i.e. 23.5 GB)
+
+  Sensitivity (bytes/token × num_tokens × num_files):
+     5,000 tokens/file × 168,385 files → 6.3 GB
+    10,000 tokens/file × 168,385 files → 12.5 GB
+    20,000 tokens/file × 168,385 files → 25.1 GB
+    40,000 tokens/file × 168,385 files → 50.2 GB
+
+  Note: actual .pt overhead includes Python pickle framing.
+  Cross-check from CLAUDE.md: current 9,987-file subset ≈ 2.2 GB
+  → implies avg 27,536 tokens/file for that subset
+
+======================================================================
+SUMMARY
+======================================================================
+  Files scanned (lmd_full)         :      168,385
+  Sample size                      :          200
+  Tokenized OK                     :          200
+  Failed                           :            0
+  Tokenizer vocab size             :          518
+  Mean tokens / file               :       17,231
+  Mean bars  / file                :         85.6
+  Mean 8-bar chunks / file         :         10.3
+  Files with < 8 bars (skipped)    :         3.0%
+  Est. total chunks (full dataset) :    1,679,879
+  Est. disk space   (full dataset) :         21.9 GB
+
+  Analysis time  : 25.9s
+  Report saved   : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\logs\token_analysis.txt
+======================================================================

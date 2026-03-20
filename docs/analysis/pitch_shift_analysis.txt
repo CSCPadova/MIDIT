@@ -1,0 +1,110 @@
+
+======================================================================
+ANALYSIS A -- PITCH RANGE VALIDATION FOR AUGMENTATION
+Date          : 2026-03-18 09:57:46
+Pitch range   : [21, 108]  (tokenizer pitch_range=(21,109))
+Shifts tested : [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]
+======================================================================
+
+  Sampling 200 files  (seed=42)
+
+[A1] EXTRACTING RAW MIDI PITCHES  (4 workers)
+----------------------------------------------------------------------
+  Read OK  :  200 / 200
+  Failed   :    0 / 200
+
+[A2] PITCH DISTRIBUTION  (non-drum notes only)
+----------------------------------------------------------------------
+  Files with melodic notes     : 200
+  Files with NO melodic notes  : 0  (drums-only or empty)
+  Total non-drum notes         : 563,836
+
+  Mean   : 59.6
+  Median : 61.0
+  Min    : 3
+  Max    : 118
+
+  Notes already < 21 (out-of-range before any shift): 370 (0.066%)
+  Notes already > 108 (out-of-range before any shift): 317 (0.056%)
+
+  Distribution by MIDI octave (octave -1 = MIDI 0-11, C4 = MIDI 60):
+  Oct -1  MIDI   0- 11:      329  (  0.1%)  [------------------]
+  Oct  0  MIDI  12- 23:      283  (  0.1%)  [------------------] <- tokenizer boundary
+  Oct  1  MIDI  24- 35:   29,732  (  5.3%)  [------------------]
+  Oct  2  MIDI  36- 47:   76,369  ( 13.5%)  [##----------------]
+  Oct  3  MIDI  48- 59:  143,149  ( 25.4%)  [####--------------]
+  Oct  4  MIDI  60- 71:  213,748  ( 37.9%)  [######------------]
+  Oct  5  MIDI  72- 83:   86,446  ( 15.3%)  [##----------------]
+  Oct  6  MIDI  84- 95:   12,342  (  2.2%)  [------------------]
+  Oct  7  MIDI  96-107:    1,005  (  0.2%)  [------------------]
+  Oct  8  MIDI 108-119:      433  (  0.1%)  [------------------] <- tokenizer boundary
+  Oct  9  MIDI 120-131:        0  (  0.0%)  [------------------]
+
+[A3] SHIFT ANALYSIS -- NOTES OUTSIDE [21, 108] AFTER SHIFT
+----------------------------------------------------------------------
+  Notes outside this range are silently dropped by MidiTok during tokenization.
+
+   Shift      Files affected    Notes lost    % notes lost    Safety
+  ------------------------------------------------------------------
+      -5     38 / 200    ( 19.0%)       2,005 / 563,836  ( 0.36%)   SAFE
+      -4     31 / 200    ( 15.5%)       1,659 / 563,836  ( 0.29%)   SAFE
+      -3     17 / 200    (  8.5%)         705 / 563,836  ( 0.13%)   SAFE
+      -2     16 / 200    (  8.0%)         628 / 563,836  ( 0.11%)   SAFE
+      -1     10 / 200    (  5.0%)         654 / 563,836  ( 0.12%)   SAFE
+      +1      8 / 200    (  4.0%)         793 / 563,836  ( 0.14%)   SAFE
+      +2      9 / 200    (  4.5%)         924 / 563,836  ( 0.16%)   SAFE
+      +3      9 / 200    (  4.5%)       1,007 / 563,836  ( 0.18%)   SAFE
+      +4      9 / 200    (  4.5%)       1,053 / 563,836  ( 0.19%)   SAFE
+      +5     14 / 200    (  7.0%)       1,110 / 563,836  ( 0.20%)   SAFE
+
+[A4] BOUNDARY ANALYSIS -- NOTES NEAR RANGE LIMITS
+----------------------------------------------------------------------
+
+  UPPER BOUNDARY (notes at risk for upward shifts):
+  Pitch range              Count    % of total  Risk for shift >=
+  >= 108 (C8):                433  (    0.0768%)  +1
+  >= 107 (B7):                568  (    0.1007%)  +2
+  >= 106 (A#7/Bb7):                653  (    0.1158%)  +3
+  >= 105 (A7):                706  (    0.1252%)  +4
+  >= 104 (G#7/Ab7):                766  (    0.1359%)  +5
+
+  LOWER BOUNDARY (notes at risk for downward shifts):
+  Pitch range              Count    % of total  Risk for shift <=
+  <= 21 (A0):                388  (    0.0688%)  -1
+  <= 22 (A#0/Bb0):                465  (    0.0825%)  -2
+  <= 23 (B0):                612  (    0.1085%)  -3
+  <= 24 (C1):              1,581  (    0.2804%)  -4
+  <= 25 (C#1/Db1):              1,950  (    0.3458%)  -5
+
+[A5] AUGMENTATION RECOMMENDATION
+----------------------------------------------------------------------
+
+  Thresholds: SAFE = <1% notes lost, WARN = 1-5%, UNSAFE = >5%
+
+  SAFE    shifts : [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]
+  WARNING shifts : []
+  UNSAFE  shifts : []
+
+  Max note loss across ±5 range: 0.356%
+
+  CONCLUSION: Pitch shifting ±5 semitones is FEASIBLE.
+  Even in the worst-case shift, < 0.36% of notes go out of range.
+  MidiTok will silently drop these during tokenization.
+  This is an acceptable loss for dataset augmentation.
+
+  RECOMMENDATION:
+    - Implement pitch shifting ±5 semitones as planned.
+    - Optionally clamp out-of-range notes to PITCH_MIN/PITCH_MAX
+      instead of dropping them (preserves note count, minor pitch error).
+    - Expected augmentation factor: ×11 (original + 10 shifts)
+
+======================================================================
+ANALYSIS A -- SUMMARY
+======================================================================
+  Files analyzed               : 200
+  Total non-drum notes         : 563,836
+  Pitch range (tokenizer)      : [21, 108]
+  Safe shifts                  : [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]
+  Max note loss (any shift)    : 0.356%
+  Verdict                      : PITCH AUGMENTATION ±5 IS SAFE
+======================================================================
