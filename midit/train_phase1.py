@@ -99,7 +99,15 @@ def train_phase1(cfg: DictConfig) -> None:
     dim_feedforward = getattr(cfg.model, 'dim_feedforward', 2048)
     dropout = getattr(cfg.model, 'dropout', 0.1)
     max_seq_length = getattr(cfg.chunking, 'max_tokens', 8192)
-    
+
+    # Compute total training steps for cosine LR decay
+    # (Cannot rely on trainer.estimated_stepping_batches — returns inf with DataLoaderWrapper)
+    max_epochs = getattr(cfg.train, 'epochs', 10)
+    steps_per_epoch = len(train_loader_base)
+    total_training_steps = steps_per_epoch * max_epochs
+    print(f"   total_training_steps: {total_training_steps} "
+          f"({steps_per_epoch} steps/epoch × {max_epochs} epochs)\n")
+
     # Learning rate
     if hasattr(cfg, 'optim') and hasattr(cfg.optim, 'lr'):
         lr = cfg.optim.lr
@@ -197,6 +205,7 @@ def train_phase1(cfg: DictConfig) -> None:
         lr=lr,
         weight_decay=0.01,
         warmup_steps=1000,
+        num_training_steps=total_training_steps,
     )
 
     # CRITICAL FIX: Override token embedding with correct size
@@ -247,7 +256,6 @@ def train_phase1(cfg: DictConfig) -> None:
     # =================================
     # Trainer
     # =================================
-    max_epochs = getattr(cfg.train, 'epochs', 10)
     accelerator = getattr(cfg.train, 'accelerator', 'cpu')
     fast_run = getattr(cfg.train, 'fast_run', False)
     

@@ -72,6 +72,7 @@ class MaskedTransformerREMI(L.LightningModule):
         lr: float = 3e-4,
         weight_decay: float = 0.01,
         warmup_steps: int = 1000,
+        num_training_steps: int = 0,   # set explicitly to fix estimated_stepping_batches=inf
     ):
         """Initialize the Masked Transformer.
         
@@ -105,7 +106,8 @@ class MaskedTransformerREMI(L.LightningModule):
         self.lr = lr
         self.weight_decay = weight_decay
         self.warmup_steps = warmup_steps
-        
+        self.num_training_steps = num_training_steps
+
         print(f"\n{'='*70}")
         print(f"🎵 Initializing MaskedTransformerREMI - Phase {phase}")
         print(f"{'='*70}\n")
@@ -541,8 +543,10 @@ class MaskedTransformerREMI(L.LightningModule):
             betas=(0.9, 0.999),
         )
         
-        # Cosine with warmup — use actual total steps instead of hardcoded 10000
-        total_steps = self.trainer.estimated_stepping_batches
+        # Use explicitly-set total steps; fall back to Lightning estimate only if not set.
+        # estimated_stepping_batches returns inf with DataLoaderWrapper, breaking cosine decay.
+        total_steps = (self.num_training_steps if self.num_training_steps > 0
+                       else self.trainer.estimated_stepping_batches)
 
         def lr_lambda(current_step):
             if current_step < self.warmup_steps:
