@@ -67,8 +67,9 @@ def train_phase1(cfg: DictConfig) -> None:
         batch_size=batch_size,
         shuffle=True,
         collate_fn=collate_fn,
-        num_workers=0,
+        num_workers=4,
         pin_memory=True,
+        persistent_workers=True,
     )
     
     val_loader_base = DataLoader(
@@ -76,8 +77,9 @@ def train_phase1(cfg: DictConfig) -> None:
         batch_size=batch_size,
         shuffle=False,
         collate_fn=collate_fn,
-        num_workers=0,
+        num_workers=4,
         pin_memory=True,
+        persistent_workers=True,
     )
     
     # Wrap loaders to adapt batch format
