@@ -133,6 +133,30 @@ class LakhDataset(Dataset):
         # Build time signature mapping
         self.timesig_to_class = {token: idx for idx, token in enumerate(self.timesig_tokens)}
 
+        # Precomputed O(1) lookup: token_name → (type, class_idx)
+        # Replaces list.index() calls in _create_targets_dict (O(N) → O(1) per token)
+        self.token_to_class = {}
+        for idx, name in enumerate(self.pitch_tokens):
+            self.token_to_class[name] = ('pitch', idx)
+        for idx, name in enumerate(self.pitchdrum_tokens):
+            self.token_to_class[name] = ('pitch', len(self.pitch_tokens) + idx)
+        for idx, name in enumerate(self.velocity_tokens):
+            self.token_to_class[name] = ('velocity', idx)
+        for idx, name in enumerate(self.duration_tokens):
+            self.token_to_class[name] = ('duration', idx)
+        for idx, name in enumerate(self.program_tokens):
+            self.token_to_class[name] = ('program', idx)
+        for idx, name in enumerate(self.position_tokens):
+            self.token_to_class[name] = ('position', idx)
+        for idx, name in enumerate(self.bar_tokens):
+            self.token_to_class[name] = ('bar', idx)
+        for idx, name in enumerate(self.tempo_tokens):
+            self.token_to_class[name] = ('tempo', idx)
+        for idx, name in enumerate(self.timesig_tokens):
+            self.token_to_class[name] = ('timesig', self.timesig_to_class[name])
+        for idx, name in enumerate(self.rest_tokens):
+            self.token_to_class[name] = ('rest', idx)
+
         print(f"[OK] Token lists pre-computed:")
         print(f"   Pitch tokens: {len(self.pitch_tokens)}")
         print(f"   Velocity tokens: {len(self.velocity_tokens)}")
@@ -250,8 +274,8 @@ class LakhDataset(Dataset):
             original_tokens = original_tokens[:self.chunking.max_tokens]
             mask_labels = mask_labels[:self.chunking.max_tokens]
         
-        # Create targets dict for ALL tokens first
-        all_targets = self._create_targets_dict(original_tokens)
+        # Use targets already computed in _chunk_by_bars / _chunk_by_tokens
+        all_targets = chunk['targets']
         
         # DEBUG 1: After creating all_targets
         #print(f"\n🔍 DEBUG 1 - after _create_targets_dict():")
@@ -411,129 +435,15 @@ class LakhDataset(Dataset):
             'rest': torch.full((seq_len,), -100, dtype=torch.long),
         }
         
-        # Process each token using pre-computed lists
+        # O(1) lookup per token via precomputed token_to_class dict
         for pos in range(seq_len):
-            token_id = tokens[pos].item()
-            
-            # Get token name from reverse vocab
-            if token_id not in self.id_to_token:
+            token_name = self.id_to_token.get(tokens[pos].item())
+            if token_name is None:
                 continue
-            
-            token_name = self.id_to_token[token_id]
-            
-            # ========================================
-            # PITCH
-            # ========================================
-            if token_name.startswith('Pitch_'):
-                try:
-                    # Use pre-computed list
-                    if token_name in self.pitch_tokens:
-                        pitch_idx = self.pitch_tokens.index(token_name)
-                        targets['pitch'][pos] = pitch_idx
-                except (ValueError, IndexError):
-                    pass
-            
-            elif token_name.startswith('PitchDrum_'):
-                try:
-                    # Drums also map to pitch space
-                    if token_name in self.pitchdrum_tokens:
-                        pitch_idx = self.pitchdrum_tokens.index(token_name)
-                        # Offset by regular pitch tokens
-                        targets['pitch'][pos] = len(self.pitch_tokens) + pitch_idx
-                except (ValueError, IndexError):
-                    pass
-            
-            # ========================================
-            # VELOCITY
-            # ========================================
-            elif token_name.startswith('Velocity_'):
-                try:
-                    if token_name in self.velocity_tokens:
-                        velocity_idx = self.velocity_tokens.index(token_name)
-                        targets['velocity'][pos] = velocity_idx
-                except (ValueError, IndexError):
-                    pass
-            
-            # ========================================
-            # DURATION
-            # ========================================
-            elif token_name.startswith('Duration_'):
-                try:
-                    # Use pre-computed list (NO MORE RECONSTRUCTION!)
-                    if token_name in self.duration_tokens:
-                        duration_idx = self.duration_tokens.index(token_name)
-                        targets['duration'][pos] = duration_idx
-                except (ValueError, IndexError):
-                    pass
-            
-            # ========================================
-            # PROGRAM
-            # ========================================
-            elif token_name.startswith('Program_'):
-                try:
-                    if token_name in self.program_tokens:
-                        program_idx = self.program_tokens.index(token_name)
-                        targets['program'][pos] = program_idx
-                except (ValueError, IndexError):
-                    pass
-            
-            # ========================================
-            # POSITION
-            # ========================================
-            elif token_name.startswith('Position_'):
-                try:
-                    if token_name in self.position_tokens:
-                        position_idx = self.position_tokens.index(token_name)
-                        targets['position'][pos] = position_idx
-                except (ValueError, IndexError):
-                    pass
-            
-            # ========================================
-            # BAR
-            # ========================================
-            elif token_name.startswith('Bar_'):
-                try:
-                    # Use pre-computed list (NOT always 0!)
-                    if token_name in self.bar_tokens:
-                        bar_idx = self.bar_tokens.index(token_name)
-                        targets['bar'][pos] = bar_idx
-                except (ValueError, IndexError):
-                    pass
-            
-            # ========================================
-            # TEMPO
-            # ========================================
-            elif token_name.startswith('Tempo_'):
-                try:
-                    # Use pre-computed list (NOT hard-coded formula!)
-                    if token_name in self.tempo_tokens:
-                        tempo_idx = self.tempo_tokens.index(token_name)
-                        targets['tempo'][pos] = tempo_idx
-                except (ValueError, IndexError):
-                    pass
-            
-            # ========================================
-            # TIME SIGNATURE
-            # ========================================
-            elif token_name.startswith('TimeSig_'):
-                try:
-                    # Use pre-computed mapping
-                    if token_name in self.timesig_to_class:
-                        targets['timesig'][pos] = self.timesig_to_class[token_name]
-                except (ValueError, IndexError, KeyError):
-                    pass
-            
-            # ========================================
-            # REST
-            # ========================================
-            elif token_name.startswith('Rest_'):
-                try:
-                    # Use pre-computed list (NO MORE RECONSTRUCTION!)
-                    if token_name in self.rest_tokens:
-                        rest_idx = self.rest_tokens.index(token_name)
-                        targets['rest'][pos] = rest_idx
-                except (ValueError, IndexError):
-                    pass
+            entry = self.token_to_class.get(token_name)
+            if entry is not None:
+                token_type, class_idx = entry
+                targets[token_type][pos] = class_idx
         
         return targets
 
