@@ -274,8 +274,8 @@ class LakhDataset(Dataset):
             original_tokens = original_tokens[:self.chunking.max_tokens]
             mask_labels = mask_labels[:self.chunking.max_tokens]
         
-        # Use targets already computed in _chunk_by_bars / _chunk_by_tokens
-        all_targets = chunk['targets']
+        # Create targets dict for ALL tokens first
+        all_targets = self._create_targets_dict(original_tokens)
         
         # DEBUG 1: After creating all_targets
         #print(f"\n🔍 DEBUG 1 - after _create_targets_dict():")
@@ -347,19 +347,15 @@ class LakhDataset(Dataset):
         end_idx = bar_positions[end_bar]
         
         chunk_tokens = tokens[start_idx:end_idx]
-        
-        # Create targets dict
-        targets = self._create_targets_dict(chunk_tokens)
-        
+
         # Adjust bar positions to chunk-relative
         chunk_bar_positions = [
-            pos - start_idx 
+            pos - start_idx
             for pos in bar_positions[start_bar:end_bar+1]
         ]
-        
+
         return {
             'midi_tokens': chunk_tokens,
-            'targets': targets,
             'bar_positions': chunk_bar_positions,
             'metadata': {
                 'source_file': metadata['source_file'],
@@ -392,13 +388,9 @@ class LakhDataset(Dataset):
         end_idx = start_idx + tokens_per_chunk
         
         chunk_tokens = tokens[start_idx:end_idx]
-        
-        # Create targets dict
-        targets = self._create_targets_dict(chunk_tokens)
-        
+
         return {
             'midi_tokens': chunk_tokens,
-            'targets': targets,
             'bar_positions': None,  # Not applicable for token-based
             'metadata': {
                 'source_file': metadata['source_file'],
