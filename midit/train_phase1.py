@@ -200,13 +200,13 @@ def train_phase1(cfg: DictConfig) -> None:
         dim_feedforward=dim_feedforward,
         dropout=dropout,
         max_seq_length=max_seq_length,
-        mask_prob=0.15,
+        mask_prob=cfg.masking.mask_prob,
         bar_level_masking=True,
         lambda_weights=lambda_weights,
         class_weights=OmegaConf.to_container(cfg.get('class_weights', None), resolve=True) if 'class_weights' in cfg else None,
         lr=lr,
-        weight_decay=0.01,
-        warmup_steps=1000,
+        weight_decay=cfg.train.weight_decay,
+        warmup_steps=cfg.train.warmup_steps,
         num_training_steps=total_training_steps,
     )
 
@@ -248,7 +248,7 @@ def train_phase1(cfg: DictConfig) -> None:
             mode="min",
 
 
-            save_top_k=1,
+            save_top_k=cfg.train.save_top_k,
 
             save_last=True,
         ),
@@ -267,10 +267,10 @@ def train_phase1(cfg: DictConfig) -> None:
         max_epochs=max_epochs,
         accelerator=accelerator,
         devices=1,
-        precision="16-mixed" if accelerator == "gpu" else "32",
-        gradient_clip_val=1.0,
-        log_every_n_steps=10,
-        val_check_interval=0.5,
+        precision=cfg.train.precision if accelerator == "gpu" else "32",
+        gradient_clip_val=cfg.train.gradient_clip_val,
+        log_every_n_steps=cfg.train.log_every_n_steps,
+        val_check_interval=cfg.train.val_check_interval,
         limit_train_batches=100 if fast_run else 1.0,
         limit_val_batches=20 if fast_run else 1.0,
     )

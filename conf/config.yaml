@@ -93,10 +93,10 @@ model:
     
     # Special tokens
     special_tokens:
-        pad: 515
-        bos: 516
-        eos: 517
-        mask: 518
+        pad: 0
+        bos: 1
+        eos: 2
+        mask: 3
 
 # ============================================================================
 # TRAINING CONFIGURATION
