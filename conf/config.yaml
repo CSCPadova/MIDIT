@@ -107,12 +107,12 @@ train:
     epochs: 50
     accelerator: gpu           # ← NUOVO!
     devices: 1                 # ← NUOVO!
-    lr: 8.5e-4
+    lr: 3e-4
     weight_decay: 0.01
-    warmup_steps: 2000
+    warmup_steps: 1500
     gradient_clip_val: 1.0
     precision: bf16            # Cambia anche: 16-mixed è più safe
-    accumulate_grad_batches: 8
+    accumulate_grad_batches: 4
     
     # Checkpointing
     save_top_k: 3
