@@ -62,7 +62,7 @@ lambda_weights:
     program: 1.5       # ridotto leggermente (già buono a 55%)
     position: 0.5      # invariato
     bar: 0.0           # azzerato — 100% accuracy, non contribuisce all'apprendimento
-    tempo: 2.0         # invariato — raro ma importante
+    tempo: 1.0         # ridotto — token raro, lambda alto amplificava gli spike
     timesig: 0.5       # ridotto: 97% accuracy, quasi banale
     rest: 1.0          # invariato
 
@@ -107,12 +107,12 @@ train:
     epochs: 50
     accelerator: gpu           # ← NUOVO!
     devices: 1                 # ← NUOVO!
-    lr: 3e-4
+    lr: 8.5e-4
     weight_decay: 0.01
-    warmup_steps: 1000
+    warmup_steps: 2000
     gradient_clip_val: 1.0
     precision: bf16            # Cambia anche: 16-mixed è più safe
-    accumulate_grad_batches: 1
+    accumulate_grad_batches: 8
     
     # Checkpointing
     save_top_k: 3
