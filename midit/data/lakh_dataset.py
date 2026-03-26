@@ -205,10 +205,31 @@ class LakhDataset(Dataset):
                 )
         else:
             self.masker = None
-        
+
+        # Precompute all valid (file_idx, start_bar) pairs for bar_based chunking
+        if self.chunking.strategy == 'bar_based':
+            bars_per_chunk = self.chunking.bars_per_chunk
+            self.chunks = []
+            print(f"\n[INFO] Precomputing chunk index ({len(self.files)} files)...")
+            for file_idx, file_path in enumerate(self.files):
+                if file_idx > 0 and file_idx % 10000 == 0:
+                    print(f"   ... {file_idx}/{len(self.files)} files processed, {len(self.chunks)} chunks so far")
+                try:
+                    data = torch.load(file_path)
+                    num_bars = len(data['bar_positions']) - 1
+                    for start_bar in range(num_bars - bars_per_chunk + 1):
+                        self.chunks.append((file_idx, start_bar))
+                except Exception:
+                    continue
+            print(f"[OK] Chunks precomputed: {len(self.chunks)}")
+        else:
+            self.chunks = []
+
         print(f"\n[OK] LakhDataset initialized")
         print(f"   Split: {split}")
         print(f"   Files: {len(self.files)}")
+        if self.chunking.strategy == 'bar_based':
+            print(f"   Chunks: {len(self.chunks)}")
         print(f"   Chunking strategy: {self.chunking.strategy}")
         if self.chunking.strategy == 'bar_based':
             print(f"   Bars per chunk: {self.chunking.bars_per_chunk}")
@@ -221,6 +242,8 @@ class LakhDataset(Dataset):
         print()
     
     def __len__(self):
+        if self.chunking.strategy == 'bar_based':
+            return len(self.chunks)
         return len(self.files)
     
     def __getitem__(self, idx: int) -> Optional[Dict]:
@@ -238,17 +261,21 @@ class LakhDataset(Dataset):
                 - bar_positions: Bar boundaries in chunk
                 - metadata: Source info
         """
-        # Load full sequence
-        try:
-            data = torch.load(self.files[idx])
-        except Exception as e:
-            print(f"Error loading {self.files[idx]}: {e}")
-            return None
-        
-        # Chunk based on strategy
+        # Load file and extract chunk
         if self.chunking.strategy == 'bar_based':
-            chunk = self._chunk_by_bars(data)
+            file_idx, start_bar = self.chunks[idx]
+            try:
+                data = torch.load(self.files[file_idx])
+            except Exception as e:
+                print(f"Error loading {self.files[file_idx]}: {e}")
+                return None
+            chunk = self._chunk_by_bars(data, start_bar)
         else:
+            try:
+                data = torch.load(self.files[idx])
+            except Exception as e:
+                print(f"Error loading {self.files[idx]}: {e}")
+                return None
             chunk = self._chunk_by_tokens(data)
         
         if chunk is None:
@@ -317,29 +344,27 @@ class LakhDataset(Dataset):
             'metadata': chunk['metadata'],
         }
     
-    def _chunk_by_bars(self, data: Dict) -> Optional[Dict]:
-        """Extract chunk of N bars.
-        
+    def _chunk_by_bars(self, data: Dict, start_bar: int) -> Optional[Dict]:
+        """Extract chunk of N bars starting at a specific bar.
+
         Args:
             data: Full sequence data
-        
+            start_bar: Index of the first bar in the chunk (precomputed)
+
         Returns:
             Chunk dictionary or None if not enough bars
         """
         tokens = data['tokens']
         bar_positions = data['bar_positions']
         metadata = data['metadata']
-        
+
         num_bars = len(bar_positions) - 1  # -1 because last is end position
         bars_per_chunk = self.chunking.bars_per_chunk
-        
+
         # Check if song has enough bars
         if num_bars < bars_per_chunk:
             return None
-        
-        # Random start bar
-        max_start = num_bars - bars_per_chunk
-        start_bar = random.randint(0, max_start)
+
         end_bar = start_bar + bars_per_chunk
         
         # Extract tokens in this bar range

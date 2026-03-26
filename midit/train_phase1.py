@@ -271,6 +271,7 @@ def train_phase1(cfg: DictConfig) -> None:
         devices=1,
         precision=cfg.train.precision if accelerator == "gpu" else "32",
         gradient_clip_val=cfg.train.gradient_clip_val,
+        accumulate_grad_batches=cfg.train.accumulate_grad_batches,
         log_every_n_steps=cfg.train.log_every_n_steps,
         val_check_interval=cfg.train.val_check_interval,
         limit_train_batches=100 if fast_run else 1.0,
