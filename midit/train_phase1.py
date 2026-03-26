@@ -106,10 +106,15 @@ def train_phase1(cfg: DictConfig) -> None:
     # (Cannot rely on trainer.estimated_stepping_batches — returns inf with DataLoaderWrapper)
     max_epochs = getattr(cfg.train, 'epochs', 10)
     accumulate = getattr(cfg.train, 'accumulate_grad_batches', 1)
-    steps_per_epoch = len(train_loader_base) // accumulate
+    limit = getattr(cfg.train, 'limit_train_batches', 1.0)
+    if isinstance(limit, float):
+        effective_batches = int(len(train_loader_base) * limit)
+    else:
+        effective_batches = min(int(limit), len(train_loader_base))
+    steps_per_epoch = effective_batches // accumulate
     total_training_steps = steps_per_epoch * max_epochs
     print(f"   total_training_steps: {total_training_steps} "
-          f"({len(train_loader_base)} batches // {accumulate} accumulate "
+          f"({effective_batches} batches // {accumulate} accumulate "
           f"= {steps_per_epoch} optimizer steps/epoch × {max_epochs} epochs)\n")
 
     # Learning rate
@@ -274,7 +279,7 @@ def train_phase1(cfg: DictConfig) -> None:
         accumulate_grad_batches=cfg.train.accumulate_grad_batches,
         log_every_n_steps=cfg.train.log_every_n_steps,
         val_check_interval=cfg.train.val_check_interval,
-        limit_train_batches=100 if fast_run else 1.0,
+        limit_train_batches=100 if fast_run else cfg.train.limit_train_batches,
         limit_val_batches=20 if fast_run else 1.0,
     )
     
