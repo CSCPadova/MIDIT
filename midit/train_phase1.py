@@ -105,10 +105,12 @@ def train_phase1(cfg: DictConfig) -> None:
     # Compute total training steps for cosine LR decay
     # (Cannot rely on trainer.estimated_stepping_batches — returns inf with DataLoaderWrapper)
     max_epochs = getattr(cfg.train, 'epochs', 10)
-    steps_per_epoch = len(train_loader_base)
+    accumulate = getattr(cfg.train, 'accumulate_grad_batches', 1)
+    steps_per_epoch = len(train_loader_base) // accumulate
     total_training_steps = steps_per_epoch * max_epochs
     print(f"   total_training_steps: {total_training_steps} "
-          f"({steps_per_epoch} steps/epoch × {max_epochs} epochs)\n")
+          f"({len(train_loader_base)} batches // {accumulate} accumulate "
+          f"= {steps_per_epoch} optimizer steps/epoch × {max_epochs} epochs)\n")
 
     # Learning rate
     if hasattr(cfg, 'optim') and hasattr(cfg.optim, 'lr'):
