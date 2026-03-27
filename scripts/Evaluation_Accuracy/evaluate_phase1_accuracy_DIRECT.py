@@ -108,29 +108,46 @@ def apply_masking(tokens, targets_dict, mask_ratio=0.15, mask_id=3):
     return input_ids, masked_targets
 
 
-def evaluate_top1_and_top5(model, data_dir, tokenizer, num_samples=100):
+def evaluate_top1_and_top5(model, data_dir, tokenizer, num_samples=100, split='val'):
     """
     Evaluate BOTH Top-1 and Top-5 accuracy.
     Uses exact logic from working script + adds top-5.
     """
-    
+
     print("=" * 80)
-    print("🔬 PHASE 1 - TOP-1 & TOP-5 ACCURACY")
+    print(f"🔬 PHASE 1 - TOP-1 & TOP-5 ACCURACY  [split={split}]")
     print("=" * 80)
-    
+
     model.eval()
     device = next(model.parameters()).device
     mask_id = 3
-    
+
     # Get files
     data_path = Path(data_dir)
     all_files = sorted(data_path.glob("*.pt"))
-    
-    if len(all_files) < num_samples:
-        print(f"⚠️ Only {len(all_files)} files available, using all")
-        sample_files = all_files
+
+    # Replicate exact split logic from LakhDataset (seed=42, 80/10/10)
+    _rng = np.random.RandomState(42)
+    indices = np.arange(len(all_files))
+    _rng.shuffle(indices)
+    n_train = int(0.8 * len(all_files))
+    n_val   = int(0.1 * len(all_files))
+    if split == 'train':
+        split_indices = indices[:n_train]
+    elif split == 'val':
+        split_indices = indices[n_train:n_train + n_val]
+    elif split == 'test':
+        split_indices = indices[n_train + n_val:]
     else:
-        sample_files = random.sample(all_files, num_samples)
+        raise ValueError(f"Invalid split '{split}'. Must be 'train', 'val', or 'test'")
+    split_files = [all_files[i] for i in split_indices]
+    print(f"\n📂 Split '{split}': {len(split_files)} files (from {len(all_files)} total)")
+
+    if len(split_files) < num_samples:
+        print(f"⚠️ Only {len(split_files)} files in split, using all")
+        sample_files = split_files
+    else:
+        sample_files = random.sample(split_files, num_samples)
     
     print(f"\n📊 Testing {len(sample_files)} files...\n")
     
@@ -275,6 +292,7 @@ def main():
     parser.add_argument('--checkpoint', required=True)
     parser.add_argument('--data_dir', required=True)
     parser.add_argument('--num_samples', type=int, default=100)
+    parser.add_argument('--split', default='val', choices=['train', 'val', 'test'])
     args = parser.parse_args()
     
     print("🔧 Loading checkpoint...")
@@ -301,7 +319,7 @@ def main():
     print("✅ Ready\n")
     
     # Evaluate
-    results = evaluate_top1_and_top5(model, args.data_dir, tokenizer, args.num_samples)
+    results = evaluate_top1_and_top5(model, args.data_dir, tokenizer, args.num_samples, args.split)
     
     # Save
     if results:
