@@ -285,7 +285,7 @@ def main():
     print("🔤 Initializing tokenizer...")
     config = TokenizerConfig(
         pitch_range=(21, 109),
-        beat_res={(0, 4): 8},
+        beat_res={(0, 4): 8, (4, 12): 4},
         num_velocities=32,
         use_chords=False,
         use_rests=True,
@@ -294,6 +294,8 @@ def main():
         use_programs=True,
         special_tokens=["PAD", "BOS", "EOS", "MASK"],
         use_controls=False,
+        delete_equal_successive_tempo_changes=True,
+        delete_equal_successive_time_sig_changes=True,
     )
     tokenizer = REMI(tokenizer_config=config)
     print("✅ Ready\n")
