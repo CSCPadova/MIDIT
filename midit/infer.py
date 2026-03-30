@@ -142,24 +142,33 @@ def extract_chunk(file_path: Path, bars_per_chunk: int = 8) -> Optional[Dict]:
     }
 
 
+# Token type prefixes that are note content (eligible for masking)
+NOTE_PREFIXES = ('Pitch_', 'PitchDrum_', 'Velocity_', 'Duration_', 'Program_')
+
+
 # ── Masking ───────────────────────────────────────────────────────────────────
 
 def apply_bar_mask(
     tokens: torch.Tensor,
     bar_positions: List[int],
     mask_bars: List[int],
+    lookups: Dict,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    """Replace all tokens in the specified bars with MASK_ID.
+    """Replace only note tokens (Pitch/PitchDrum/Velocity/Duration/Program) in the
+    specified bars with MASK_ID.  Structural tokens (Bar, Position, Tempo, TimeSig,
+    Rest) are left intact — identical to how MusicBERT frames bar infilling.
 
     Args:
         tokens:        Original token IDs [seq_len]
         bar_positions: Bar boundary positions (length = num_bars + 1)
         mask_bars:     0-indexed bar numbers within the chunk to mask
+        lookups:       Vocab lookups (used to classify each token by type)
 
     Returns:
         masked_tokens  [seq_len]
-        mask_labels    bool tensor, True at masked positions [seq_len]
+        mask_labels    bool tensor, True at note-masked positions [seq_len]
     """
+    id_to_token = lookups['id_to_token']
     masked = tokens.clone()
     mask_labels = torch.zeros(len(tokens), dtype=torch.bool)
 
@@ -169,8 +178,11 @@ def apply_bar_mask(
             continue
         start = bar_positions[bar_idx]
         end   = bar_positions[bar_idx + 1]
-        masked[start:end] = MASK_ID
-        mask_labels[start:end] = True
+        for pos in range(start, end):
+            tok_name = id_to_token.get(tokens[pos].item(), '')
+            if tok_name.startswith(NOTE_PREFIXES):
+                masked[pos] = MASK_ID
+                mask_labels[pos] = True
 
     return masked, mask_labels
 
@@ -237,6 +249,45 @@ def reconstruct(
         print(f"    {head:10s}: {count}")
 
     return reconstructed
+
+
+# ── Accuracy ──────────────────────────────────────────────────────────────────
+
+def compute_accuracy(
+    original_tokens: torch.Tensor,
+    reconstructed_tokens: torch.Tensor,
+    mask_labels: torch.Tensor,
+    lookups: Dict,
+) -> None:
+    """Compare reconstructed vs original at masked positions, report per-type accuracy."""
+    type_for_id = lookups['type_for_id']
+    masked_positions = mask_labels.nonzero(as_tuple=True)[0]
+
+    correct: Dict[str, int] = {}
+    total:   Dict[str, int] = {}
+
+    for pos in masked_positions:
+        pos_int = pos.item()
+        orig_id = original_tokens[pos_int].item()
+        pred_id = reconstructed_tokens[pos_int].item()
+        head    = type_for_id.get(orig_id)
+        if head is None:
+            continue
+        total[head]   = total.get(head, 0) + 1
+        correct[head] = correct.get(head, 0) + (1 if pred_id == orig_id else 0)
+
+    print("\n[Reconstruction accuracy at masked positions]")
+    print(f"  {'Type':<12} {'Correct':>8} {'Total':>8} {'Acc':>8}")
+    print(f"  {'-'*40}")
+    all_correct = all_total = 0
+    for head in sorted(total):
+        c, t = correct.get(head, 0), total[head]
+        all_correct += c
+        all_total   += t
+        print(f"  {head:<12} {c:>8} {t:>8} {100*c/t:>7.1f}%")
+    if all_total:
+        print(f"  {'─'*40}")
+        print(f"  {'TOTAL':<12} {all_correct:>8} {all_total:>8} {100*all_correct/all_total:>7.1f}%")
 
 
 # ── MIDI export ───────────────────────────────────────────────────────────────
@@ -326,16 +377,19 @@ def main():
 
     # ── 5. Apply masking ──────────────────────────────────────────────────────
     print("\n[5/6] Applying masking...")
-    masked_tokens, mask_labels = apply_bar_mask(original_tokens, bar_positions, mask_bar_list)
+    masked_tokens, mask_labels = apply_bar_mask(original_tokens, bar_positions, mask_bar_list, lookups)
     n_masked = mask_labels.sum().item()
     n_total  = len(original_tokens)
     print(f"  Masked {n_masked}/{n_total} tokens ({100 * n_masked / n_total:.1f}%)")
+    print(f"  (structural tokens Bar/Position/Tempo/TimeSig/Rest preserved in-place)")
 
     # ── 6. Reconstruct ────────────────────────────────────────────────────────
     print("\n[6/6] Running model inference...")
     reconstructed_tokens = reconstruct(
         model, original_tokens, masked_tokens, mask_labels, lookups, device
     )
+
+    compute_accuracy(original_tokens, reconstructed_tokens, mask_labels, lookups)
 
     # ── Save MIDI files ────────────────────────────────────────────────────────
     print("\n[Saving MIDI files]")
