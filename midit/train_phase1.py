@@ -208,7 +208,7 @@ def train_phase1(cfg: DictConfig) -> None:
         dropout=dropout,
         max_seq_length=max_seq_length,
         mask_prob=cfg.masking.mask_prob,
-        bar_level_masking=True,
+        bar_level_masking=cfg.masking.bar_level,
         lambda_weights=lambda_weights,
         class_weights=OmegaConf.to_container(cfg.get('class_weights', None), resolve=True) if 'class_weights' in cfg else None,
         lr=lr,

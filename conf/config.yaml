@@ -4,19 +4,26 @@
 
 # ============================================================================
 # TOKENIZER CONFIGURATION
+# INFORMATIONAL ONLY — not read by code. Tokenizer is hardcoded
+# in midit/data/lakh_dataset.py. Values shown here for documentation.
 # ============================================================================
 tokenizer:
     type: REMI
     pitch_range: [21, 109]
-    beat_res: {0: 4, 4: 8}
+    beat_res: {"0,4": 8, "4,12": 4}   # V2 Python: {(0,4):8, (4,12):4}
+    num_velocities: 32
     use_programs: true
     one_token_stream_for_programs: true
-    use_chords: true
+    use_pitchdrum_tokens: true
+    use_chords: false
     use_rests: true
     use_tempos: true
     use_time_signatures: true
     use_controls: false
-    vocab_size: 521
+    special_tokens: ["PAD", "BOS", "EOS", "MASK"]
+    delete_equal_successive_tempo_changes: true
+    delete_equal_successive_time_sig_changes: true
+    vocab_size: 550
 
 # ============================================================================
 # CHUNKING CONFIGURATION (Flexible preprocessing)
@@ -24,22 +31,21 @@ tokenizer:
 chunking:
     # Chunking strategy
     strategy: bar_based  # 'bar_based' or 'token_based'
-    
+
     # Bar-based chunking parameters
     bars_per_chunk: 8  # Number of bars per chunk (8, 16, 24, 32)
-    overlap_bars: 2     # Overlap between chunks (sliding window)
-    
-    # Token-based chunking parameters  
+
+    # Token-based chunking parameters
     tokens_per_chunk: 4096  # Fixed token count per chunk
-    overlap_tokens: 512     # Overlap between chunks
-    
+
     # Filtering and limits
     max_tokens: 8192        # Hard limit (safety)
     min_tokens_per_bar: 10  # Filter out empty bars
     filter_empty_bars: true
-    
+
     # Preprocessing paths
     raw_data_dir: data/lakh_clean
+    # Override from SLURM script — this local path is not used on cluster
     preprocessed_dir: data/preprocessed_v2_test
 
 # ============================================================================
@@ -63,7 +69,7 @@ lambda_weights:
     position: 0.5      # invariato
     bar: 0.0           # azzerato — 100% accuracy, non contribuisce all'apprendimento
     tempo: 1.0         # ridotto — token raro, lambda alto amplificava gli spike
-    timesig: 0.5       # ridotto: 97% accuracy, quasi banale
+    timesig: 0.0       # azzerato — stesso motivo di bar (accuracy banale, nessun segnale utile)
     rest: 1.0          # invariato
 
 # ============================================================================
@@ -71,26 +77,14 @@ lambda_weights:
 # ============================================================================
 model:
     type: masked_transformer
-    vocab_size: 550
+    vocab_size: 550     # vocab_size computed dynamically from tokenizer at runtime
     d_model: 512
     nhead: 8
     num_encoder_layers: 12
     dim_feedforward: 2048
     dropout: 0.1
     max_seq_length: 8192
-    
-    # Vocab sizes per token type
-    vocab_sizes:
-        pitch: 89
-        velocity: 32
-        duration: 64
-        program: 129
-        position: 32
-        bar: 2
-        tempo: 20
-        timesig: 10
-        rest: 50
-    
+
     # Special tokens
     special_tokens:
         pad: 0
@@ -102,7 +96,7 @@ model:
 # TRAINING CONFIGURATION
 # ============================================================================
 train:
-    phase: 1  
+    phase: 1
     batch_size: 2
     epochs: 50
     accelerator: gpu           # ← NUOVO!
@@ -118,7 +112,7 @@ train:
     # Checkpointing
     save_top_k: 3
     monitor: val_loss
-    
+
     # Logging
     log_every_n_steps: 50
     val_check_interval: 0.25
@@ -137,11 +131,11 @@ paths:
     # Phase 1: Pre-training
     lakh_dir: data/lakh_clean
     preprocessed_phase1: data/preprocessed_phase1
-    
+
     # Phase 2: Fine-tuning
     midicaps_dir: data/midicaps
     preprocessed_phase2: data/preprocessed_phase2
-    
+
     # Outputs
     checkpoints_dir: checkpoints
     logs_dir: logs
