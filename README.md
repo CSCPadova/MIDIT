@@ -76,8 +76,8 @@ Vocabulary size: **550 tokens**. All instruments are merged into a single interl
 **Split:** 80/10/10 (train/val/test), seed=42, deterministic  
 **Output:** 441k `.pt` files, 66GB
 
----
 
+```
 ## Repository Structure
 MIDIT/
 ├── midit/
@@ -97,9 +97,9 @@ MIDIT/
 ├── conf/
 │   └── config.yaml                   # Hydra configuration
 └── slurm/
-└── train_phase1_v2_50k_safe.sh   # SLURM job script
+    └── train_phase1_v2_50k_safe.sh   # SLURM job script
+```
 
----
 
 ## Installation
 
@@ -182,7 +182,7 @@ python scripts/Evaluation_Infilling/compute_infilling_metrics.py \
 
 ## Cluster (DEI UniPD)
 
-- **Login:** `zanettisim@login.dei.unipd.it`
+- **Login:** `user@login.dei.unipd.it`
 - **GPU:** NVIDIA A40 48GB (SLURM partition: allgroups)
 - **Data:** `/nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k/`
 - **Checkpoints:** `/nfsd/tesi/zanettisim/MIDIT/logs/checkpoints_phase1/`
