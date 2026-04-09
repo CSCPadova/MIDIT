@@ -1,264 +1,202 @@
-# MIDIT
+# MIDIT — A BERT-style Masked Language Model for Symbolic MIDI Music Generation
 
-A Masked Diffusion Transformer for text-to-MIDI generation
+Master's thesis project — University of Padova, DEI Department  
+**Student:** Simone Zanetti | **Supervisor:** Prof. Matteo Spanio
+
+---
 
 ## Overview
 
-MIDIT is a deep learning model that generates MIDI music from text descriptions. It uses a Masked Diffusion Transformer architecture, combining the power of diffusion models with transformer-based sequence modeling and text conditioning.
+MIDIT is a BERT-style Masked Language Model (MLM) for symbolic MIDI music generation. It operates on REMI+ tokenized MIDI sequences and is trained in two phases:
 
-### Key Features
+- **Phase 1 (complete):** Unconditional MLM pre-training on the Lakh MIDI Dataset (~50k files with pitch-shifting augmentation)
+- **Phase 2 (planned):** Text-conditioned fine-tuning on MidiCaps with FLAN-T5
 
-- **Masked Diffusion Transformer**: State-of-the-art architecture for sequence generation
-- **Text-to-MIDI Generation**: Generate music from natural language descriptions
-- **Flexible Configuration**: All hyperparameters configurable via Hydra
-- **Multiple Logging Options**: Support for both WandB and TensorBoard
-- **Fast Run Mode**: Quick testing with reduced dataset and epochs
+The model uses a standard PyTorch TransformerEncoder (12 layers, 8 heads, d_model=512, ~42.5M parameters) with a **multi-head output layer** — 9 separate linear prediction heads, one per REMI+ token type (Pitch, Velocity, Duration, Program, Position, Bar, Tempo, TimeSig, Rest).
 
-## Requirements
+---
 
-- Python 3.12+
-- [uv](https://docs.astral.sh/uv/)
-- GPU recommended for training
+## Key Results (Phase 1)
 
-## Installation
+| Metric | Value |
+|--------|-------|
+| Avg Top-1 Cloze Accuracy | 81.88% |
+| Avg Top-5 Cloze Accuracy | 93.85% |
+| Pitch Top-1 | 84.43% |
+| Best checkpoint | epoch=14, val_loss=2.7254 |
 
-To install the required dependencies, run the following command:
+Evaluated on the validation split (44,151 files, seed=42, 400 samples).
 
-```bash
-make install
+---
+
+## Architecture
+TransformerEncoder:
+num_layers:      12
+d_model:         512
+nhead:           8
+dim_feedforward: 2048
+dropout:         0.1
+norm_first:      True  (pre-norm)
+Input embedding:   550 × 512  (REMI+ V2 vocabulary)
+Output:            MultiHeadOutput — 9 separate linear heads
+Total parameters:  ~42.5M (all trainable, no pretrained weights)
+
+---
+
+## Tokenization — REMI+ V2
+
+Tokenizer: MidiTok REMI with the following configuration:
+
+```python
+TokenizerConfig(
+    pitch_range=(21, 109),
+    beat_res={(0, 4): 8, (4, 12): 4},
+    num_velocities=32,
+    use_programs=True,
+    one_token_stream_for_programs=True,
+    use_time_signatures=True,
+    use_tempos=True,
+    use_rests=True,
+    delete_equal_successive_tempo_changes=True,
+    delete_equal_successive_time_sig_changes=True,
+)
 ```
 
-Or you can install the dependencies manually using uv:
+Vocabulary size: **550 tokens**. All instruments are merged into a single interleaved stream ordered by time position.
 
-```bash
-uv sync
-```
-
-## Training
-
-### Basic Training
-
-To start training with default configuration:
-
-```bash
-uv run train
-```
-
-### Configuration Options
-
-The project uses Hydra for configuration management. All settings can be modified in `conf/config.yaml` or overridden via command line.
-
-#### Model Configuration
-
-- `model.d_model`: Model dimension (default: 512)
-- `model.nhead`: Number of attention heads (default: 8)
-- `model.num_encoder_layers`: Number of encoder layers (default: 6)
-- `model.num_decoder_layers`: Number of decoder layers (default: 6)
-- `model.dim_feedforward`: Feedforward dimension (default: 2048)
-- `model.dropout`: Dropout rate (default: 0.1)
-
-#### Text Encoder Configuration
-
-- `text_encoder.model_name`: FLAN-T5 model to use (default: 'google/flan-t5-base')
-  - Options: `google/flan-t5-small`, `google/flan-t5-base`, `google/flan-t5-large`, `google/flan-t5-xl`, `google/flan-t5-xxl`
-- `text_encoder.freeze`: Freeze encoder weights during training (default: true, recommended)
-
-#### Diffusion Configuration
-
-- `diffusion.timesteps`: Number of diffusion timesteps (default: 1000)
-- `diffusion.beta_schedule`: Noise schedule type ('linear' or 'cosine')
-
-#### Training Configuration
-
-- `train.batch_size`: Training batch size (default: 8)
-- `train.epochs`: Number of training epochs (default: 10)
-- `train.accelerator`: Device to use ('gpu' or 'cpu')
-- `train.fast_run`: Enable fast run mode for testing (default: false)
-
-#### Logging Configuration
-
-- `logging.use_wandb`: Enable Weights & Biases logging (default: true)
-- `logging.use_tensorboard`: Enable TensorBoard logging (default: true)
-- `logging.wandb_project`: WandB project name (default: 'midit')
-- `logging.wandb_entity`: WandB entity/username (optional)
-
-### Command Line Overrides
-
-You can override any configuration parameter from the command line:
-
-```bash
-# Train with smaller model
-uv run train model.d_model=256 model.nhead=4
-
-# Train with larger batch size
-uv run train train.batch_size=16
-
-# Disable WandB logging
-uv run train logging.use_wandb=false
-
-# Enable fast run mode for quick testing
-uv run train train.fast_run=true
-
-# Change diffusion settings
-uv run train diffusion.timesteps=500 diffusion.beta_schedule=cosine
-
-# Use a smaller FLAN-T5 model for faster training
-uv run train text_encoder.model_name=google/flan-t5-small
-
-# Use a larger FLAN-T5 model for better performance (requires more GPU memory)
-uv run train text_encoder.model_name=google/flan-t5-large
-```
-
-### Fast Run Mode
-
-For quick testing of the training pipeline:
-
-```bash
-uv run train train.fast_run=true
-```
-
-Fast run mode:
-- Uses a small synthetic dataset (100 samples)
-- Trains for only 2 epochs
-- Limits batches per epoch (10 train, 5 validation)
-- Perfect for testing changes without waiting for full training
-
-### SLURM Cluster
-
-If you are running the project on a SLURM cluster:
-
-```bash
-make train
-```
-
-## Project Structure
-
-```
-midit/
-├── conf/                      # Configuration files
-│   ├── config.yaml           # Main configuration
-│   └── config.py             # Configuration dataclasses
-├── midit/                     # Main package
-│   ├── model/                # Model implementations
-│   │   ├── diffusion_transformer.py
-│   │   └── text_encoder.py
-│   ├── loss/                 # Loss functions
-│   │   └── diffusion_loss.py
-│   ├── midicaps_dataloader.py  # MidiCaps dataset loader
-│   └── train.py              # Training script
-└── logs/                      # Training logs and checkpoints
-```
+---
 
 ## Dataset
 
-The model is designed to work with the [MidiCaps dataset](https://huggingface.co/datasets/amaai-lab/MidiCaps) from HuggingFace, which provides paired text descriptions and MIDI files.
+**Source:** Lakh MIDI Dataset (lmd_full, ~168k files available)  
+**Current training subset:** 50,000 files  
+**Preprocessing:** Offline tokenization to `.pt` files  
+**Augmentation:** Pitch shifting ±5 semitones (×11 per file)  
+**Quality filters:** min 50 notes, min 15s duration, velocity diversity  
+**Split:** 80/10/10 (train/val/test), seed=42, deterministic  
+**Output:** 441k `.pt` files, 66GB
 
-## 📦 Dataset Setup
+---
 
-### Download MidiCaps Dataset
-```bash
-# Install Hugging Face CLI (if not already installed)
-pip install huggingface-hub
+## Repository Structure
+MIDIT/
+├── midit/
+│   ├── model/
+│   │   ├── masked_transformer.py     # Main model
+│   │   ├── multi_head_output.py      # 9 prediction heads
+│   │   └── text_encoder.py           # FLAN-T5 (Phase 2, not yet used)
+│   ├── data/
+│   │   ├── lakh_dataset.py           # Dataset class with chunking
+│   │   └── masking.py                # TokenLevelMasking, BarFillMasking
+│   ├── train_phase1.py               # Phase 1 training script
+│   └── infer.py                      # Infilling inference script
+├── scripts/
+│   ├── Evaluation_Accuracy/          # Top-1/Top-5 cloze evaluation
+│   ├── Evaluation_Infilling/         # CP/GS/PCHE infilling metrics
+│   └── Pre_Processing/               # Preprocessing pipeline
+├── conf/
+│   └── config.yaml                   # Hydra configuration
+└── slurm/
+└── train_phase1_v2_50k_safe.sh   # SLURM job script
 
-# Download complete dataset (~1.6GB compressed, ~19GB extracted)
-hf download amaai-lab/MidiCaps --repo-type dataset --local-dir data/midi_files
+---
 
-# Extract (if needed)
-cd data/midi_files
-tar -xzf midicaps.tar.gz
-```
-
-### Dataset Structure
-```
-data/midi_files/
-├── train.json          # Metadata (168k samples)
-└── lmd_full/           # MIDI files organized by hash
-    ├── 0/
-    ├── 1/
-    └── ...
-```
-
-### Verify Installation
-```bash
-python -c "
-from pathlib import Path
-print(f'MIDI files: {len(list(Path(\"data/midi_files/lmd_full\").rglob(\"*.mid\")))}')
-"
-# Expected: ~168,000 files
-```
-## Logging and Monitoring
-
-### TensorBoard
-
-To view TensorBoard logs:
+## Installation
 
 ```bash
-tensorboard --logdir logs/
+# Clone the repository
+git clone https://github.com/SimoneZanetti00/MIDIT.git
+cd MIDIT
+git checkout masked-transformer
+
+# Create virtual environment (requires Python 3.12)
+uv sync
+source .venv/bin/activate
 ```
 
-Then open http://localhost:6006 in your browser.
+---
 
-### Weights & Biases
-
-If WandB is enabled, logs will automatically be sent to your WandB account. Make sure to:
-
-1. Install wandb: Already included in dependencies
-2. Login: `wandb login`
-3. Configure project name in `conf/config.yaml`
-
-You can disable WandB logging:
+## Training
 
 ```bash
-uv run train logging.use_wandb=false
+# Phase 1 — MLM pre-training
+python midit/train_phase1.py
+
+# Or on SLURM cluster
+sbatch slurm/train_phase1_v2_50k_safe.sh
 ```
 
-## Model Architecture
+Key training configuration (see `conf/config.yaml`):
 
-MIDIT uses a Masked Diffusion Transformer architecture:
+| Parameter | Value |
+|-----------|-------|
+| Learning rate | 3e-4 |
+| Warmup steps | 1500 |
+| Effective batch size | 8 (batch=2, accumulate=4) |
+| Precision | bf16 |
+| Epochs | 50 |
+| Limit train batches | 200k/epoch |
 
-1. **Text Encoder**: Uses a pretrained **FLAN-T5 encoder** (frozen during training) to encode text descriptions into rich semantic embeddings
-2. **Diffusion Process**: Gradually denoises MIDI sequences over multiple timesteps
-3. **Transformer Decoder**: Predicts the denoised MIDI tokens conditioned on text embeddings from FLAN-T5
-4. **Masking**: Supports variable-length sequences with attention masking
+---
 
-### Text Encoder (FLAN-T5)
+## Evaluation
 
-The model uses Google's **FLAN-T5** (Flan-UL2) as the text encoder, leveraging its instruction-tuned capabilities for better text understanding. The encoder is **frozen during training** to:
+```bash
+# Cloze accuracy (Top-1 / Top-5)
+python scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py \
+    --checkpoint logs/checkpoints_phase1/<checkpoint>.ckpt \
+    --data_dir /path/to/preprocessed_v2_50k \
+    --split val \
+    --num_samples 400
 
-- Leverage pretrained semantic knowledge
-- Reduce computational requirements
-- Enable faster training
-- Improve generalization from the start
+# Infilling — generate masked MIDI and compare with original
+python midit/infer.py \
+    --checkpoint logs/checkpoints_phase1/<checkpoint>.ckpt \
+    --data_dir /path/to/preprocessed_v2_50k \
+    --output_dir outputs/infilling/ \
+    --seed 10 \
+    --mask_bars 4
 
-You can configure different FLAN-T5 model sizes in the configuration:
-
-- `google/flan-t5-small` (60M parameters) - Faster, less memory
-- `google/flan-t5-base` (250M parameters) - **Default** - Balanced performance
-- `google/flan-t5-large` (780M parameters) - Better performance, more memory
-- `google/flan-t5-xl` (3B parameters) - Best performance, high memory requirements
-- `google/flan-t5-xxl` (11B parameters) - State-of-the-art, very high memory requirements
-
-## Aknowledgements
-
-This project is based on the following template repository:
-
-```bibtex
-@software{M_Spanio_DEI_Blade_Template,
-    author = {M Spanio, Matteo},
-    license = {MIT},
-    title = {{DEI Blade Template}},
-    url = {https://github.com/CSCPadova/dei-blade-template}
-}
+# CP / GS / PCHE metrics on infilling output
+python scripts/Evaluation_Infilling/compute_infilling_metrics.py \
+    --original  outputs/infilling/original.mid \
+    --infilled   outputs/infilling/reconstructed.mid \
+    --bar_start 4 --bar_end 4
 ```
 
-The following libraries were used in this project:
+---
 
-- [PyTorch](https://pytorch.org/) - Deep Learning framework
-- [Torchaudio](https://pytorch.org/audio/) - Audio processing library for PyTorch
-- [Lightning](https://www.pytorchlightning.ai/) - High-level interface for PyTorch
-- [WandB](https://wandb.ai/) - Experiment tracking and visualization
-- [Hydra](https://hydra.cc/) - Configuration management
+## Tech Stack
+
+| Tool | Role |
+|------|------|
+| PyTorch | Model implementation |
+| PyTorch Lightning | Training loop |
+| MidiTok | REMI+ tokenization |
+| Hydra | Configuration management |
+| Weights & Biases | Experiment tracking |
+| SLURM | Cluster job scheduling |
+| symusic / pretty_midi | MIDI processing for metrics |
+
+---
+
+## Cluster (DEI UniPD)
+
+- **Login:** `zanettisim@login.dei.unipd.it`
+- **GPU:** NVIDIA A40 48GB (SLURM partition: allgroups)
+- **Data:** `/nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k/`
+- **Checkpoints:** `/nfsd/tesi/zanettisim/MIDIT/logs/checkpoints_phase1/`
+
+---
+
+## Acknowledgements
+
+Built on top of the [DEI Blade Template](https://github.com/CSCPadova/dei-blade-template) by Prof. Matteo Spanio (University of Padova).
+
+References: MusicBERT (Zeng et al., ACL 2021), MidiBERT-Piano (Hsiao et al., 2021), BERT (Devlin et al., 2019), MidiTok (Fradet et al., 2021), REMI (Huang & Yang, 2020).
+
+---
 
 ## License
 
-This project template is licensed under the MIT License - see the [LICENSE](LICENSE) file for details, please note that the generated project will inherit this license.
+MIT License
