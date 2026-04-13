@@ -45,30 +45,51 @@ class LakhDataset(Dataset):
         # Load all .pt files
         all_files = sorted(list(self.data_dir.glob("*.pt")))
 
-        # Split deterministically with fixed seed
+        # Split at SONG level (not file level) to prevent augmentation leakage.
+        # Files like song_A.pt, song_A_shift+1.pt, song_A_shift-1.pt all share
+        # the same source song and must land in the same split. Splitting at file
+        # level allows near-duplicates across train/val, inflating metrics.
+        import re
         import numpy as np
-        np.random.seed(42)  # Fixed seed for reproducibility
-        indices = np.arange(len(all_files))
-        np.random.shuffle(indices)
+        from collections import defaultdict
 
-        # Split: 80% train, 10% val, 10% test
-        n_train = int(0.8 * len(all_files))
-        n_val = int(0.1 * len(all_files))
+        def get_stem(path):
+            """Strip _shift±N suffix to recover source song identifier."""
+            return re.sub(r'_shift[+-]\d+$', '', path.stem)
 
-        train_indices = indices[:n_train]
-        val_indices = indices[n_train:n_train + n_val]
-        test_indices = indices[n_train + n_val:]
+        # Group files by source song stem
+        stem_to_files = defaultdict(list)
+        for f in all_files:
+            stem_to_files[get_stem(f)].append(f)
 
-        # Select files based on split
+        # Shuffle unique stems deterministically
+        unique_stems = sorted(stem_to_files.keys())
+        np.random.seed(42)
+        stem_indices = np.arange(len(unique_stems))
+        np.random.shuffle(stem_indices)
+
+        # Split stems 80/10/10
+        n_train = int(0.8 * len(unique_stems))
+        n_val   = int(0.1 * len(unique_stems))
+
+        train_stems = {unique_stems[i] for i in stem_indices[:n_train]}
+        val_stems   = {unique_stems[i] for i in stem_indices[n_train:n_train + n_val]}
+        test_stems  = {unique_stems[i] for i in stem_indices[n_train + n_val:]}
+
+        print(f"\n[INFO] Song-level split: {len(unique_stems)} unique stems, "
+              f"{len(all_files)} total files "
+              f"(~{len(all_files)/max(1,len(unique_stems)):.1f} aug/song)")
+
+        # Assign ALL files of a stem to its split (no augmentation leaks)
         if split == 'train':
-            self.files = [all_files[i] for i in sorted(train_indices)]
+            self.files = sorted([f for f in all_files if get_stem(f) in train_stems])
         elif split == 'val':
-            self.files = [all_files[i] for i in sorted(val_indices)]
+            self.files = sorted([f for f in all_files if get_stem(f) in val_stems])
         elif split == 'test':
-            self.files = [all_files[i] for i in sorted(test_indices)]
+            self.files = sorted([f for f in all_files if get_stem(f) in test_stems])
         else:
             raise ValueError(f"Invalid split: {split}. Must be 'train', 'val', or 'test'")
-        
+
         if len(self.files) == 0:
             raise ValueError(f"No .pt files found in {data_dir}")
         
