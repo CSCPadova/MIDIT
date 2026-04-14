@@ -10,7 +10,7 @@ import random
 from typing import Dict, Optional
 from omegaconf import DictConfig
 from miditok import REMI, TokenizerConfig 
-from midit.data.masking import BarLevelMasking, TokenLevelMasking
+from midit.data.masking import BarLevelMasking, BarFillMasking, TokenLevelMasking
 
 
 class LakhDataset(Dataset):
@@ -206,22 +206,39 @@ class LakhDataset(Dataset):
         for token_type, size in self.actual_vocab_sizes.items():
             print(f"   {token_type:10s}: {size:>4d}")
         print()
-        # Initialize masker based on config strategy
+        # Initialize masker based on config strategy.
+        # Routing priority:
+        #   1. masking.strategy key ('bar_level', 'bar_fill', 'token_level') — explicit
+        #   2. masking.bar_level boolean — legacy fallback for backward compatibility
         if self.apply_masking:
-            use_bar_level = getattr(masking_config, 'bar_level', True) if masking_config is not None else True
+            mc = masking_config  # shorthand
+            strategy = getattr(mc, 'strategy', None) if mc is not None else None
 
-            if use_bar_level:
+            if strategy is None:
+                # Legacy fallback: read bar_level boolean
+                use_bar_level = getattr(mc, 'bar_level', True) if mc is not None else True
+                strategy = 'bar_level' if use_bar_level else 'token_level'
+
+            if strategy == 'bar_fill':
+                self.masker = BarFillMasking(
+                    tokenizer_vocab=self.tokenizer.vocab,
+                    mask_token_id=self.mask_token_id,
+                    max_infill_bars=getattr(mc, 'max_infill_bars', 3),
+                    mask_strategy=getattr(mc, 'mask_strategy', 'always'),
+                    vocab_size=len(self.tokenizer.vocab),
+                )
+            elif strategy == 'bar_level':
                 self.masker = BarLevelMasking(
                     tokenizer_vocab=self.tokenizer.vocab,
                     mask_token_id=self.mask_token_id,
-                    bar_mask_prob=getattr(masking_config, 'bar_mask_prob', 0.4) if masking_config is not None else 0.4,
-                    type_mask_ratio=getattr(masking_config, 'type_mask_ratio', 0.8) if masking_config is not None else 0.8,
+                    bar_mask_prob=getattr(mc, 'bar_mask_prob', 0.4) if mc is not None else 0.4,
+                    type_mask_ratio=getattr(mc, 'type_mask_ratio', 0.8) if mc is not None else 0.8,
                 )
-            else:
+            else:  # 'token_level' or any unrecognised value
                 self.masker = TokenLevelMasking(
                     mask_token_id=self.mask_token_id,
-                    mask_ratio=getattr(masking_config, 'mask_prob', 0.15),
-                    mask_strategy=getattr(masking_config, 'mask_strategy', 'bert'),
+                    mask_ratio=getattr(mc, 'mask_prob', 0.15),
+                    mask_strategy=getattr(mc, 'mask_strategy', 'bert'),
                     vocab_size=len(self.tokenizer.vocab),
                 )
         else:
