@@ -1,3 +1,7 @@
+defaults:
+  - config
+  - _self_
+
 # ============================================================
 # Infilling fine-tuning config — Phase 1b
 # Base: conf/config.yaml (all other params inherited)
