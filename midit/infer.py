@@ -109,16 +109,31 @@ def build_vocab_lookups(tokenizer: REMI) -> Dict:
 # ── Data loading ──────────────────────────────────────────────────────────────
 
 def get_val_files(data_dir: str) -> List[Path]:
-    """Return val split file list using same seed=42 logic as LakhDataset."""
+    """Return val split file list using same song-level seed=42 logic as LakhDataset."""
+    import re
+    from collections import defaultdict
+
     all_files = sorted(Path(data_dir).glob("*.pt"))
     if not all_files:
         raise ValueError(f"No .pt files found in {data_dir}")
+
+    def get_stem(path: Path) -> str:
+        return re.sub(r'_shift[+-]\d+$', '', path.stem)
+
+    stem_to_files = defaultdict(list)
+    for f in all_files:
+        stem_to_files[get_stem(f)].append(f)
+
+    unique_stems = sorted(stem_to_files.keys())
     rng = np.random.RandomState(42)
-    indices = np.arange(len(all_files))
-    rng.shuffle(indices)
-    n_train = int(0.8 * len(all_files))
-    n_val   = int(0.1 * len(all_files))
-    return [all_files[i] for i in indices[n_train:n_train + n_val]]
+    stem_indices = np.arange(len(unique_stems))
+    rng.shuffle(stem_indices)
+
+    n_train = int(0.8 * len(unique_stems))
+    n_val   = int(0.1 * len(unique_stems))
+    val_stems = {unique_stems[i] for i in stem_indices[n_train:n_train + n_val]}
+
+    return sorted([f for f in all_files if get_stem(f) in val_stems])
 
 
 def extract_chunk(file_path: Path, bars_per_chunk: int = 8) -> Optional[Dict]:
