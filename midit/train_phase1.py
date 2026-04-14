@@ -11,6 +11,7 @@ from omegaconf import DictConfig
 
 from midit.data.lakh_dataset import LakhDataset, collate_fn
 from midit.model.masked_transformer import MaskedTransformerREMI
+from midit.model.model_factory import build_model
 
 
 class DataLoaderWrapper:
@@ -144,83 +145,9 @@ def train_phase1(cfg: DictConfig) -> None:
     # =================================
     # Get actual vocab sizes from dataset
     # =================================
-    print("📊 Retrieving actual vocab sizes from dataset...\n")
-
-    # Get from train dataset (already initialized)
-    vocab_sizes = train_dataset.actual_vocab_sizes.copy()
-
-    print(f"✅ Using actual vocab sizes from tokenizer:")
-    for token_type, size in vocab_sizes.items():
-        print(f"   {token_type:10s}: {size:>4d}")
-    print()
-
-    # =================================
-    # Get tokenizer vocab size (for input embedding)
-    # =================================
-    tokenizer_vocab_size = len(train_dataset.tokenizer.vocab)
-
-    print(f"📊 Tokenizer info:")
-    print(f"   Total vocab size: {tokenizer_vocab_size}")
-    print(f"   (Input embedding will use this size)")
-    print(f"   (Output heads use per-type sizes above)\n")
-
-    special_tokens = {
-        'pad': 0,
-        'bos': 1,
-        'eos': 2,
-        'mask': 3,
-    }
-
-    # Verify no zero sizes
-    for token_type, size in vocab_sizes.items():
-        if size == 0:
-            raise ValueError(f"Vocab size for {token_type} is 0! Check tokenizer config.")
-    
-    # Lambda weights (from config)
-    from omegaconf import OmegaConf
-    lambda_weights = OmegaConf.to_container(cfg.lambda_weights, resolve=True)
-    
-    print(f"\n{'='*70}")
-    print(f"🔍 LAMBDA WEIGHTS FROM CONFIG:")
-    for k, v in lambda_weights.items():
-        print(f"   {k:10s}: {v}")
-    print(f"{'='*70}\n")
-    #lambda_weights = {
-    #    'pitch': 1.0,
-    #    'velocity': 1.0,
-    #    'duration': 1.0,
-    #    'program': 1.0,
-    #    'position': 4.5,
-    #    'rest': 10.0,
-    #    'bar': 10.0,
-    #    'timesig': 10.0,
-    #    'tempo': 20.0,
-    #}
-    
-    model = MaskedTransformerREMI(
-        phase=1,
-        vocab_sizes=vocab_sizes,  # Per output heads
-        special_token_ids=special_tokens,
-        d_model=d_model,
-        nhead=nhead,
-        num_encoder_layers=num_layers,
-        dim_feedforward=dim_feedforward,
-        dropout=dropout,
-        max_seq_length=max_seq_length,
-        mask_prob=cfg.masking.mask_prob,
-        bar_level_masking=cfg.masking.bar_level,
-        lambda_weights=lambda_weights,
-        class_weights=OmegaConf.to_container(cfg.get('class_weights', None), resolve=True) if 'class_weights' in cfg else None,
-        lr=lr,
-        weight_decay=cfg.train.weight_decay,
-        warmup_steps=cfg.train.warmup_steps,
-        num_training_steps=total_training_steps,
-    )
-
-    # CRITICAL FIX: Override token embedding with correct size
-    print(f"🔧 Fixing token embedding size to match tokenizer...\n")
-    model.token_embedding = torch.nn.Embedding(tokenizer_vocab_size, d_model)
-    print(f"✅ Token embedding size: {tokenizer_vocab_size} → {d_model}\n")
+    model = build_model(cfg, train_dataset.tokenizer,
+                        train_dataset.actual_vocab_sizes,
+                        total_training_steps, lr)
     
     # =================================
     # Logger & Callbacks
