@@ -212,7 +212,7 @@ def train_infilling(cfg: DictConfig) -> None:
         log_every_n_steps=cfg.train.log_every_n_steps,
         val_check_interval=cfg.train.val_check_interval,
         limit_train_batches=100 if fast_run else cfg.train.limit_train_batches,
-        limit_val_batches=20  if fast_run else 1.0,
+        limit_val_batches=20 if fast_run else getattr(cfg.train, 'limit_val_batches', 1.0),
     )
 
     # =================================
