@@ -109,7 +109,11 @@ def build_vocab_lookups(tokenizer: REMI) -> Dict:
 # ── Data loading ──────────────────────────────────────────────────────────────
 
 def get_val_files(data_dir: str) -> List[Path]:
-    """Return val split file list using same song-level seed=42 logic as LakhDataset."""
+    """Return val split — one file per stem (unshifted original preferred).
+
+    Seeds index into stems, not individual files, so consecutive seeds
+    always correspond to genuinely different songs.
+    """
     import re
     from collections import defaultdict
 
@@ -131,9 +135,16 @@ def get_val_files(data_dir: str) -> List[Path]:
 
     n_train = int(0.8 * len(unique_stems))
     n_val   = int(0.1 * len(unique_stems))
-    val_stems = {unique_stems[i] for i in stem_indices[n_train:n_train + n_val]}
+    val_stems = [unique_stems[i] for i in stem_indices[n_train:n_train + n_val]]
 
-    return sorted([f for f in all_files if get_stem(f) in val_stems])
+    # One file per stem: prefer the unshifted original (stem.pt), else first file
+    result = []
+    for stem in val_stems:
+        files = sorted(stem_to_files[stem])
+        original = next((f for f in files if f.stem == stem), files[0])
+        result.append(original)
+
+    return sorted(result)
 
 
 def extract_chunk(file_path: Path, bars_per_chunk: int = 8) -> Optional[Dict]:
@@ -360,7 +371,7 @@ def main():
     # ── 3. Select val file ────────────────────────────────────────────────────
     print(f"\n[3/6] Selecting val file (seed={args.seed})...")
     val_files = get_val_files(args.data_dir)
-    print(f"  Val split: {len(val_files)} files")
+    print(f"  Val split: {len(val_files)} stems (one file per song)")
 
     # Try seed, then seed+1, seed+2, ... until we find a file with ≥8 bars
     chunk = None
