@@ -346,10 +346,10 @@ def main():
     parser.add_argument('--data_dir',   required=True,            help='Directory with preprocessed .pt files')
     parser.add_argument('--output_dir', default='outputs/infilling', help='Output directory for MIDI files')
     parser.add_argument('--seed',       type=int, default=0,      help='Index into val split for file selection')
-    parser.add_argument('--mask_bars',  default='3,4,5',          help='Comma-separated 0-indexed bars to mask')
+    parser.add_argument('--mask_bars',  type=int, nargs='+', default=[3, 4, 5], help='0-indexed bars to mask, e.g. --mask_bars 3 4 5')
     args = parser.parse_args()
 
-    mask_bar_list = [int(b.strip()) for b in args.mask_bars.split(',')]
+    mask_bar_list = args.mask_bars
     output_dir    = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
