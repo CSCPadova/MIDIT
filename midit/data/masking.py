@@ -587,3 +587,104 @@ class BarFillMasking:
             'masked_tokens': masked,
             'mask_ratio':    masked / total if total > 0 else 0.0,
         }
+
+
+# ============================================================================
+# Random High-Rate Masking (Ablation Study)
+# ============================================================================
+
+class RandomHighMasking:
+    """Random high-rate note masking — ablation condition vs BarFillMasking.
+
+    Masks note tokens (Pitch/PitchDrum/Velocity/Duration/Program) selected
+    uniformly at random at `mask_ratio`. Structural tokens (Bar, Position,
+    Tempo, TimeSig, Rest) are always preserved — identical to BarFillMasking.
+
+    Scientific purpose: answers "Does the improvement from infilling fine-tuning
+    come from the higher mask rate, or from the contiguous bar structure?"
+    Run with the same mask_ratio as BarFillMasking to isolate the variable.
+
+    Interface identical to BarFillMasking:
+        apply_masking(tokens, bar_positions=None) → (masked_tokens, mask_labels)
+
+    bar_positions is accepted but ignored (kept for API compatibility).
+    """
+
+    _NOTE_PREFIXES = ('Pitch_', 'PitchDrum_', 'Velocity_', 'Duration_', 'Program_')
+
+    def __init__(
+        self,
+        tokenizer_vocab: Dict[str, int],
+        mask_token_id: int = 3,
+        mask_ratio: float = 0.30,
+        seed: Optional[int] = None,
+    ):
+        """
+        Args:
+            tokenizer_vocab: Full tokenizer vocabulary (token_name → token_id).
+            mask_token_id:   ID of [MASK] token (default 3 for V2 special tokens).
+            mask_ratio:      Fraction of note tokens to mask, e.g. 0.30 for 30%.
+                             Applied over note tokens only, not total sequence.
+            seed:            RNG seed for reproducibility. None = non-deterministic.
+        """
+        if not 0.0 < mask_ratio < 1.0:
+            raise ValueError(f"mask_ratio must be in (0, 1), got {mask_ratio}")
+
+        self.mask_token_id = mask_token_id
+        self.mask_ratio    = mask_ratio
+        self._rng          = random.Random(seed)
+        self._id_to_token: Dict[int, str] = {v: k for k, v in tokenizer_vocab.items()}
+
+    def _is_note_token(self, token_name: str) -> bool:
+        return token_name.startswith(self._NOTE_PREFIXES)
+
+    def apply_masking(
+        self,
+        tokens: torch.Tensor,
+        bar_positions: Optional[List[int]] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Apply random note masking at self.mask_ratio.
+
+        1. Collect positions of all note tokens in the sequence.
+        2. Sample mask_ratio fraction without replacement.
+        3. Replace each selected position with mask_token_id.
+
+        Args:
+            tokens:        Original token IDs [seq_len].
+            bar_positions: Ignored. Accepted for API compatibility only.
+
+        Returns:
+            masked_tokens: Clone with selected note tokens replaced [seq_len].
+            mask_labels:   Boolean tensor, True at masked positions [seq_len].
+        """
+        note_positions = [
+            pos for pos in range(len(tokens))
+            if self._is_note_token(self._id_to_token.get(tokens[pos].item(), ''))
+        ]
+
+        if not note_positions:
+            return tokens.clone(), torch.zeros(len(tokens), dtype=torch.bool)
+
+        num_mask = max(1, int(len(note_positions) * self.mask_ratio))
+        num_mask = min(num_mask, len(note_positions))
+
+        masked_set = set(self._rng.sample(note_positions, num_mask))
+
+        masked_tokens = tokens.clone()
+        mask_labels   = torch.zeros(len(tokens), dtype=torch.bool)
+
+        for pos in masked_set:
+            masked_tokens[pos] = self.mask_token_id
+            mask_labels[pos]   = True
+
+        return masked_tokens, mask_labels
+
+    def get_masking_stats(self, mask_labels: torch.Tensor) -> Dict[str, float]:
+        """Return masking statistics (same interface as other maskers)."""
+        total  = len(mask_labels)
+        masked = mask_labels.sum().item()
+        return {
+            'total_tokens':  total,
+            'masked_tokens': masked,
+            'mask_ratio':    masked / total if total > 0 else 0.0,
+        }

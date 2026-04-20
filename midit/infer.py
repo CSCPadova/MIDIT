@@ -21,6 +21,7 @@ import torch
 from miditok import REMI, TokenizerConfig, TokSequence
 
 from midit.model.masked_transformer import MaskedTransformerREMI
+from midit.data.masking import RandomHighMasking
 
 
 MASK_ID = 3
@@ -213,6 +214,35 @@ def apply_bar_mask(
     return masked, mask_labels
 
 
+# ── Random high-rate masking ──────────────────────────────────────────────────
+
+def apply_random_mask(
+    tokens: torch.Tensor,
+    mask_ratio: float,
+    lookups: Dict,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """Replace a random mask_ratio fraction of note tokens with MASK_ID.
+
+    Structural tokens (Bar/Position/Tempo/TimeSig/Rest) are preserved.
+    Ablation condition: same mask rate as BarFillMasking, but random
+    selection instead of contiguous bars.
+
+    Args:
+        tokens:     Original token IDs [seq_len]
+        mask_ratio: Fraction of note tokens to mask (e.g. 0.30)
+        lookups:    Vocab lookups dict from build_vocab_lookups()
+
+    Returns:
+        masked_tokens [seq_len], mask_labels bool [seq_len]
+    """
+    masker = RandomHighMasking(
+        tokenizer_vocab=lookups['vocab'],
+        mask_token_id=MASK_ID,
+        mask_ratio=mask_ratio,
+    )
+    return masker.apply_masking(tokens, bar_positions=None)
+
+
 # ── Reconstruction ────────────────────────────────────────────────────────────
 
 def reconstruct(
@@ -347,6 +377,9 @@ def main():
     parser.add_argument('--output_dir', default='outputs/infilling', help='Output directory for MIDI files')
     parser.add_argument('--seed',       type=int, default=0,      help='Index into val split for file selection')
     parser.add_argument('--mask_bars',  type=int, nargs='+', default=[3, 4, 5], help='0-indexed bars to mask, e.g. --mask_bars 3 4 5')
+    parser.add_argument('--mask_ratio', type=float, default=None,
+                        help='Random high-rate masking: fraction of note tokens to mask '
+                             '(e.g. 0.30). Mutually exclusive with --mask_bars.')
     args = parser.parse_args()
 
     mask_bar_list = args.mask_bars
@@ -403,11 +436,22 @@ def main():
 
     # ── 5. Apply masking ──────────────────────────────────────────────────────
     print("\n[5/6] Applying masking...")
-    masked_tokens, mask_labels = apply_bar_mask(original_tokens, bar_positions, mask_bar_list, lookups)
-    n_masked = mask_labels.sum().item()
-    n_total  = len(original_tokens)
-    print(f"  Masked {n_masked}/{n_total} tokens ({100 * n_masked / n_total:.1f}%)")
-    print(f"  (structural tokens Bar/Position/Tempo/TimeSig/Rest preserved in-place)")
+    if args.mask_ratio is not None:
+        if args.mask_bars != [3, 4, 5]:
+            parser.error("--mask_ratio and --mask_bars are mutually exclusive.")
+        masked_tokens, mask_labels = apply_random_mask(original_tokens, args.mask_ratio, lookups)
+        n_masked = mask_labels.sum().item()
+        n_total  = len(original_tokens)
+        print(f"  Mode: random high-rate masking (ratio={args.mask_ratio:.0%})")
+        print(f"  Masked {n_masked}/{n_total} tokens ({100 * n_masked / n_total:.1f}%)")
+        print(f"  (note tokens only; Bar/Position/Tempo/TimeSig/Rest preserved)")
+    else:
+        masked_tokens, mask_labels = apply_bar_mask(original_tokens, bar_positions, mask_bar_list, lookups)
+        n_masked = mask_labels.sum().item()
+        n_total  = len(original_tokens)
+        print(f"  Mode: bar masking (bars={mask_bar_list})")
+        print(f"  Masked {n_masked}/{n_total} tokens ({100 * n_masked / n_total:.1f}%)")
+        print(f"  (structural tokens Bar/Position/Tempo/TimeSig/Rest preserved in-place)")
 
     # ── 6. Reconstruct ────────────────────────────────────────────────────────
     print("\n[6/6] Running model inference...")
