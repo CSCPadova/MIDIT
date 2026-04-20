@@ -212,11 +212,16 @@ def _compute_si_metrics(path: Path) -> Dict[str, float]:
 
     metric_fns = {
         'pitch_class_entropy': muspy.pitch_class_entropy,
-        'groove_consistency':  muspy.groove_consistency,
         'scale_consistency':   muspy.scale_consistency,
         'pitch_range':         muspy.pitch_range,
         'n_pitches_used':      muspy.n_pitches_used,
     }
+
+    try:
+        result['groove_consistency'] = float(muspy.groove_consistency(music, measure_resolution=4))
+    except Exception as e:
+        print(f"    groove_consistency failed: {e}", file=sys.stderr)
+        result['groove_consistency'] = float('nan')
 
     for name, fn in metric_fns.items():
         try:
