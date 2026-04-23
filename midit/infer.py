@@ -272,6 +272,7 @@ def reconstruct(
     masked_positions = mask_labels.nonzero(as_tuple=True)[0]
 
     head_counts: Dict[str, int] = {}
+    pitch_pred_names: Dict[str, int] = {}
 
     for pos in masked_positions:
         pos_int = pos.item()
@@ -299,10 +300,19 @@ def reconstruct(
         if pred_id is not None:
             reconstructed[pos_int] = pred_id
             head_counts[head_name] = head_counts.get(head_name, 0) + 1
+            if head_name == 'pitch':
+                pitch_pred_names[names[class_idx]] = pitch_pred_names.get(names[class_idx], 0) + 1
 
     print(f"  Reconstructed {len(masked_positions)} tokens:")
     for head, count in sorted(head_counts.items()):
         print(f"    {head:10s}: {count}")
+
+    if pitch_pred_names:
+        top5 = sorted(pitch_pred_names.items(), key=lambda x: x[1], reverse=True)[:5]
+        print(f"  [Pitch top-5 predictions]")
+        for name, cnt in top5:
+            pct = 100 * cnt / sum(pitch_pred_names.values())
+            print(f"    {name:<20s}: {cnt:>4}  ({pct:.1f}%)")
 
     return reconstructed
 
