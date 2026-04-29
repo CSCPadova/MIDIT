@@ -364,6 +364,223 @@ def show_pitch_shift_comparison(file_path, id_to_token, tokenizer, target_shift=
 
 
 # ============================================================================
+# Matplotlib figure — MidiTok-style colored token boxes
+# ============================================================================
+
+NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+BOX_COLORS = {
+    'bar':       '#90EE90',  # green
+    'position':  '#AED6F1',  # sky blue
+    'tempo':     '#FFB347',  # orange
+    'timesig':   '#D7BDE2',  # lavender / purple
+    'program':   '#76D7C4',  # teal
+    'pitch':     '#F1948A',  # salmon / pink-red
+    'pitchdrum': '#F1948A',  # same head as pitch
+    'velocity':  '#F9E79F',  # pale yellow
+    'duration':  '#D2B48C',  # tan / beige-brown
+    'rest':      '#BDC3C7',  # silver-grey
+    'special':   '#E8E8E8',  # very light grey
+}
+
+
+def midi_to_note(n: int) -> str:
+    """Convert MIDI pitch number to note name (e.g. 60 → C4)."""
+    return f"{NOTE_NAMES[n % 12]}{n // 12 - 1}"
+
+
+def format_display_name(name: str) -> str:
+    """Convert an internal MidiTok token name to a two-line display label.
+
+    Examples:
+        Bar_None       → 'Bar'
+        Position_7     → 'Pos.\\n7'
+        Tempo_116      → 'Tempo\\n116'
+        TimeSig_4/4    → 'TimeSig\\n4/4'
+        Program_0      → 'Prog.\\n0'
+        Pitch_60       → 'Pitch\\nC4'
+        PitchDrum_36   → 'Drum\\n36'
+        Velocity_80    → 'Vel.\\n80'
+        Duration_1.0.8 → 'Dur.\\n1.0'
+        Rest_0.4.8     → 'Rest\\n0.4'
+    """
+    if name == 'Bar_None':
+        return 'Bar'
+    if name.startswith('Position_'):
+        return f'Pos.\n{name[9:]}'
+    if name.startswith('Tempo_'):
+        return f'Tempo\n{name[6:]}'
+    if name.startswith('TimeSig_'):
+        val = name[8:].split('_')[0]   # drop trailing index if present
+        return f'TimeSig\n{val}'
+    if name.startswith('Program_'):
+        return f'Prog.\n{name[8:]}'
+    if name.startswith('Pitch_'):
+        try:
+            return f'Pitch\n{midi_to_note(int(name[6:]))}'
+        except ValueError:
+            return f'Pitch\n{name[6:]}'
+    if name.startswith('PitchDrum_'):
+        return f'Drum\n{name[10:]}'
+    if name.startswith('Velocity_'):
+        return f'Vel.\n{name[9:]}'
+    if name.startswith('Duration_'):
+        parts = name[9:].split('.')
+        suffix = f'{parts[0]}.{parts[1]}' if len(parts) >= 2 else name[9:]
+        return f'Dur.\n{suffix}'
+    if name.startswith('Rest_'):
+        parts = name[5:].split('.')
+        suffix = f'{parts[0]}.{parts[1]}' if len(parts) >= 2 else name[5:]
+        return f'Rest\n{suffix}'
+    for special in ('PAD_None', 'BOS_None', 'EOS_None', 'MASK_None'):
+        if name == special:
+            return name.split('_')[0]
+    return name.replace('_', '\n', 1)
+
+
+def render_token_figure(
+    tokens,
+    id_to_token: dict,
+    bar_positions: list,
+    max_tokens: int = 28,
+    output_path: str = None,
+) -> None:
+    """Render a MidiTok-style horizontal token-box figure with matplotlib.
+
+    Each token is a rounded colored rectangle with the token name inside.
+    Bar boundaries are marked with a thin vertical separator.
+    A continuation arrow is drawn at the right end.
+
+    Args:
+        tokens:        Token ID tensor.
+        id_to_token:   {token_id: token_name} mapping.
+        bar_positions: List of bar-boundary token indices.
+        max_tokens:    How many tokens to render (default 28).
+        output_path:   Save path for PNG.  None → plt.show() interactively.
+    """
+    try:
+        import matplotlib
+        if output_path:
+            matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        import matplotlib.patches as mpatches
+    except ImportError:
+        print("[ERROR] matplotlib not installed.  pip install matplotlib")
+        return
+
+    # ── Layout constants (data coordinates) ──────────────────────────────────
+    BOX_W = 0.82    # box width
+    BOX_H = 2.00    # box height
+    GAP   = 0.18    # gap between adjacent boxes
+    STEP  = BOX_W + GAP   # horizontal step per token = 1.00
+    PAD_L = 0.30    # left margin
+    PAD_R = 1.30    # right margin (room for arrow)
+    PAD_Y = 0.30    # bottom margin; top margin = PAD_Y + 0.30 for bar labels
+
+    token_ids = tokens[:max_tokens].tolist()
+    n = len(token_ids)
+
+    total_w = PAD_L + n * STEP + PAD_R
+    total_h = PAD_Y + BOX_H + 0.55     # extra headroom for bar labels
+
+    # Figure size: ~0.58 in per token horizontally, fixed 2.3 in height
+    fig_w = max(6.0, PAD_L * 0.58 + n * STEP * 0.58 + PAD_R * 0.58)
+    fig_h = 2.30
+
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    ax.set_xlim(0, total_w)
+    ax.set_ylim(0, total_h)
+    ax.axis('off')
+    fig.patch.set_facecolor('white')
+
+    bar_boundary_set = set(bar_positions)
+    bar_counter = 1     # first bar label written at the left margin
+
+    y_box = PAD_Y       # bottom-left y of every box
+
+    # "bar 1" label at leftmost edge
+    ax.text(
+        PAD_L + BOX_W / 2, PAD_Y + BOX_H + 0.10,
+        'bar 1',
+        ha='center', va='bottom',
+        fontsize=6.0, color='#555555',
+        fontstyle='italic',
+    )
+
+    for i, tok_id in enumerate(token_ids):
+        tok_name = id_to_token.get(tok_id, f'UNK_{tok_id}')
+        tok_type = classify_token(tok_name)
+        color    = BOX_COLORS.get(tok_type, '#FFFFFF')
+        display  = format_display_name(tok_name)
+
+        x_box = PAD_L + i * STEP
+
+        # ── Bar separator and label ───────────────────────────────────────────
+        if i > 0 and i in bar_boundary_set:
+            bar_counter += 1
+            sep_x = x_box - GAP / 2
+            ax.plot(
+                [sep_x, sep_x],
+                [PAD_Y - 0.04, PAD_Y + BOX_H + 0.04],
+                color='#777777', linewidth=0.85,
+            )
+            ax.text(
+                x_box + BOX_W / 2, PAD_Y + BOX_H + 0.10,
+                f'bar {bar_counter}',
+                ha='center', va='bottom',
+                fontsize=6.0, color='#555555',
+                fontstyle='italic',
+            )
+
+        # ── Rounded box ───────────────────────────────────────────────────────
+        box = mpatches.FancyBboxPatch(
+            (x_box, y_box), BOX_W, BOX_H,
+            boxstyle='round,pad=0.07',
+            facecolor=color,
+            edgecolor='#555555',
+            linewidth=0.75,
+        )
+        ax.add_patch(box)
+
+        # ── Token name (two lines) ────────────────────────────────────────────
+        ax.text(
+            x_box + BOX_W / 2,
+            y_box + BOX_H / 2,
+            display,
+            ha='center', va='center',
+            fontsize=7.5, fontweight='bold',
+            color='#222222',
+            multialignment='center',
+            linespacing=1.35,
+        )
+
+    # ── Continuation arrow ────────────────────────────────────────────────────
+    arrow_x0 = PAD_L + n * STEP - GAP / 2 + 0.12
+    arrow_x1 = arrow_x0 + 0.85
+    mid_y    = PAD_Y + BOX_H / 2
+    ax.annotate(
+        '',
+        xy=(arrow_x1, mid_y),
+        xytext=(arrow_x0, mid_y),
+        arrowprops=dict(
+            arrowstyle='->', color='#444444',
+            lw=1.6, mutation_scale=14,
+        ),
+    )
+
+    plt.tight_layout(pad=0.1)
+
+    if output_path:
+        out = Path(output_path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(out, dpi=200, bbox_inches='tight', facecolor='white')
+        print(f"  Figure saved -> {out.resolve()}")
+        plt.close(fig)
+    else:
+        plt.show()
+
+
+# ============================================================================
 # Main
 # ============================================================================
 
@@ -380,6 +597,12 @@ def main():
                         help="Disabilita colori ANSI")
     parser.add_argument('--shift', type=int, default=3,
                         help="Shift target per il confronto pitch (default: 3)")
+    parser.add_argument('--output', type=str, default=None,
+                        help="Save matplotlib token-box figure to this PNG path.")
+    parser.add_argument('--max_tokens', type=int, default=28,
+                        help="Number of tokens to render in the figure (default: 28).")
+    parser.add_argument('--figure-only', action='store_true',
+                        help="Skip terminal output; only generate the figure (requires --output).")
     args = parser.parse_args()
 
     # ── Trova il file ────────────────────────────────────────────────────────
@@ -395,45 +618,58 @@ def main():
         shift0_files = [f for f in all_files if 'shift' not in f.stem]
         file_path = random.choice(shift0_files if shift0_files else all_files)
 
-    print(f"\n{'=' * 70}")
-    print(f"VISUALIZZAZIONE TOKENIZZAZIONE MIDI V2")
-    print(f"{'=' * 70}")
-    print(f"\n  File: {file_path}")
+    if not args.figure_only:
+        print(f"\n{'=' * 70}")
+        print(f"VISUALIZZAZIONE TOKENIZZAZIONE MIDI V2")
+        print(f"{'=' * 70}")
+        print(f"\n  File: {file_path}")
 
     # ── Carica dati ──────────────────────────────────────────────────────────
-    data         = torch.load(file_path, weights_only=False)
-    tokens       = data['tokens']
+    data          = torch.load(file_path, weights_only=False)
+    tokens        = data['tokens']
     bar_positions = data['bar_positions']
-    metadata     = data.get('metadata', {})
+    metadata      = data.get('metadata', {})
 
-    print(f"  Token totali:     {len(tokens)}")
-    print(f"  Bar totali:       {len(bar_positions) - 1}")
-    print(f"  ID range:         [{tokens.min().item()}, {tokens.max().item()}]")
-    if metadata:
-        print(f"  Source file:      {metadata.get('source_file', 'N/A')}")
-        print(f"  Pitch shift:      {metadata.get('pitch_shift', 'N/A')}")
-        print(f"  Tokenizer ver:    {metadata.get('tokenizer_ver', 'N/A')}")
-        print(f"  Num programs:     {metadata.get('num_programs', 'N/A')}")
+    if not args.figure_only:
+        print(f"  Token totali:     {len(tokens)}")
+        print(f"  Bar totali:       {len(bar_positions) - 1}")
+        print(f"  ID range:         [{tokens.min().item()}, {tokens.max().item()}]")
+        if metadata:
+            print(f"  Source file:      {metadata.get('source_file', 'N/A')}")
+            print(f"  Pitch shift:      {metadata.get('pitch_shift', 'N/A')}")
+            print(f"  Tokenizer ver:    {metadata.get('tokenizer_ver', 'N/A')}")
+            print(f"  Num programs:     {metadata.get('num_programs', 'N/A')}")
 
     # ── Tokenizer V2 ─────────────────────────────────────────────────────────
-    tokenizer    = build_tokenizer_v2()
-    id_to_token  = {v: k for k, v in tokenizer.vocab.items()}
-    use_color    = not args.no_color
+    tokenizer   = build_tokenizer_v2()
+    id_to_token = {v: k for k, v in tokenizer.vocab.items()}
+    use_color   = not args.no_color
 
-    # ── Sezioni ──────────────────────────────────────────────────────────────
-    visualize_sequence(tokens, id_to_token, bar_positions,
-                       max_bars=args.bars, use_color=use_color)
+    # ── Terminal sections (skipped in figure-only mode) ───────────────────────
+    if not args.figure_only:
+        visualize_sequence(tokens, id_to_token, bar_positions,
+                           max_bars=args.bars, use_color=use_color)
 
-    show_type_distribution(tokens, id_to_token)
+        show_type_distribution(tokens, id_to_token)
 
-    show_masking_example(tokens, id_to_token)
+        show_masking_example(tokens, id_to_token)
 
-    verify_consistency_v2(tokens, id_to_token, tokenizer, metadata)
+        verify_consistency_v2(tokens, id_to_token, tokenizer, metadata)
 
-    show_pitch_shift_comparison(file_path, id_to_token, tokenizer,
-                                target_shift=args.shift)
+        show_pitch_shift_comparison(file_path, id_to_token, tokenizer,
+                                    target_shift=args.shift)
 
-    print(f"\n{'=' * 70}\n")
+        print(f"\n{'=' * 70}\n")
+
+    # ── Matplotlib figure ─────────────────────────────────────────────────────
+    if args.output or args.figure_only:
+        render_token_figure(
+            tokens,
+            id_to_token,
+            bar_positions,
+            max_tokens=args.max_tokens,
+            output_path=args.output,
+        )
 
 
 if __name__ == "__main__":
