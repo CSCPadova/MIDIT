@@ -34,6 +34,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
 import math
 import sys
@@ -192,8 +193,50 @@ def _si_fallback_pretty_midi(path: Path) -> Dict[str, float]:
     return result
 
 
-def _compute_si_metrics(path: Path) -> Dict[str, float]:
+def _crop_music_to_range(
+    music: "muspy.Music",
+    bar_range: List[Tuple[int, int]],
+) -> "muspy.Music":
+    """Return a new muspy.Music containing only notes in the masked bar_range.
+
+    Notes are filtered to those whose onset (note.time) falls within any
+    (t_start, t_end) pair in bar_range.  All surviving notes are re-timed
+    by subtracting bar_range[0][0] so that the cropped region starts at
+    tick 0 — required for groove_consistency's measure-grid to be meaningful.
+
+    Duration clipping at t_end is not applied because the five S-I metrics
+    used here (SC, GC, PCE, pitch_range, n_pitches_used) only read note.time
+    and note.pitch, never note.end.
+    """
+    t_offset = bar_range[0][0]
+    cropped_tracks = []
+    for track in music.tracks:
+        filtered = [
+            copy.copy(n) for n in track.notes
+            if any(t_start <= n.time < t_end for (t_start, t_end) in bar_range)
+        ]
+        for n in filtered:
+            n.time -= t_offset
+        if filtered:
+            cropped_tracks.append(
+                muspy.Track(
+                    program=track.program,
+                    is_drum=track.is_drum,
+                    notes=filtered,
+                )
+            )
+    return muspy.Music(resolution=music.resolution, tracks=cropped_tracks)
+
+
+def _compute_si_metrics(
+    path: Path,
+    bar_range: Optional[List[Tuple[int, int]]] = None,
+) -> Dict[str, float]:
     """Compute S-I metrics on the given MIDI file using muspy.
+
+    If bar_range is provided, metrics are computed only over the masked bar
+    region (notes cropped and re-timed to start at 0).  If bar_range is None
+    the full file is used (original behaviour, kept as fallback).
 
     Falls back to pretty_midi if muspy.read_midi() raises.
     """
@@ -209,6 +252,9 @@ def _compute_si_metrics(path: Path) -> Dict[str, float]:
         print(f"    muspy.read_midi failed ({e}), trying pretty_midi fallback",
               file=sys.stderr)
         return _si_fallback_pretty_midi(path)
+
+    if bar_range is not None:
+        music = _crop_music_to_range(music, bar_range)
 
     metric_fns = {
         'pitch_class_entropy': muspy.pitch_class_entropy,
@@ -273,9 +319,9 @@ def process_experiment(subdir: Path) -> Optional[Dict]:
     else:
         print(f"    Skipping P-I metrics (bar detection failed)", file=sys.stderr)
 
-    # ── S-I metrics ───────────────────────────────────────────────────────────
+    # ── S-I metrics (cropped to masked bar region when bar_range is available) ──
     try:
-        si = _compute_si_metrics(recon_path)
+        si = _compute_si_metrics(recon_path, bar_range=bar_range)
         row.update(si)
     except Exception as e:
         print(f"    S-I metrics failed: {e}", file=sys.stderr)
