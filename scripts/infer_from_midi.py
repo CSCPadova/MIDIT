@@ -38,6 +38,8 @@ def main():
     parser.add_argument('--output_dir', required=True)
     parser.add_argument('--mask_bars',  type=int, nargs='+', default=[3, 4, 5])
     parser.add_argument('--start_bar',  type=int, default=0)
+    parser.add_argument('--skip_filters', action='store_true',
+                        help='Bypass F1/F2/F3 quality filters from preprocess_v2')
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
@@ -48,10 +50,13 @@ def main():
     with tempfile.TemporaryDirectory() as tmpdir:
         result = _process_file((args.midi_path, tmpdir, [0], False))
         if result['status'] != 'ok':
-            raise RuntimeError(
-                f"Preprocessing failed ({result['status']}): {result.get('error')}\n"
-                "  F1=sparse(<50 notes), F2=short(<15s), F3=constant velocity"
-            )
+            if args.skip_filters:
+                print(f"  Warning: filter {result['status']} bypassed (--skip_filters active)")
+            else:
+                raise RuntimeError(
+                    f"Preprocessing failed ({result['status']}): {result.get('error')}\n"
+                    "  F1=sparse(<50 notes), F2=short(<15s), F3=constant velocity"
+                )
         pt_path = Path(tmpdir) / f'{Path(args.midi_path).stem}.pt'
         print(f'[2/5] Extracting 8-bar chunk (start_bar={args.start_bar})...')
         tokens, bar_positions, total_bars = _extract_chunk(pt_path, args.start_bar)
