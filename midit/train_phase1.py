@@ -68,7 +68,7 @@ def train_phase1(cfg: DictConfig) -> None:
         batch_size=batch_size,
         shuffle=True,
         collate_fn=collate_fn,
-        num_workers=4,
+        num_workers=8,
         pin_memory=True,
         persistent_workers=True,
     )
@@ -78,7 +78,7 @@ def train_phase1(cfg: DictConfig) -> None:
         batch_size=batch_size,
         shuffle=False,
         collate_fn=collate_fn,
-        num_workers=4,
+        num_workers=8,
         pin_memory=True,
         persistent_workers=True,
     )
@@ -112,11 +112,9 @@ def train_phase1(cfg: DictConfig) -> None:
         effective_batches = int(len(train_loader_base) * limit)
     else:
         effective_batches = min(int(limit), len(train_loader_base))
-    steps_per_epoch = effective_batches // accumulate
-    total_training_steps = steps_per_epoch * max_epochs
+    total_training_steps = effective_batches * max_epochs
     print(f"   total_training_steps: {total_training_steps} "
-          f"({effective_batches} batches // {accumulate} accumulate "
-          f"= {steps_per_epoch} optimizer steps/epoch × {max_epochs} epochs)\n")
+          f"({effective_batches} batches/epoch × {max_epochs} epochs)\n")
 
     # Learning rate
     if hasattr(cfg, 'optim') and hasattr(cfg.optim, 'lr'):

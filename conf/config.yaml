@@ -97,11 +97,11 @@ model:
 # ============================================================================
 train:
     phase: 1
-    batch_size: 2
+    batch_size: 8
     epochs: 50
     accelerator: gpu           # ← NUOVO!
     devices: 1                 # ← NUOVO!
-    lr: 3e-4
+    lr: 1.2e-3
     weight_decay: 0.01
     warmup_steps: 1500
     gradient_clip_val: 1.0
