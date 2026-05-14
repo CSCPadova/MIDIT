@@ -25,6 +25,7 @@ class LakhDataset(Dataset):
         cfg: DictConfig,
         split: str = 'train',
         apply_masking: bool = True,
+        preload: bool = True,
     ):
         """Initialize dataset.
 
@@ -244,11 +245,17 @@ class LakhDataset(Dataset):
         else:
             self.masker = None
 
+        self.preload = preload
+        self._data_cache = {}
+
         # Precompute all valid (file_idx, start_bar) pairs for bar_based chunking
         if self.chunking.strategy == 'bar_based':
             bars_per_chunk = self.chunking.bars_per_chunk
             self.chunks = []
-            print(f"\n[INFO] Precomputing chunk index ({len(self.files)} files)...")
+            if preload:
+                print(f"\n[INFO] Preloading {len(self.files)} files into RAM...")
+            else:
+                print(f"\n[INFO] Precomputing chunk index ({len(self.files)} files)...")
             for file_idx, file_path in enumerate(self.files):
                 if file_idx > 0 and file_idx % 10000 == 0:
                     print(f"   ... {file_idx}/{len(self.files)} files processed, {len(self.chunks)} chunks so far")
@@ -257,11 +264,31 @@ class LakhDataset(Dataset):
                     num_bars = len(data['bar_positions']) - 1
                     for start_bar in range(num_bars - bars_per_chunk + 1):
                         self.chunks.append((file_idx, start_bar))
+                    if preload:
+                        self._data_cache[file_idx] = data
                 except Exception:
                     continue
             print(f"[OK] Chunks precomputed: {len(self.chunks)}")
+            if preload:
+                total_bytes = sum(
+                    d['tokens'].element_size() * d['tokens'].nelement()
+                    for d in self._data_cache.values()
+                )
+                print(f"[OK] Dataset loaded: {len(self._data_cache)} files, ~{total_bytes / 1e9:.2f} GB RAM")
         else:
             self.chunks = []
+            if preload:
+                print(f"\n[INFO] Preloading {len(self.files)} files into RAM...")
+                for file_idx, file_path in enumerate(self.files):
+                    try:
+                        self._data_cache[file_idx] = torch.load(file_path)
+                    except Exception:
+                        continue
+                total_bytes = sum(
+                    d['tokens'].element_size() * d['tokens'].nelement()
+                    for d in self._data_cache.values()
+                )
+                print(f"[OK] Dataset loaded: {len(self._data_cache)} files, ~{total_bytes / 1e9:.2f} GB RAM")
 
         print(f"\n[OK] LakhDataset initialized")
         print(f"   Split: {split}")
@@ -302,18 +329,28 @@ class LakhDataset(Dataset):
         # Load file and extract chunk
         if self.chunking.strategy == 'bar_based':
             file_idx, start_bar = self.chunks[idx]
-            try:
-                data = torch.load(self.files[file_idx])
-            except Exception as e:
-                print(f"Error loading {self.files[file_idx]}: {e}")
-                return None
+            if self.preload:
+                data = self._data_cache.get(file_idx)
+                if data is None:
+                    return None
+            else:
+                try:
+                    data = torch.load(self.files[file_idx])
+                except Exception as e:
+                    print(f"Error loading {self.files[file_idx]}: {e}")
+                    return None
             chunk = self._chunk_by_bars(data, start_bar)
         else:
-            try:
-                data = torch.load(self.files[idx])
-            except Exception as e:
-                print(f"Error loading {self.files[idx]}: {e}")
-                return None
+            if self.preload:
+                data = self._data_cache.get(idx)
+                if data is None:
+                    return None
+            else:
+                try:
+                    data = torch.load(self.files[idx])
+                except Exception as e:
+                    print(f"Error loading {self.files[idx]}: {e}")
+                    return None
             chunk = self._chunk_by_tokens(data)
         
         if chunk is None:
