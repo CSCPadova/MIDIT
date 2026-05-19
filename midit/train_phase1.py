@@ -112,9 +112,11 @@ def train_phase1(cfg: DictConfig) -> None:
         effective_batches = int(len(train_loader_base) * limit)
     else:
         effective_batches = min(int(limit), len(train_loader_base))
-    total_training_steps = effective_batches * max_epochs
+    steps_per_epoch      = effective_batches // accumulate
+    total_training_steps = steps_per_epoch * max_epochs
     print(f"   total_training_steps: {total_training_steps} "
-          f"({effective_batches} batches/epoch × {max_epochs} epochs)\n")
+          f"({effective_batches} batches // {accumulate} accumulate "
+          f"= {steps_per_epoch} steps/epoch x {max_epochs} epochs)\n")
 
     # Learning rate
     if hasattr(cfg, 'optim') and hasattr(cfg.optim, 'lr'):

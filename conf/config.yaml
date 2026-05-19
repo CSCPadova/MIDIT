@@ -107,7 +107,7 @@ train:
     gradient_clip_val: 1.0
     precision: bf16            # Cambia anche: 16-mixed è più safe
     accumulate_grad_batches: 4
-    limit_train_batches: 200000   # cap epoch at 200k batches = 50k optimizer steps (~8h/epoch on A40)
+    limit_train_batches: 25000    # 25000 batches / 4 accumulate = 6250 steps/epoch x 50 epochs = 312500 total steps (~8.5h/epoch on A40)
 
     # Checkpointing
     save_top_k: 3
