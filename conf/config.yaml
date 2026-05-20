@@ -108,6 +108,7 @@ train:
     precision: bf16            # Cambia anche: 16-mixed è più safe
     accumulate_grad_batches: 4
     limit_train_batches: 25000    # 25000 batches / 4 accumulate = 6250 steps/epoch x 50 epochs = 312500 total steps (~8.5h/epoch on A40)
+    limit_val_batches: 1000       # cap val at 1000 batches (8000 samples, ~600k masked tokens) — full val would take 4h+ per check
 
     # Checkpointing
     save_top_k: 3
