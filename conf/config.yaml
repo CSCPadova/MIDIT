@@ -67,10 +67,10 @@ lambda_weights:
     duration: 1.0      # invariato
     program: 1.5       # ridotto leggermente (già buono a 55%)
     position: 0.5      # invariato
-    bar: 0.0           # azzerato — 100% accuracy, non contribuisce all'apprendimento
-    tempo: 1.0         # ridotto — token raro, lambda alto amplificava gli spike
-    timesig: 0.0       # azzerato — stesso motivo di bar (accuracy banale, nessun segnale utile)
-    rest: 1.0          # invariato
+    bar: 0.0           # zeroed: rare or trivial tokens cause high loss variance
+    tempo: 0.0         # zeroed: rare or trivial tokens cause high loss variance (~5 masked/step → ±0.45 loss variance)
+    timesig: 0.0       # zeroed: rare or trivial tokens cause high loss variance
+    rest: 0.5          # halved: rare token, excess variance at 1.0
 
 # ============================================================================
 # MODEL CONFIGURATION
@@ -101,7 +101,7 @@ train:
     epochs: 50
     accelerator: gpu           # ← NUOVO!
     devices: 1                 # ← NUOVO!
-    lr: 1.2e-3
+    lr: 1.2e-3          # eff16 baseline; eff64 should use 1.8e-3 (not 2.4e-3) if instability observed
     weight_decay: 0.01
     warmup_steps: 1500
     gradient_clip_val: 1.0
