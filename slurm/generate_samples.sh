@@ -6,7 +6,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=2
 #SBATCH --partition=allgroups
-#SBATCH --mem=10G
+#SBATCH --mem=32G
 #SBATCH --gres=gpu:rtx:1
 
 cd ~/MIDIT
