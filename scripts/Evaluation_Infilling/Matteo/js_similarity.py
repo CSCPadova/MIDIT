@@ -15,7 +15,10 @@ from pathlib import Path
 import numpy as np
 from scipy import stats as scipy_stats
 
-from lilybench.evaluate.muspy_metrics import compute_muspy_metrics
+try:
+    from lilybench.evaluate.muspy_metrics import compute_muspy_metrics
+except ImportError:
+    pass
 
 log = logging.getLogger(__name__)
 
