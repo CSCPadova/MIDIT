@@ -288,6 +288,10 @@ def reconstruct(
             # Unrecognised token type — leave as MASK
             continue
 
+        if pos_int >= logits[head_name].shape[1]:
+            reconstructed[pos_int] = orig_id
+            continue
+
         class_idx = logits[head_name][0, pos_int].argmax().item()
         names = class_to_name[head_name]
 
