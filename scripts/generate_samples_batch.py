@@ -77,6 +77,10 @@ def process_seed(
     original_tokens = chunk["tokens"]
     bar_positions   = chunk["bar_positions"]
 
+    if len(original_tokens) >= 8000:
+        print(f"  [seed {seed:>4}] SKIP: sequence too long ({len(original_tokens)} tokens)", flush=True)
+        return False
+
     masked_tokens, mask_labels = apply_bar_mask(
         original_tokens, bar_positions, mask_bars, lookups
     )
