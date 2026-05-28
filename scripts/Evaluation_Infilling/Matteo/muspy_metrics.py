@@ -83,7 +83,7 @@ def compute_muspy_metrics(midi_path: Path) -> dict[str, float | None]:
         "muspy_polyphony_rate": _safe(muspy.polyphony_rate, music),
         "muspy_empty_beat_rate": _safe(muspy.empty_beat_rate, music),
         "muspy_empty_measure_rate": _safe(muspy.empty_measure_rate, music, resolution),
-        "muspy_groove_consistency": _safe(muspy.groove_consistency, music, resolution),
+        "muspy_groove_consistency": _safe(muspy.groove_consistency, music, 4),
     }
 
     key = _primary_key(music)
