@@ -6,7 +6,7 @@
 #SBATCH --time=7-00:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
+#SBATCH --mem=120G
 #SBATCH --gres=gpu:l40s:1
 
 cd /home/zanettisim/MIDIT
