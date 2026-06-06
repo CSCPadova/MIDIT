@@ -3,14 +3,17 @@
 #SBATCH --output=logs/anticipatory_gen_%j.out
 #SBATCH --error=logs/anticipatory_gen_%j.err
 #SBATCH --partition=allgroups
-#SBATCH --time=12:00:00
+#SBATCH --time=04:00:00
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=16G
 #SBATCH --gres=gpu:l40s:1
 
 cd /home/zanettisim/MIDIT
 source .venv_anticipation/bin/activate
+
+# Redirect HuggingFace cache to /nfsd (home filesystem is shared and may be full)
+export HF_HOME=/nfsd/tesi/zanettisim/huggingface_cache
 
 python -u scripts/sota_baselines/anticipatory/generate_anticipatory_samples.py \
     --input_dir /nfsd/tesi/zanettisim/MIDIT/outputs/samples_1000 \
