@@ -10,6 +10,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C.svg)](https://pytorch.org/)
 [![Lightning](https://img.shields.io/badge/Lightning-2.x-792EE5.svg)](https://lightning.ai/)
 [![MidiTok](https://img.shields.io/badge/MidiTok-REMI%2B-green.svg)](https://github.com/Natooz/MidiTok)
+[![Checkpoints](https://img.shields.io/badge/🤗%20Hub-checkpoints-yellow.svg)](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Master's thesis in Data Science — University of Padova**<br>
@@ -175,13 +176,36 @@ source .venv/bin/activate
 
 ---
 
+## 📦 Pretrained Checkpoints
+
+Pretrained weights are hosted on the [Hugging Face Hub](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints):
+
+| Checkpoint | Phase | Description |
+|---|---|---|
+| [`midit-phase1-epoch14.ckpt`](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints/resolve/main/midit-phase1-epoch14.ckpt) | Phase 1 (MLM pre-training) | base / zero-shot model, val_loss 2.7254 |
+| [`midit-infilling-epoch05.ckpt`](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints/resolve/main/midit-infilling-epoch05.ckpt) | Phase 1b (BarFillMasking FT) | fine-tuned infilling model — **used for all thesis results** |
+
+Download both into `logs/checkpoints/`:
+
+```bash
+uv pip install huggingface_hub    # or: pip install huggingface_hub
+
+hf download SimoneZanetti00/MIDIT-checkpoints \
+    midit-infilling-epoch05.ckpt midit-phase1-epoch14.ckpt \
+    --local-dir logs/checkpoints/
+```
+
+Weights contain the Lightning `state_dict` + hyperparameters only (optimizer state removed). Trained on the Lakh MIDI Dataset; released for research purposes.
+
+---
+
 ## 🚀 Quickstart — Infilling Inference
 
 **On a validation-set sample** (reproduces the thesis protocol — masks bars 3–5, reconstructs them, saves `original.mid` / `masked.mid` / `reconstructed.mid`):
 
 ```bash
 python midit/infer.py \
-    --checkpoint logs/checkpoints_infilling/infilling-epoch=05-val_loss=8.5836.ckpt \
+    --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --data_dir   data/preprocessed_v2_50k \
     --seed 5 \
     --mask_bars 3 4 5 \
@@ -193,7 +217,7 @@ python midit/infer.py \
 ```bash
 python scripts/infer_from_midi.py \
     --midi_path  path/to/your_song.mid \
-    --checkpoint logs/checkpoints_infilling/infilling-epoch=05-val_loss=8.5836.ckpt \
+    --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --mask_bars 3 4 5 \
     --start_bar 12 \
     --output_dir outputs/my_song/
@@ -203,13 +227,13 @@ python scripts/infer_from_midi.py \
 
 ```bash
 python scripts/generate_samples_batch.py \
-    --checkpoint logs/checkpoints_infilling/infilling-epoch=05-val_loss=8.5836.ckpt \
+    --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --data_dir   data/preprocessed_v2_50k \
     --output_dir outputs/samples_1000 \
     --n_seeds 1000 --start_seed 1 --mask_bars 3 4 5
 ```
 
-> Inference is **deterministic** (argmax decoding): identical inputs produce byte-identical reconstructions across runs. Checkpoints are not distributed in the repo; they can be reproduced with the training commands below.
+> Inference is **deterministic** (argmax decoding): identical inputs produce byte-identical reconstructions across runs.
 
 ---
 
@@ -237,7 +261,7 @@ sbatch slurm/train_phase1_v3.sh \                 # SLURM cluster
 
 ```bash
 python midit/train_infilling.py \
-    model.checkpoint_path=logs/checkpoints_phase1/phase1-epoch=14-val_loss=2.7254.ckpt \
+    model.checkpoint_path=logs/checkpoints/midit-phase1-epoch14.ckpt \
     train.lr=3e-5
 ```
 
@@ -251,7 +275,7 @@ python midit/train_infilling.py \
 
 ```bash
 python scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py \
-    --checkpoint logs/checkpoints_phase1/phase1-epoch=14-val_loss=2.7254.ckpt \
+    --checkpoint logs/checkpoints/midit-phase1-epoch14.ckpt \
     --data_dir   data/preprocessed_v2_50k \
     --split val --num_samples 400
 ```
@@ -286,7 +310,7 @@ python scripts/Evaluation_Infilling/Matteo/compute_js_score.py \
 ```bash
 python scripts/audit_fixes/check_sample_integrity.py --samples_dir outputs/samples_1000
 python scripts/audit_fixes/probe_no_cheat.py \
-    --checkpoint logs/checkpoints_infilling/infilling-epoch=05-val_loss=8.5836.ckpt \
+    --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --data_dir data/preprocessed_v2_50k --seed 79 --n_slots 20 --mask_bars 3 4 5
 ```
 
