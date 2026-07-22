@@ -92,7 +92,7 @@ def _compute_metrics_on_music(music: "_muspy.Music") -> dict[str, float | None]:
         "muspy_polyphony_rate":       _safe(_muspy.polyphony_rate, music),
         "muspy_empty_beat_rate":      _safe(_muspy.empty_beat_rate, music),
         "muspy_empty_measure_rate":   _safe(_muspy.empty_measure_rate, music, resolution),
-        "muspy_groove_consistency":   _safe(_muspy.groove_consistency, music, resolution),
+        "muspy_groove_consistency":   _safe(_muspy.groove_consistency, music, 4),
     }
     key = _primary_key(music)
     if key is None:

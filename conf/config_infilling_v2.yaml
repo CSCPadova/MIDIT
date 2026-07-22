@@ -1,0 +1,44 @@
+defaults:
+  - config
+  - _self_
+
+# ============================================================
+# Infilling fine-tuning config — Phase 1b — Proposal A (Stability)
+# Base: conf/config.yaml (all other params inherited)
+# Differs from config_infilling.yaml:
+#   accumulate_grad_batches 4 -> 16 (effective batch 8*16 = 128)
+#   warmup_steps           200 -> 1000
+#   gradient_clip_val      1.0 -> 0.5
+# Goal: reduce train_loss oscillation, steadier optimization.
+# Do NOT use for pre-training. Do NOT add lambda_weights here
+# (inert during fine-tuning — restored from checkpoint hparams).
+# ============================================================
+
+# Overrides from base config:
+train:
+  lr: 3e-5
+  warmup_steps: 1000
+  epochs: 10
+  accumulate_grad_batches: 16     # effective batch 8*16 = 128
+  gradient_clip_val: 0.5
+  limit_train_batches: 50000
+  limit_val_batches: 500
+  val_check_interval: 1.0
+  checkpoint_path: /nfsd/tesi/zanettisim/MIDIT/logs/checkpoints_phase1/phase1-epoch=49-val_loss=2.3866.ckpt
+
+masking:
+  strategy: bar_fill
+  max_infill_bars: 3
+  mask_strategy: always
+  mask_prob: 0.15
+
+# IMPORTANT: train_infilling.py hardcodes the checkpoint subdir name
+# ("checkpoints_infilling") and reads the parent only from logging.logs_dir
+# (paths.checkpoints_infilling is NOT read). To isolate v2 outputs from the
+# original run AND guarantee they land on /nfsd (not the ~/ NAS), we set an
+# absolute nfsd logs_dir here. Result:
+#   checkpoints -> /nfsd/tesi/zanettisim/MIDIT/logs_v2/checkpoints_infilling/
+#   tensorboard -> /nfsd/tesi/zanettisim/MIDIT/logs_v2/infilling_finetuning/
+#   wandb       -> /nfsd/tesi/zanettisim/MIDIT/logs_v2/
+logging:
+  logs_dir: /nfsd/tesi/zanettisim/MIDIT/logs_v2

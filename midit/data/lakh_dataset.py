@@ -221,12 +221,16 @@ class LakhDataset(Dataset):
                 strategy = 'bar_level' if use_bar_level else 'token_level'
 
             if strategy == 'bar_fill':
+                # Validation masking is pinned to a fixed seed so the val task is
+                # identical across epochs and runs (removes evaluation-time noise).
+                # Train stays stochastic (seed=None).
                 self.masker = BarFillMasking(
                     tokenizer_vocab=self.tokenizer.vocab,
                     mask_token_id=self.mask_token_id,
                     max_infill_bars=getattr(mc, 'max_infill_bars', 3),
                     mask_strategy=getattr(mc, 'mask_strategy', 'always'),
                     vocab_size=len(self.tokenizer.vocab),
+                    seed=(1234 if split == 'val' else None),
                 )
             elif strategy == 'bar_level':
                 self.masker = BarLevelMasking(
