@@ -199,20 +199,10 @@ Weights contain the Lightning `state_dict` + hyperparameters only (optimizer sta
 
 ---
 
-## 🚀 Quickstart — Infilling Inference
+## 🚀 Quickstart — Infilling on your own MIDI
 
-**On a validation-set sample** (reproduces the thesis protocol — masks bars 3–5, reconstructs them, saves `original.mid` / `masked.mid` / `reconstructed.mid`):
-
-```bash
-python midit/infer.py \
-    --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
-    --data_dir   data/preprocessed_v2_50k \
-    --seed 5 \
-    --mask_bars 3 4 5 \
-    --output_dir outputs/demo_seed5/
-```
-
-**On your own MIDI file:**
+This is the **out-of-the-box** path: it needs only the installed package and a
+checkpoint. The input MIDI is tokenized on the fly — **no dataset required.**
 
 ```bash
 python scripts/infer_from_midi.py \
@@ -223,9 +213,29 @@ python scripts/infer_from_midi.py \
     --output_dir outputs/my_song/
 ```
 
-**Batch generation** (loads the model once, generates N samples):
+Produces `original.mid`, `masked.mid` and `reconstructed.mid` in `--output_dir`.
+
+> ⚠️ Unless `--skip_filters` is passed, the input MIDI must pass the same quality
+> filters used in training (≥ 50 notes, ≥ 15 s, velocity diversity), otherwise the
+> script exits. Inference is **deterministic** (argmax decoding): identical inputs
+> produce byte-identical reconstructions across runs.
+
+<details>
+<summary><b>Commands that require the preprocessed dataset</b></summary>
+
+The following reproduce the thesis evaluation on held-out validation songs and
+therefore need the preprocessed `.pt` dataset (`--data_dir`). See
+[Reproducing the dataset](#-reproducing-the-dataset) to build it — it is **not**
+distributed (66 GB).
 
 ```bash
+# Infilling on a validation-set sample (masks bars 3-5, reconstructs them)
+python midit/infer.py \
+    --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
+    --data_dir   data/preprocessed_v2_50k \
+    --seed 5 --mask_bars 3 4 5 --output_dir outputs/demo_seed5/
+
+# Batch generation (loads the model once, generates N samples)
 python scripts/generate_samples_batch.py \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --data_dir   data/preprocessed_v2_50k \
@@ -233,7 +243,35 @@ python scripts/generate_samples_batch.py \
     --n_seeds 1000 --start_seed 1 --mask_bars 3 4 5
 ```
 
-> Inference is **deterministic** (argmax decoding): identical inputs produce byte-identical reconstructions across runs.
+</details>
+
+---
+
+## 🔧 Reproducing the dataset
+
+The preprocessed dataset (441k `.pt` files, 66 GB) is **not distributed**. To
+rebuild it from scratch:
+
+1. Download the [Lakh MIDI Dataset](https://colinraffel.com/projects/lmd/)
+   (`lmd_full`) and place the raw `.mid` files at **`data/midi_files/lmd_full/`**
+   (this path is hard-coded in the preprocessing script; edit the `DATASET_DIR`
+   constant to use another location).
+
+2. Run the single-stage preprocessing pipeline (filter → tokenize → augment →
+   save):
+
+   ```bash
+   python scripts/Pre_Processing/preprocess_v2.py \
+       --output_dir data/preprocessed_v2_50k \
+       --num_workers 32
+   ```
+
+   Optional flags: `--max_files N` (0 = all), `--dry_run`, `--seed 42`.
+
+> **Tokenizer note.** The MidiTok REMI+ config is rebuilt in code (see the
+> `TokenizerConfig` above), never shipped as a file. The 550-token vocabulary is
+> deterministic from that config, so reproducing the exact vocabulary requires
+> the same config **and** a matching MidiTok version.
 
 ---
 
@@ -270,6 +308,8 @@ python midit/train_infilling.py \
 ---
 
 ## 📏 Evaluation
+
+> All evaluation commands below operate on the preprocessed dataset or on batch-generated samples — see [Reproducing the dataset](#-reproducing-the-dataset).
 
 **Cloze accuracy (Top-1 / Top-5, per token type):**
 
