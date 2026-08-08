@@ -338,6 +338,35 @@ def sanity(args) -> None:
 
 # ── full CSV pass (do NOT run until sanity approved) ──────────────────────────
 
+def _agg(values: List[float]) -> Tuple[float, float, int]:
+    """(mean, std ddof=1, n) over non-NaN values."""
+    v = [x for x in values if x is not None and not (isinstance(x, float) and np.isnan(x))]
+    n = len(v)
+    if n == 0:
+        return float("nan"), float("nan"), 0
+    mean = float(np.mean(v))
+    std = float(np.std(v, ddof=1)) if n > 1 else float("nan")
+    return mean, std, n
+
+
+def _load_old_csv(path: Path, keep: set) -> dict:
+    """Load frozen metrics_anticipatory.csv -> {experiment: {cp,gs,pche}} for kept seeds."""
+    out: dict = {}
+    if not path.exists():
+        return out
+    with open(path, newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            exp = r.get("experiment")
+            if exp in keep:
+                def _f(k):
+                    try:
+                        return float(r[k])
+                    except (KeyError, ValueError, TypeError):
+                        return float("nan")
+                out[exp] = {"cp": _f("cp"), "gs": _f("gs"), "pche": _f("pche")}
+    return out
+
+
 def run_full(args) -> None:
     orig_dir  = Path(args.orig_dir)
     recon_dir = Path(args.recon_dir)
@@ -346,6 +375,7 @@ def run_full(args) -> None:
 
     print(f"\n[recompute_anticipatory_metrics_fixed] FULL over {len(inc)} included seeds (time-based crop)")
     rows: List[dict] = []
+    acc = {k: [] for k in ("cp_new", "gs_new", "pche_new", "cp_old", "gs_old", "pche_old")}
     n_ok = n_skip = 0
     for i, name in enumerate(inc):
         rec = process_seed(name, orig_dir, recon_dir)
@@ -354,6 +384,8 @@ def run_full(args) -> None:
             continue
         rows.append({"experiment": name, "cp": rec["cp_new"],
                      "gs": rec["gs_new"], "pche": rec["pche_new"]})
+        for k in acc:
+            acc[k].append(rec[k])
         n_ok += 1
         if (i + 1) % 100 == 0:
             print(f"  ...{i+1}/{len(inc)}  ok={n_ok} skip={n_skip}")
@@ -366,6 +398,31 @@ def run_full(args) -> None:
             w.writerow(r)
     print(f"\nSaved: {out_csv}  (ok={n_ok}, skipped={n_skip})")
 
+    # ── aggregate comparison ──────────────────────────────────────────────────
+    done_seeds = {r["experiment"] for r in rows}
+    frozen = _load_old_csv(Path(args.old_csv), done_seeds) if args.old_csv else {}
+
+    print("\n" + "=" * 72)
+    print(f"  AGGREGATE  (mean +/- std, ddof=1)  over n_ok={n_ok} seeds")
+    print("=" * 72)
+    print(f"  {'metric':<6} {'NEW (time-crop)':>22} {'OLD (in-script bug repro)':>28}")
+    print("  " + "-" * 62)
+    for m in ("cp", "gs", "pche"):
+        mn, sn, nn = _agg(acc[f"{m}_new"])
+        mo, so, no = _agg(acc[f"{m}_old"])
+        print(f"  {m.upper():<6} {mn:8.4f} +/- {sn:7.4f} (n={nn:>3}) "
+              f"   {mo:8.4f} +/- {so:7.4f} (n={no:>3})")
+
+    if frozen:
+        print("\n  OLD (frozen metrics_anticipatory.csv, restricted to the same seeds):")
+        for m in ("cp", "gs", "pche"):
+            mf, sf, nf = _agg([frozen[s][m] for s in frozen])
+            print(f"    {m.upper():<6} {mf:8.4f} +/- {sf:7.4f} (n={nf:>3})")
+    else:
+        print("\n  (pass --old_csv <frozen metrics_anticipatory.csv> to also show the "
+              "frozen aggregate for the same seeds)")
+    print("=" * 72)
+
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Recompute Anticipatory CP/GS/PCHE with time-based crop.")
@@ -377,6 +434,9 @@ def main() -> None:
                     default=[5, 79, 216, 500, 900, 100, 300, 700])
     ap.add_argument("--run_full", action="store_true", help="Run full pass and write CSV.")
     ap.add_argument("--output_csv", default="outputs/metrics_anticipatory_fixed.csv")
+    ap.add_argument("--old_csv", default=None,
+                    help="Frozen metrics_anticipatory.csv; if given, its aggregate over "
+                         "the same seeds is printed alongside NEW/OLD for comparison.")
     args = ap.parse_args()
 
     if args.run_full:
