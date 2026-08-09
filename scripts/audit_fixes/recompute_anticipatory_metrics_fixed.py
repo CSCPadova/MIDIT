@@ -70,6 +70,22 @@ from compute_infilling_metrics import (          # noqa: E402
     _chroma, _cosine, _onset_grid, _jaccard,
     _pitch_histogram, _entropy,
 )
+# Validated muspy S-I computation (reads path, crops to bar_range, muspy metrics
+# incl. groove_consistency(measure_resolution=4)). Reused UNCHANGED.
+from compute_muspy_metrics import _compute_si_metrics   # noqa: E402
+
+# muspy S-I keys returned by _compute_si_metrics (compute_muspy_metrics.py:78-81)
+SI_ALL   = ("n_pitches_used", "groove_consistency", "scale_consistency",
+            "pitch_range", "pitch_class_entropy")
+SI_MIDIT = ("n_pitches_used", "pitch_range")   # extensive metrics recomputed for MIDIT
+
+
+def _si(d, k) -> float:
+    """Safe accessor for an S-I dict (NaN if dict is None or key missing)."""
+    if not d:
+        return float("nan")
+    v = d.get(k)
+    return float("nan") if v is None else float(v)
 
 MAX_BARS = 64
 GRID_RES = 16                 # 16th-note grid, same as compute_GS default
@@ -241,11 +257,28 @@ def process_seed(name: str, orig_dir: Path, recon_dir: Path) -> dict:
     bars_in_orig  = sum(1 for (_, e) in ow_new if e <= et_o)
     bars_in_recon = sum(1 for (_, e) in rw_new if e <= et_r)
 
+    # ── Anticipatory S-I on the FIXED time crop (new) and the OLD bug crop ────
+    # _compute_si_metrics reads the recon, crops to bar_range, runs muspy S-I.
+    ant_si_new = _compute_si_metrics(recon_p, bar_range=rw_new)
+    ant_si_old = _compute_si_metrics(recon_p, bar_range=old_win) if old_win else None
+
+    # ── MIDIT extensive metrics on the SAME time crop (fair density) ──────────
+    # MIDIT reconstruction lives in orig_dir/seed_N/reconstructed.mid (tpq=16).
+    midit_recon_p = orig_dir / name / "reconstructed.mid"
+    if midit_recon_p.exists():
+        m_recon = _load(midit_recon_p)
+        mw_new = time_windows(MASK_BARS, bar_sec, m_recon.ticks_per_quarter, first_qpm(m_recon))
+        midit_si_new = _compute_si_metrics(midit_recon_p, bar_range=mw_new)
+        midit_si_old = _compute_si_metrics(midit_recon_p, bar_range=old_win) if old_win else None
+    else:
+        mw_new = []
+        midit_si_new = midit_si_old = None
+
     return {
         "seed": name, "status": "ok",
         "tpq_o": tpq_o, "tpq_r": tpq_r, "qpm_o": qpm_o, "qpm_r": qpm_r,
         "bar_sec": bar_sec, "t1": t1, "t2": t2,
-        "ow_new": ow_new, "rw_new": rw_new, "old_win": old_win,
+        "ow_new": ow_new, "rw_new": rw_new, "mw_new": mw_new, "old_win": old_win,
         "cp_new": cp_new, "gs_new": gs_new, "pche_new": pche_new,
         "cp_old": cp_old, "gs_old": gs_old, "pche_old": pche_old,
         "n_orig_new":  _count_notes(orig,  ow_new),
@@ -254,6 +287,8 @@ def process_seed(name: str, orig_dir: Path, recon_dir: Path) -> dict:
         "et_o": et_o, "et_r": et_r,
         "bars_in_orig": bars_in_orig, "bars_in_recon": bars_in_recon,
         "non44_orig": is_non_44(orig),
+        "ant_si_new": ant_si_new, "ant_si_old": ant_si_old,
+        "midit_si_new": midit_si_new, "midit_si_old": midit_si_old,
     }
 
 
@@ -305,6 +340,19 @@ def sanity(args) -> None:
         print(f"      recon end_tick={rec['et_r']}  masked bars fully inside: {rec['bars_in_recon']}/{len(rw)}")
         if rec["bars_in_recon"] < len(rw) or rec["bars_in_orig"] < len(ow):
             print("      WARNING: t2 exceeds a file's own end_tick (short file)")
+
+        asn, aso = rec["ant_si_new"], rec["ant_si_old"]
+        print("  [6] Anticipatory S-I  (old -> new):")
+        for k in ("n_pitches_used", "groove_consistency", "scale_consistency"):
+            print(f"      {k:<20}: {_si(aso, k):.4f} -> {_si(asn, k):.4f}")
+
+        msn, mso = rec["midit_si_new"], rec["midit_si_old"]
+        print("  [6b] MIDIT density on time-crop  (old -> new):")
+        if msn is not None:
+            for k in SI_MIDIT:
+                print(f"      {k:<20}: {_si(mso, k):.4f} -> {_si(msn, k):.4f}")
+        else:
+            print("      MIDIT reconstructed.mid missing")
         print()
 
     # [4] non-4/4 disclosure over ALL included originals
@@ -373,30 +421,53 @@ def run_full(args) -> None:
     out_csv   = Path(args.output_csv)
     inc = included_seeds(Path(args.manifest))
 
+    midit_csv = Path(args.midit_density_csv)
+
     print(f"\n[recompute_anticipatory_metrics_fixed] FULL over {len(inc)} included seeds (time-based crop)")
     rows: List[dict] = []
-    acc = {k: [] for k in ("cp_new", "gs_new", "pche_new", "cp_old", "gs_old", "pche_old")}
+    midit_rows: List[dict] = []
+    acc: Dict[str, list] = {}
+    def push(key, val):
+        acc.setdefault(key, []).append(val)
+
     n_ok = n_skip = 0
     for i, name in enumerate(inc):
         rec = process_seed(name, orig_dir, recon_dir)
         if rec.get("status") != "ok":
             n_skip += 1
             continue
-        rows.append({"experiment": name, "cp": rec["cp_new"],
-                     "gs": rec["gs_new"], "pche": rec["pche_new"]})
-        for k in acc:
-            acc[k].append(rec[k])
+        row = {"experiment": name, "cp": rec["cp_new"], "gs": rec["gs_new"], "pche": rec["pche_new"]}
+        for k in SI_ALL:
+            row[k] = _si(rec["ant_si_new"], k)
+        rows.append(row)
+        midit_rows.append({"experiment": name,
+                           **{k: _si(rec["midit_si_new"], k) for k in SI_MIDIT}})
+        for m in ("cp", "gs", "pche"):
+            push(f"{m}_new", rec[f"{m}_new"]); push(f"{m}_old", rec[f"{m}_old"])
+        for k in SI_ALL:
+            push(f"{k}_ant_new", _si(rec["ant_si_new"], k))
+            push(f"{k}_ant_old", _si(rec["ant_si_old"], k))
+        for k in SI_MIDIT:
+            push(f"{k}_midit_new", _si(rec["midit_si_new"], k))
+            push(f"{k}_midit_old", _si(rec["midit_si_old"], k))
         n_ok += 1
         if (i + 1) % 100 == 0:
             print(f"  ...{i+1}/{len(inc)}  ok={n_ok} skip={n_skip}")
 
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     with open(out_csv, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["experiment", "cp", "gs", "pche"])
+        w = csv.DictWriter(f, fieldnames=["experiment", "cp", "gs", "pche", *SI_ALL])
         w.writeheader()
         for r in rows:
             w.writerow(r)
+    midit_csv.parent.mkdir(parents=True, exist_ok=True)
+    with open(midit_csv, "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=["experiment", *SI_MIDIT])
+        w.writeheader()
+        for r in midit_rows:
+            w.writerow(r)
     print(f"\nSaved: {out_csv}  (ok={n_ok}, skipped={n_skip})")
+    print(f"Saved: {midit_csv}  (MIDIT density on time-crop)")
 
     # ── aggregate comparison ──────────────────────────────────────────────────
     done_seeds = {r["experiment"] for r in rows}
@@ -405,22 +476,25 @@ def run_full(args) -> None:
     print("\n" + "=" * 72)
     print(f"  AGGREGATE  (mean +/- std, ddof=1)  over n_ok={n_ok} seeds")
     print("=" * 72)
-    print(f"  {'metric':<6} {'NEW (time-crop)':>22} {'OLD (in-script bug repro)':>28}")
-    print("  " + "-" * 62)
+    print("  P-I metrics — Anticipatory NEW (time-crop) vs OLD (in-script bug repro):")
     for m in ("cp", "gs", "pche"):
-        mn, sn, nn = _agg(acc[f"{m}_new"])
-        mo, so, no = _agg(acc[f"{m}_old"])
-        print(f"  {m.upper():<6} {mn:8.4f} +/- {sn:7.4f} (n={nn:>3}) "
-              f"   {mo:8.4f} +/- {so:7.4f} (n={no:>3})")
-
+        mn, sn, nn = _agg(acc[f"{m}_new"]); mo, so, no = _agg(acc[f"{m}_old"])
+        print(f"    {m.upper():<6} NEW {mn:8.4f} +/- {sn:7.4f} (n={nn})   OLD {mo:8.4f} +/- {so:7.4f} (n={no})")
     if frozen:
-        print("\n  OLD (frozen metrics_anticipatory.csv, restricted to the same seeds):")
+        print("  P-I frozen metrics_anticipatory.csv (same seeds):")
         for m in ("cp", "gs", "pche"):
             mf, sf, nf = _agg([frozen[s][m] for s in frozen])
-            print(f"    {m.upper():<6} {mf:8.4f} +/- {sf:7.4f} (n={nf:>3})")
-    else:
-        print("\n  (pass --old_csv <frozen metrics_anticipatory.csv> to also show the "
-              "frozen aggregate for the same seeds)")
+            print(f"    {m.upper():<6} {mf:8.4f} +/- {sf:7.4f} (n={nf})")
+
+    print("\n  Anticipatory S-I — NEW (time-crop) vs OLD (bug repro):")
+    for k in SI_ALL:
+        mn, sn, nn = _agg(acc[f"{k}_ant_new"]); mo, so, no = _agg(acc[f"{k}_ant_old"])
+        print(f"    {k:<20} NEW {mn:8.4f} +/- {sn:7.4f}   OLD {mo:8.4f} +/- {so:7.4f}")
+
+    print("\n  MIDIT density on time-crop — NEW vs OLD (in-script frozen-crop repro):")
+    for k in SI_MIDIT:
+        mn, sn, nn = _agg(acc[f"{k}_midit_new"]); mo, so, no = _agg(acc[f"{k}_midit_old"])
+        print(f"    {k:<20} NEW {mn:8.4f} +/- {sn:7.4f}   OLD {mo:8.4f} +/- {so:7.4f}")
     print("=" * 72)
 
 
@@ -434,6 +508,8 @@ def main() -> None:
                     default=[5, 79, 216, 500, 900, 100, 300, 700])
     ap.add_argument("--run_full", action="store_true", help="Run full pass and write CSV.")
     ap.add_argument("--output_csv", default="outputs/metrics_anticipatory_fixed.csv")
+    ap.add_argument("--midit_density_csv", default="outputs/metrics_midit_density_fixed.csv",
+                    help="Companion CSV for MIDIT n_pitches_used/pitch_range on the time crop.")
     ap.add_argument("--old_csv", default=None,
                     help="Frozen metrics_anticipatory.csv; if given, its aggregate over "
                          "the same seeds is printed alongside NEW/OLD for comparison.")
