@@ -67,14 +67,11 @@ Pre-trained with 15% scattered masking, the model **collapses** on contiguous-ba
 | Zero-shot | 0.297 | 0.861 | 0.487 |
 | **Fine-tuned** | **0.681** | **0.966** | **0.320** |
 
-### Against the state of the art (paired, 892 matched samples, same protocol)
-
-| Metric | **MIDIT FT** | Anticipatory MT | p | Cohen's d |
-|---|---|---|---|---|
-| CP ↑ | **0.729 ± 0.19** | 0.435 ± 0.25 | < 0.001 | **1.16** |
-| PCHE ↓ | **0.323 ± 0.31** | 0.790 ± 0.80 | < 0.001 | 0.57 |
-
-*GS is not comparable across paradigms (MIDIT preserves Position tokens; Anticipatory regenerates onsets) and is therefore reported separately.*
+### Against the state of the art (paired, 878 matched samples, same protocol)
+Metric	MIDIT FT	Anticipatory MT	p	Cohen's dz
+CP ↑	0.728 ± 0.19	0.649 ± 0.23	< 0.001	0.33
+PCHE ↓	0.323 ± 0.31	0.312 ± 0.41	0.47 (n.s.)	0.02
+On the two comparable metrics, MIDIT holds a statistically significant but moderate advantage on Content Preservation, while the two models are statistically indistinguishable on PCHE — the two paradigms produce infillings with different quality profiles rather than a simple ranking. GS is not comparable across paradigms (MIDIT preserves Position tokens; Anticipatory regenerates onsets) and is therefore reported separately.
 
 ### Verified genuinely generative 🔬
 
