@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import gc
 import random
 import re
 from collections import Counter, defaultdict
@@ -177,8 +178,10 @@ def analyze(files, id_to_token, n, seed):
             "note_density": note_density, "frac_drum": frac_drum,
             "top_tempo_bin": top_tempo,
         })
+        del ids
         if (i + 1) % 500 == 0:
-            print(f"  ...{i+1}/{len(sample)}")
+            gc.collect()
+            print(f"  ...{i+1}/{len(sample)}", flush=True)
 
     print(f"[done] ok={len(rows)} bad={n_bad}")
     return rows, type_freq, program_freq
