@@ -13,7 +13,7 @@
 cd ~/MIDIT
 source .venv/bin/activate
 
-python scripts/Analyze_dataset/checkpoint_config_audit.py \
+python scripts/verification/checkpoint_config_audit.py \
     --phase1_ckpt /nfsd/tesi/zanettisim/MIDIT/logs/checkpoints_phase1/phase1-epoch=14-val_loss=2.7254.ckpt \
     --infill_ckpt /nfsd/tesi/zanettisim/MIDIT/logs/checkpoints_infilling/infilling-epoch=05-val_loss=8.5836.ckpt \
     --out_dir  /nfsd/tesi/zanettisim/MIDIT/outputs/thesis_analysis

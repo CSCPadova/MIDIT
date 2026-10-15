@@ -1,5 +1,5 @@
 """
-scripts/audit_fixes/check_sample_integrity.py
+scripts/verification/check_sample_integrity.py
 
 THROWAWAY audit script (Task 1). Read-only: never writes to samples_1000.
 
@@ -10,7 +10,7 @@ Checks the integrity of generated infilling samples:
   3. Reports: effective N (complete dirs), duplicate groups, incomplete dirs.
 
 Usage (on cluster):
-    python scripts/audit_fixes/check_sample_integrity.py \
+    python scripts/verification/check_sample_integrity.py \
         --samples_dir /nfsd/tesi/zanettisim/MIDIT/outputs/samples_1000
 """
 

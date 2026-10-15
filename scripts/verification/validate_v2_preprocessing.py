@@ -10,7 +10,7 @@ Validates .pt files produced by preprocess_v2.py against 5 criteria:
   Test 5: MASKING           -- TokenLevelMasking output properties
 
 Run from MIDIT project root:
-    python scripts/Tests/validate_v2_preprocessing.py
+    python scripts/verification/validate_v2_preprocessing.py
 """
 
 from __future__ import annotations

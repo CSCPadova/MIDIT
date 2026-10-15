@@ -23,7 +23,7 @@ controlla il valore di ritorno di `save_midi()`, quindi un seed potrebbe
 "riuscire" con un export fallito.
 
 ### Cosa abbiamo fatto
-Script **read-only**: [`scripts/audit_fixes/check_sample_integrity.py`](../../../scripts/audit_fixes/check_sample_integrity.py)
+Script **read-only**: [`scripts/audit_fixes/check_sample_integrity.py`](../../../scripts/verification/check_sample_integrity.py)
 - verifica che ogni `seed_N/` contenga `original.mid`, `masked.mid`, `reconstructed.mid`;
 - calcola l'MD5 di `original.mid` su tutte le cartelle e raggruppa i duplicati;
 - riporta: N effettiva (deduplicata), gruppi di duplicati, cartelle incomplete.

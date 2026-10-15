@@ -1,5 +1,5 @@
 """
-scripts/audit_fixes/probe_no_cheat.py
+scripts/verification/probe_no_cheat.py
 
 THROWAWAY diagnostic (read-only; CPU is fine). Verifies mechanically that
 inference cannot "cheat":
@@ -14,7 +14,7 @@ infer.py's own functions (get_val_files, extract_chunk, apply_bar_mask), so the
 tokens/mask match what generated samples_1000/seed_N.
 
 Usage (cluster; CPU ok, or GPU if available):
-    python scripts/audit_fixes/probe_no_cheat.py \
+    python scripts/verification/probe_no_cheat.py \
         --checkpoint /nfsd/.../checkpoints_infilling/infilling-epoch=05-val_loss=8.5836.ckpt \
         --data_dir   /nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k \
         --seed 79 --n_slots 10 --mask_bars 3 4 5

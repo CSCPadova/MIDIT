@@ -1,5 +1,5 @@
 """
-scripts/Analyze_dataset/checkpoint_config_audit.py
+scripts/verification/checkpoint_config_audit.py
 
 READ-ONLY. Verifies the EXACT training configuration of the two thesis
 checkpoints by reading their hyper_parameters directly (authoritative), then

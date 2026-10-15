@@ -103,7 +103,7 @@ indistinguishable; on JS Similarity, MIDIT matches the ground-truth upper bound.
 
 ### Verified genuinely generative 🔬
 
-Inference integrity was audited mechanically: the model input contains `[MASK]` at every masked position (runtime probe: 20/20 slots), predictions come from head-wise argmax over logits only, **46–73% of Pitch tokens differ** from the ground truth with plausible in-register substitutions, and shuffling only the *context* bars changes 12/20 predictions — predictions are conditioned on musical context, mechanically excluding any copy path. See `scripts/audit_fixes/`.
+Inference integrity was audited mechanically: the model input contains `[MASK]` at every masked position (runtime probe: 20/20 slots), predictions come from head-wise argmax over logits only, **46–73% of Pitch tokens differ** from the ground truth with plausible in-register substitutions, and shuffling only the *context* bars changes 12/20 predictions — predictions are conditioned on musical context, mechanically excluding any copy path. See `scripts/verification/`.
 
 ---
 
@@ -200,7 +200,7 @@ MIDIT/
 | **Infill bars of your own MIDI file** | a checkpoint only (CPU is enough) | `scripts/inference/infer_from_midi.py` | [Quickstart](#-quickstart--infilling-on-your-own-midi) |
 | Infill held-out validation songs | checkpoint + preprocessed dataset | `midit/infer.py`, `scripts/inference/generate_samples_batch.py` | [Dataset-backed inference](#dataset-backed-inference) |
 | Train Phase 1 / Phase 1b | preprocessed dataset + GPU | `midit/train_phase1.py`, `midit/train_infilling.py` | [Training](#%EF%B8%8F-training) |
-| Reproduce the evaluation | generated samples (+ dataset for cloze accuracy) | `scripts/Evaluation_*/`, `scripts/audit_fixes/` | [Evaluation](#-evaluation) |
+| Reproduce the evaluation | generated samples (+ dataset for cloze accuracy) | `scripts/evaluation/`, `scripts/verification/` | [Evaluation](#-evaluation) |
 
 The preprocessed dataset is not distributed (66 GB); see
 [Reproducing the dataset](#-reproducing-the-dataset).
@@ -220,7 +220,7 @@ uv sync                     # add --group eval for the evaluation scripts
 
 > **Branch note.** Until the repository's default branch is updated, the thesis
 > code lives on `audit-fixes`. The current default branch (`masked-transformer`)
-> predates the evaluation audit and does not contain `scripts/audit_fixes/`.
+> predates the evaluation audit and does not contain its verification scripts.
 
 Run repository commands through `uv run` so they use the locked environment. On
 Windows, this avoids shell-specific activation commands. `uv run python -m midit`
@@ -450,8 +450,8 @@ uv run python scripts/evaluation/js/compute_js_score.py \
 **Integrity & verification probes** (audit that inference cannot copy the input):
 
 ```bash
-uv run python scripts/audit_fixes/check_sample_integrity.py --samples_dir outputs/samples_1000
-uv run python scripts/audit_fixes/probe_no_cheat.py \
+uv run python scripts/verification/check_sample_integrity.py --samples_dir outputs/samples_1000
+uv run python scripts/verification/probe_no_cheat.py \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --data_dir data/preprocessed_v2_50k --seed 79 --n_slots 20 --mask_bars 3 4 5
 ```
