@@ -82,7 +82,7 @@ MIDIT FT 0.729 — gap vs B2 is only **+0.075**.
   tpq = 50; MIDIT/REMI+ uses tpq = 16. An earlier eval script applied MIDIT's
   tick-based crop window verbatim to Anticipatory files without unit conversion,
   misaligning the evaluated region. Fixed in
-  [scripts/audit_fixes/recompute_anticipatory_metrics_fixed.py](scripts/audit_fixes/recompute_anticipatory_metrics_fixed.py)
+  [scripts/audit_fixes/recompute_anticipatory_metrics_fixed.py](../scripts/audit_fixes/recompute_anticipatory_metrics_fixed.py)
   with a time-based (seconds-aligned) crop. MIDIT's own scores were unaffected
   (same tick grid on both sides).
   **NEVER cite the superseded numbers:** Anticipatory CP = 0.435, PCHE = 0.790,
@@ -107,7 +107,7 @@ MIDIT FT 0.729 — gap vs B2 is only **+0.075**.
 
 ---
 
-## Repository Structure (verified 2026-08-10)
+## Repository Structure (updated 2026-10-15, branch `repo-cleanup`)
 
 ```
 midit/
@@ -123,20 +123,25 @@ midit/
 ├── data/
 │   ├── lakh_dataset.py        # dataset + HARDCODED TokenizerConfig (source of truth for vocab)
 │   └── masking.py             # masking strategies (token-level, bar-fill)
-├── loss/                      # loss modules
+├── loss/                      # unused template placeholder
 └── logs/
 
-scripts/
+scripts/                       # CORE only (index: scripts/README.md)
 ├── audit_fixes/               # 2026-08 audit + correction scripts (tpq fix, baselines, stats, probes)
 ├── sota_baselines/anticipatory/   # Anticipatory MT baseline
-├── Evaluation_Infilling/      # CP/GS/PCHE + MusPy metrics, merge
-├── Evaluation_Accuracy/       # cloze Top-1/Top-5
-├── Generation/                # sample generation from checkpoints
-├── Pre_Processing/            # preprocess_v2.py (current), validators
-├── Tokenization/  Masking/  Tests/  Analyze_dataset/  Smoke_test_training/  debug/  figures/
+├── Evaluation_Infilling/      # CP/GS/PCHE + MusPy metrics, merge, Matteo/ JS pipeline
+├── Evaluation_Accuracy/       # cloze Top-1/Top-5 (DIRECT = V2)
+├── Pre_Processing/            # preprocess_v2.py
+├── Analyze_dataset/  Tests/  Tokenization/  figures/
+├── infer_from_midi.py  generate_samples_batch.py  decoding_ablation*.py  run_*.{py,sh}
+research/                      # historical / V1 / broken scripts + thesis_materials/ (not maintained)
+examples/                      # two Lakh MIDI files for the quickstart (CC BY 4.0)
+docs/ERRATA.md                 # thesis-text corrections
+docs/audits/                   # 2026-07 Codex audit + remediation notes (ex Modifiche_luglio/)
+tests/test_smoke.py            # CPU smoke tests (uv run pytest)
 ```
 
-**Tokenizer is hardcoded** in [midit/data/lakh_dataset.py](midit/data/lakh_dataset.py)
+**Tokenizer is hardcoded** in [midit/data/lakh_dataset.py](../midit/data/lakh_dataset.py)
 (REMI, `pitch_range=(21,109)`, `beat_res={(0,4):8,(4,12):4}`, `num_velocities=32`,
 `delete_equal_successive_{tempo,time_sig}_changes=True`) → **vocab 550**. The
 `tokenizer:` block in `conf/config.yaml` is **informational only** — not read by code.
@@ -150,7 +155,7 @@ position 0.5, rest 0.5, **bar/tempo/timesig = 0.0** (zeroed).
 Thesis is in the **write-up + audit** stage (submission 2026-09-10). All experiments
 are frozen: work is **analysis and correction on existing outputs only** — no new
 training or inference of the generation set. The audit that produced this file's
-verified numbers lives under [scripts/audit_fixes/](scripts/audit_fixes/); remaining
+verified numbers lives under [scripts/audit_fixes/](../scripts/audit_fixes/); remaining
 work follows the current revision plan (results-integrity and discussion framing).
 Phase 2 (text-conditioned, MidiCaps) remains **deferred** and out of thesis scope.
 
@@ -159,7 +164,7 @@ Phase 2 (text-conditioned, MidiCaps) remains **deferred** and out of thesis scop
 ## Correction note (2026-10-15) — Phase-1 batch / schedule — INFERRED, pending W&B confirmation
 
 The claim "effective batch 8 / ~44,151 optimizer steps per epoch" for the thesis
-Phase-1 run (from `Modifiche_luglio/checkpoint_audit_findings.md`) is **superseded**.
+Phase-1 run (from `docs/audits/2026-07_remediation/checkpoint_audit_findings.md`) is **superseded**.
 
 - **FACT:** the epoch-14 checkpoint (`midit-phase1-epoch14.ckpt`, HF release) stores
   `global_step = 2,516,273` and `num_training_steps = 2,207,550`. Lightning's

@@ -185,10 +185,10 @@ MIDIT/
 ├── examples/                          # Two Lakh MIDI files for the quickstart (CC BY 4.0)
 ├── tests/                             # CPU smoke tests (uv run pytest)
 ├── slurm/                             # SLURM job scripts (DEI cluster, user-specific paths)
-├── docs/analysis/                     # Dataset, tokenizer and protocol analysis notes
+├── docs/                              # ERRATA.md, analysis/ notes, audits/ (2026-07 audit trail)
 ├── figures/                           # Thesis figures
-├── research/                          # Historical / V1 / exploratory scripts (not maintained)
-└── thesis_materials/                  # Archive: earlier approaches and early results
+└── research/                          # Historical / V1 / exploratory scripts and
+                                       #   thesis_materials/ (earlier approaches) — not maintained
 ```
 
 ---

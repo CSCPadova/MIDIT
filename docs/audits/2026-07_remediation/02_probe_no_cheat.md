@@ -1,7 +1,7 @@
 # Probe anti-cheat — l'inferenza non può "barare"
 
 **Branch:** `audit-fixes` · **Data:** 21 luglio
-**Script:** [`scripts/audit_fixes/probe_no_cheat.py`](../scripts/audit_fixes/probe_no_cheat.py)
+**Script:** [`scripts/audit_fixes/probe_no_cheat.py`](../../../scripts/audit_fixes/probe_no_cheat.py)
 
 ## Motivazione
 Bisogna dimostrare **meccanicamente** che in inferenza il modello **non vede mai**

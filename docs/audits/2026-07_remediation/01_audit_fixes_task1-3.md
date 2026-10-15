@@ -23,7 +23,7 @@ controlla il valore di ritorno di `save_midi()`, quindi un seed potrebbe
 "riuscire" con un export fallito.
 
 ### Cosa abbiamo fatto
-Script **read-only**: [`scripts/audit_fixes/check_sample_integrity.py`](../scripts/audit_fixes/check_sample_integrity.py)
+Script **read-only**: [`scripts/audit_fixes/check_sample_integrity.py`](../../../scripts/audit_fixes/check_sample_integrity.py)
 - verifica che ogni `seed_N/` contenga `original.mid`, `masked.mid`, `reconstructed.mid`;
 - calcola l'MD5 di `original.mid` su tutte le cartelle e raggruppa i duplicati;
 - riporta: N effettiva (deduplicata), gruppi di duplicati, cartelle incomplete.
@@ -67,7 +67,7 @@ e **gonfiano CP/GS**. Il CSV non aveva nessuna colonna che segnalasse queste
 righe.
 
 ### Cosa abbiamo fatto
-Script: [`scripts/audit_fixes/build_sample_manifest.py`](../scripts/audit_fixes/build_sample_manifest.py)
+Script: [`scripts/audit_fixes/build_sample_manifest.py`](../../../scripts/audit_fixes/build_sample_manifest.py)
 - ri-esegue **esattamente** lo stesso criterio di rilevamento della pipeline
   reale, **importando** `_detect_masked_bars` da `compute_muspy_metrics.py`
   (nessun criterio reinventato): una barra è "mascherata" se `original.mid` ha
@@ -173,7 +173,7 @@ python -c "... import compute_model_agg; print('import OK')" → import OK
 
 ## Test diagnostico — anti-copiatura (token-level, barre 3-5)
 
-**Data:** 21 luglio · Script: [`scripts/audit_fixes/token_diff_masked_bars.py`](../scripts/audit_fixes/token_diff_masked_bars.py)
+**Data:** 21 luglio · Script: [`scripts/audit_fixes/token_diff_masked_bars.py`](../../../scripts/audit_fixes/token_diff_masked_bars.py)
 
 ### Motivazione
 Con il masking Option B la struttura (Position, Bar, Tempo, TimeSig, Rest) è

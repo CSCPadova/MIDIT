@@ -23,5 +23,6 @@ relative paths inside the scripts resolve to the same depth as before.
 | `test/` | `test_class_weights.py` — **broken**: imports the removed module `midit.model.masked_transformer1` |
 | `tests/` | `debug_dataset.py` — downloads a MidiCaps sample (Phase 2, deferred) |
 | `figures/` | `preprocessing_pipeline.py` (first version of the pipeline figure, superseded by `scripts/figures/preprocessing_pipeline_v2.py`); `extreme_infilling_sc.png` (its source data is not verified) |
+| `thesis_materials/` | Earlier approaches (diffusion models, MidiCaps loaders), early analysis scripts and results, round-trip validation MIDI files (moved from the repository root) |
 | `generate_1000_samples.sh` | Per-seed sample generation, superseded by `scripts/generate_samples_batch.py` |
 | `test_config.py` | Config-loading check, superseded by `tests/test_smoke.py` |

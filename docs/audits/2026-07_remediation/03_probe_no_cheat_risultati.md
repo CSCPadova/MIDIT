@@ -1,7 +1,7 @@
 # Probe anti-cheat — Risultati e verdetto
 
 **Branch:** `audit-fixes` · **Data:** 21 luglio · **Seed:** 79 · **Slot:** 20 · **Device:** CPU
-**Script:** [`scripts/audit_fixes/probe_no_cheat.py`](../scripts/audit_fixes/probe_no_cheat.py)
+**Script:** [`scripts/audit_fixes/probe_no_cheat.py`](../../../scripts/audit_fixes/probe_no_cheat.py)
 **Metodo:** vedi [`02_probe_no_cheat.md`](02_probe_no_cheat.md)
 
 ## Verdetto

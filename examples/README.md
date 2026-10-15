@@ -25,4 +25,4 @@ are the dataset's MD5 identifiers), © Colin Raffel, distributed under the
 removed (tempo, time-signature and key-signature events kept) and the result was
 re-saved with `symusic` by an early tokenizer-validation script
 (`scripts/validate_tokenization.py`, commit `91ffcbb`). They are copies of
-`thesis_materials/04_figures_data/validation_output/original_<id>.mid`.
+`research/thesis_materials/04_figures_data/validation_output/original_<id>.mid`.

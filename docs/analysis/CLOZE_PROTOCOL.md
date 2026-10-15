@@ -1,6 +1,6 @@
 # Cloze (Phase-1) accuracy — exact protocol (read-only findings)
 
-The term "cloze" appears only in `CLAUDE.md`/`README.md`, not in code. The cloze
+The term "cloze" appears only in `.claude/CLAUDE.md`/`README.md`, not in code. The cloze
 Top-1/Top-5 accuracy is computed by the Phase-1 accuracy scripts in
 `scripts/Evaluation_Accuracy/`. There are **two** scripts:
 
@@ -46,7 +46,7 @@ few → noisy).
 manually.** The script's printed "Average Top-1" is a plain mean over **all**
 heads with data (`np.mean` over `results.values()`, line 270). The thesis figure
 (Avg Top-1 83.18%) **excludes Bar and TimeSig** ("trivially predictable", per
-CLAUDE.md). That exclusion is a **post-hoc reporting choice**, NOT implemented in
+.claude/CLAUDE.md). That exclusion is a **post-hoc reporting choice**, NOT implemented in
 this script — the script itself includes Bar (≈100%) and TimeSig (≈high), which
 would inflate the raw printed average. So: **script = 9 types; cited average = 7
 (Bar/TimeSig dropped).**
