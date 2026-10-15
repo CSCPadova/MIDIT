@@ -51,7 +51,7 @@ try:
         'timesig': 9,
         'rest': 32,
     }
-    
+
     # Lambda weights (Epoch 47 config)
     lambda_weights = {
         'pitch': 1.0,
@@ -64,7 +64,7 @@ try:
         'timesig': 2.0,
         'rest': 0.5,
     }
-    
+
     model = MaskedTransformerREMI(
         phase=1,  # Phase 1 (MIDI-only)
         vocab_sizes=vocab_sizes,
@@ -91,7 +91,7 @@ has_program = hasattr(model, 'class_weight_program')
 if has_velocity and has_program:
     vel_weights = model.class_weight_velocity
     prog_weights = model.class_weight_program
-    
+
     print(f"  velocity  : {len(vel_weights)} weights, range [{vel_weights.min():.2f}, {vel_weights.max():.2f}]")
     print(f"  program   : {len(prog_weights)} weights, range [{prog_weights.min():.2f}, {prog_weights.max():.2f}]")
 else:
@@ -108,7 +108,7 @@ try:
     # Dummy inputs
     batch_size = 2
     seq_len = 100
-    
+
     input_ids = torch.randint(0, 518, (batch_size, seq_len))
     targets = {
         'pitch': torch.randint(0, 151, (batch_size, seq_len)),
@@ -121,16 +121,16 @@ try:
         'timesig': torch.randint(0, 9, (batch_size, seq_len)),
         'rest': torch.randint(0, 32, (batch_size, seq_len)),
     }
-    
+
     # Forward
     model.eval()
     with torch.no_grad():
         hidden = model(input_ids)
         logits = model.multi_head_output(hidden)
-        
+
         # Get class weights dict
         class_weights_dict = model.get_class_weights_dict()
-        
+
         # Compute loss with class weights
         losses = model.multi_head_output.compute_loss(
             hidden,
@@ -139,10 +139,10 @@ try:
             mask=None,
             class_weights=class_weights_dict
         )
-    
+
     print(f"✅ Forward pass successful")
     print(f"   Total loss: {losses['total'].item():.4f}")
-    
+
     print(f"\n   Per-head losses:")
     for head in ['pitch', 'velocity', 'duration', 'program']:
         unweighted = losses[head].item()
@@ -151,18 +151,18 @@ try:
         has_weights = f'{head}_has_class_weights' in losses
         flag = "⚖️" if has_weights else ""
         print(f"     {head:10s}: {unweighted:.4f} → {weighted:.4f} {flag}")
-    
+
     # Verify class weights were applied
     velocity_has_weights = 'velocity_has_class_weights' in losses
     program_has_weights = 'program_has_class_weights' in losses
-    
+
     if velocity_has_weights and program_has_weights:
         print(f"\n✅ Class weights applied to velocity and program")
     else:
         print(f"\n⚠️ Class weights flags:")
         print(f"   velocity: {velocity_has_weights}")
         print(f"   program: {program_has_weights}")
-    
+
 except Exception as e:
     print(f"❌ Forward pass failed: {e}")
     import traceback
