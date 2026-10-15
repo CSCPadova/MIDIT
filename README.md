@@ -2,7 +2,7 @@
 
 # 🎹 MIDIT
 
-### Bidirectional Masked Language Modeling for Symbolic Music Infilling
+### Multi-Track Symbolic Music Infilling via BERT-Style Pre-Training and Distribution-Aware Fine-Tuning
 
 *A BERT-style Transformer that reconstructs missing bars of multi-track MIDI —<br>using the musical context **before and after** the gap.*
 
@@ -13,12 +13,15 @@
 [![Checkpoints](https://img.shields.io/badge/🤗%20Hub-checkpoints-yellow.svg)](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Master's thesis in Data Science — University of Padova**<br>
-*Candidate:* Simone Zanetti · *Supervisor:* Prof. Antonio Rodà · *Co-supervisor:* PhD Matteo Spanio
+**MSc thesis in Data Science — Department of Mathematics, University of Padova — A.Y. 2025/2026**<br>
+*MIDIT: Multi-Track Symbolic Music Infilling via BERT-Style Pre-Training and Distribution-Aware Fine-Tuning*<br>
+*Candidate:* Simone Zanetti · *Supervisor:* Prof. Antonio Rodà · *Co-supervisor:* Matteo Spanio
 
 </div>
 
 ---
+
+> **Research-status note.** MIDIT's supported code paths are Phase 1 masked-language-model pre-training and Phase 1b infilling fine-tuning. The repository also preserves exploratory text-conditioning code and historical experiment material; these are not an end-to-end, supported text-to-MIDI workflow. The numerical results below are those reported in the thesis; the thesis is the authoritative reference for protocols and statistics. Hydra configs in `conf/` have drifted since the thesis runs — see [`conf/README.md`](conf/README.md) before reproducing a run.
 
 ## 🎯 What is MIDIT?
 
@@ -67,14 +70,36 @@ Pre-trained with 15% scattered masking, the model **collapses** on contiguous-ba
 | Zero-shot | 0.297 | 0.861 | 0.487 |
 | **Fine-tuned** | **0.681** | **0.966** | **0.320** |
 
-### Against the state of the art (paired, 892 matched samples, same protocol)
+### Comparison with the Anticipatory Music Transformer
 
-| Metric | **MIDIT FT** | Anticipatory MT | p | Cohen's d |
+Paired comparison on **878 matched LMD samples** (masked bars 3–5, time-aligned
+crop of the masked region, paired t-test; thesis Table 5.17):
+
+| Metric | MIDIT FT | Anticipatory MT | p | d_z |
 |---|---|---|---|---|
-| CP ↑ | **0.729 ± 0.19** | 0.435 ± 0.25 | < 0.001 | **1.16** |
-| PCHE ↓ | **0.323 ± 0.31** | 0.790 ± 0.80 | < 0.001 | 0.57 |
+| CP ↑ | 0.728 ± 0.19 | 0.649 ± 0.23 | < 0.001 | 0.33 |
+| PCHE ↓ | 0.323 ± 0.31 | 0.312 ± 0.41 | 0.47 | 0.02 |
 
-*GS is not comparable across paradigms (MIDIT preserves Position tokens; Anticipatory regenerates onsets) and is therefore reported separately.*
+*GS is not comparable across paradigms: MIDIT preserves Position tokens, so 93% of
+its samples have GS = 1.0 by construction, while Anticipatory MT regenerates
+onsets. GS is therefore not used to rank the two systems.*
+
+**JS Similarity** to the LMD reference distribution (thesis Table 5.15):
+
+| | JS Similarity | n |
+|---|---|---|
+| Upper bound (ground-truth bars) | 87.90 | 989 |
+| MIDIT FT | 87.93 | 989 |
+| Anticipatory MT | 88.61 | 892 |
+
+*Anticipatory MT is evaluated on a different sample set (n = 892) and is reported
+for context; its JS Similarity is not directly comparable with the MIDIT rows.*
+
+The two paradigms — bidirectional, parallel (MIDIT) vs. autoregressive
+(Anticipatory MT) — show **different quality profiles** rather than a ranking:
+on the paired samples, MIDIT stays closer to the original content of the masked
+bars (higher CP, moderate effect) while pitch-class entropy is statistically
+indistinguishable; on JS Similarity, MIDIT matches the ground-truth upper bound.
 
 ### Verified genuinely generative 🔬
 
@@ -136,28 +161,46 @@ TokenizerConfig(
 
 ```
 MIDIT/
-├── midit/
+├── midit/                             # Python package
 │   ├── model/
 │   │   ├── masked_transformer.py      # Main model (Lightning module)
 │   │   ├── multi_head_output.py       # 9 prediction heads + weighted loss
+│   │   ├── model_factory.py           # Builds the model from the Hydra config
 │   │   └── text_encoder.py            # FLAN-T5 (Phase 2, deferred — not used)
 │   ├── data/
-│   │   ├── lakh_dataset.py            # Dataset, chunking, song-level split
+│   │   ├── lakh_dataset.py            # Dataset, chunking, song-level split, tokenizer config
 │   │   └── masking.py                 # TokenLevelMasking, BarFillMasking
+│   ├── loss/                          # Leftover from the project template — not used
 │   ├── train_phase1.py                # Phase 1: MLM pre-training
 │   ├── train_infilling.py             # Phase 1b: BarFillMasking fine-tuning
 │   └── infer.py                       # Infilling inference (validation set)
-├── scripts/
+├── scripts/                           # Pipelines & analyses — index in scripts/README.md
 │   ├── infer_from_midi.py             # Infilling on an external MIDI file
 │   ├── generate_samples_batch.py      # Batch generation (N seeds, one model load)
 │   ├── Evaluation_Accuracy/           # Top-1/Top-5 cloze evaluation
 │   ├── Evaluation_Infilling/          # CP / GS / PCHE + JS similarity pipeline
 │   ├── Pre_Processing/                # Tokenization & preprocessing pipeline
 │   └── audit_fixes/                   # Evaluation-integrity audit & verification probes
-├── conf/                              # Hydra configs (phase 1 / infilling)
-├── slurm/                             # SLURM job scripts (DEI cluster)
-└── thesis_materials/
+├── conf/                              # Hydra configs — see conf/README.md (drift, checkpoints)
+├── slurm/                             # SLURM job scripts (DEI cluster, user-specific paths)
+├── docs/analysis/                     # Dataset, tokenizer and protocol analysis notes
+├── figures/                           # Thesis figures
+└── thesis_materials/                  # Archive: earlier approaches and early results
 ```
+
+---
+
+## 🧭 Usage at a Glance
+
+| Use case | Needs | Entry point | Section |
+|---|---|---|---|
+| **Infill bars of your own MIDI file** | a checkpoint only (CPU is enough) | `scripts/infer_from_midi.py` | [Quickstart](#-quickstart--infilling-on-your-own-midi) |
+| Infill held-out validation songs | checkpoint + preprocessed dataset | `midit/infer.py`, `scripts/generate_samples_batch.py` | [Dataset-backed inference](#dataset-backed-inference) |
+| Train Phase 1 / Phase 1b | preprocessed dataset + GPU | `midit/train_phase1.py`, `midit/train_infilling.py` | [Training](#%EF%B8%8F-training) |
+| Reproduce the evaluation | generated samples (+ dataset for cloze accuracy) | `scripts/Evaluation_*/`, `scripts/audit_fixes/` | [Evaluation](#-evaluation) |
+
+The preprocessed dataset is not distributed (66 GB); see
+[Reproducing the dataset](#-reproducing-the-dataset).
 
 ---
 
@@ -168,11 +211,19 @@ Requires **Python 3.12** and [uv](https://github.com/astral-sh/uv).
 ```bash
 git clone https://github.com/SimoneZanetti00/MIDIT.git
 cd MIDIT
-git checkout masked-transformer
-
+git checkout audit-fixes    # thesis branch (temporary step — see note)
 uv sync
-source .venv/bin/activate
 ```
+
+> **Branch note.** Until the repository's default branch is updated, the thesis
+> code lives on `audit-fixes`. The current default branch (`masked-transformer`)
+> predates the evaluation audit and does not contain `scripts/audit_fixes/`.
+
+Run repository commands through `uv run` so they use the locked environment. On
+Windows, this avoids shell-specific activation commands. The package console commands
+and `python -m midit` are not currently supported interfaces; use the explicit Python
+scripts shown below. See [`scripts/README.md`](scripts/README.md) for a maintained
+map of canonical, historical, diagnostic, and cluster-only scripts.
 
 ---
 
@@ -197,6 +248,20 @@ hf download SimoneZanetti00/MIDIT-checkpoints \
 
 Weights contain the Lightning `state_dict` + hyperparameters only (optimizer state removed). Trained on the Lakh MIDI Dataset; released for research purposes.
 
+### Configuration and checkpoint provenance
+
+The two checkpoints above are the thesis models; the fine-tuned model was trained
+from the epoch-14 Phase-1 checkpoint. Other Phase-1 checkpoints referenced in the
+repository are **not** thesis models: `epoch=49` (a later epoch of the same run,
+used by the current infilling configs and a post-thesis experiment) and
+`epoch=44` (invalid, from an early val_loss≈0 bug). The checkpoints' stored
+hyperparameters are authoritative where they disagree with the current Hydra
+configs. Details and evidence: [`conf/README.md`](conf/README.md).
+
+The tokenizer is rebuilt in code and the `tokenizer:` section of
+`conf/config.yaml` is informational; it is not the runtime source of tokenizer
+settings.
+
 ---
 
 ## 🚀 Quickstart — Infilling on your own MIDI
@@ -205,7 +270,7 @@ This is the **out-of-the-box** path: it needs only the installed package and a
 checkpoint. The input MIDI is tokenized on the fly — **no dataset required.**
 
 ```bash
-python scripts/infer_from_midi.py \
+uv run python scripts/infer_from_midi.py \
     --midi_path  path/to/your_song.mid \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --mask_bars 3 4 5 \
@@ -220,8 +285,12 @@ Produces `original.mid`, `masked.mid` and `reconstructed.mid` in `--output_dir`.
 > script exits. Inference is **deterministic** (argmax decoding): identical inputs
 > produce byte-identical reconstructions across runs.
 
-<details>
-<summary><b>Commands that require the preprocessed dataset</b></summary>
+- The model sees an **8-bar window** starting at `--start_bar` (default `0`); the
+  file must contain at least `start_bar + 8` bars.
+- `--mask_bars` are **0-indexed within that window** (`3 4 5` = 4th–6th bar of the window).
+- Runs on GPU if available, otherwise on CPU.
+
+### Dataset-backed inference
 
 The following reproduce the thesis evaluation on held-out validation songs and
 therefore need the preprocessed `.pt` dataset (`--data_dir`). See
@@ -230,20 +299,22 @@ distributed (66 GB).
 
 ```bash
 # Infilling on a validation-set sample (masks bars 3-5, reconstructs them)
-python midit/infer.py \
+uv run python midit/infer.py \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --data_dir   data/preprocessed_v2_50k \
     --seed 5 --mask_bars 3 4 5 --output_dir outputs/demo_seed5/
 
 # Batch generation (loads the model once, generates N samples)
-python scripts/generate_samples_batch.py \
+uv run python scripts/generate_samples_batch.py \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --data_dir   data/preprocessed_v2_50k \
     --output_dir outputs/samples_1000 \
     --n_seeds 1000 --start_seed 1 --mask_bars 3 4 5
 ```
 
-</details>
+`--seed N` selects the N-th song of the validation split (song-level split,
+seed 42; the untransposed version of each song is used). Batch generation writes
+one `seed_N/` folder per sample.
 
 ---
 
@@ -253,15 +324,15 @@ The preprocessed dataset (441k `.pt` files, 66 GB) is **not distributed**. To
 rebuild it from scratch:
 
 1. Download the [Lakh MIDI Dataset](https://colinraffel.com/projects/lmd/)
-   (`lmd_full`) and place the raw `.mid` files at **`data/midi_files/lmd_full/`**
-   (this path is hard-coded in the preprocessing script; edit the `DATASET_DIR`
-   constant to use another location).
+   (`lmd_full`) and place the raw `.mid` files at **`data/midi_files/lmd_full/`**.
+   This input location is currently a `DATASET_DIR` constant in
+   `scripts/Pre_Processing/preprocess_v2.py`; it is not a command-line option.
 
 2. Run the single-stage preprocessing pipeline (filter → tokenize → augment →
    save):
 
    ```bash
-   python scripts/Pre_Processing/preprocess_v2.py \
+   uv run python scripts/Pre_Processing/preprocess_v2.py \
        --output_dir data/preprocessed_v2_50k \
        --num_workers 32
    ```
@@ -277,31 +348,56 @@ rebuild it from scratch:
 
 ## 🏋️ Training
 
+> ⚠️ The current defaults in `conf/` do **not** reproduce the thesis runs on their
+> own (learning rate, some loss weights and the infilling base checkpoint have
+> changed since). The tables below list the thesis settings; see
+> [`conf/README.md`](conf/README.md) for the full comparison.
+
 **Phase 1 — MLM pre-training** (BERT-style 15% token-level masking):
 
 ```bash
-python midit/train_phase1.py                      # local / single GPU
+# local / configured accelerator
+uv run python midit/train_phase1.py \
+    chunking.preprocessed_dir=data/preprocessed_v2_50k \
+    train.lr=3e-4
 
-sbatch slurm/train_phase1_v3.sh \                 # SLURM cluster
-    train.batch_size=2 train.accumulate_grad_batches=4 train.lr=3e-4
+# Cluster-only launcher; contains DEI-specific paths and settings.
+# Extra arguments are forwarded to Hydra.
+sbatch slurm/train_phase_1_v3.sh train.lr=3e-4
 ```
 
-| Parameter | Value |
+| Parameter | Thesis value (Phase 1, best checkpoint) |
 |---|---|
-| Optimizer | AdamW (weight decay 0.01) |
-| LR schedule | 1,500-step warmup → peak 3×10⁻⁴ → cosine decay |
-| Effective batch | 8 (batch 2 × accumulation 4) |
+| Optimizer | AdamW, lr 3×10⁻⁴, weight decay 0.01 |
+| Best checkpoint | epoch 14, val_loss 2.7254 |
+| Loss weights λ | Pitch 3.0 · Velocity 1.5 · Duration 1.0 · Program 1.5 · Position 0.5 · Bar 0.0 · Tempo 1.0 · TimeSig 0.5 · Rest 1.0 |
 | Precision | bf16 · gradient clipping 1.0 |
-| Epoch | 200k batches (~7% of available chunks) |
-| Hardware | 1 × NVIDIA A40 48 GB |
+| Hardware | 1 × NVIDIA A40 48 GB *(pending verification)* |
+
+*Optimizer settings and loss weights are the hyperparameters stored in the
+released checkpoints. The stored `bar_level_masking=True` is an unused
+constructor argument: masking is applied by the dataset, which used token-level
+masking.*
 
 **Phase 1b — infilling fine-tuning** (BarFillMasking: 1–3 contiguous bars, content tokens only, structure preserved):
 
 ```bash
-python midit/train_infilling.py \
-    model.checkpoint_path=logs/checkpoints/midit-phase1-epoch14.ckpt \
+uv run python midit/train_infilling.py \
+    train.checkpoint_path=logs/checkpoints/midit-phase1-epoch14.ckpt \
+    chunking.preprocessed_dir=data/preprocessed_v2_50k \
     train.lr=3e-5
 ```
+
+> Always pass `train.checkpoint_path` explicitly: the default in
+> `conf/config_infilling.yaml` is an absolute cluster path to the later `epoch=49`
+> checkpoint, not the epoch-14 base of the thesis model.
+
+| Parameter | Thesis value (Phase 1b) |
+|---|---|
+| Initialization | Phase-1 checkpoint, epoch 14 |
+| Optimizer | AdamW, lr 3×10⁻⁵, cosine schedule |
+| Best checkpoint | epoch 5, val_loss 8.5836 |
+| Hardware | 1 × NVIDIA L40S |
 
 > ℹ️ The infilling validation loss (~8.6) is **not comparable** to Phase 1 (~2.7): Phase 1b masks only high-entropy content tokens, while Phase 1 averages over trivially predictable structural tokens.
 
@@ -314,7 +410,7 @@ python midit/train_infilling.py \
 **Cloze accuracy (Top-1 / Top-5, per token type):**
 
 ```bash
-python scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py \
+uv run python scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py \
     --checkpoint logs/checkpoints/midit-phase1-epoch14.ckpt \
     --data_dir   data/preprocessed_v2_50k \
     --split val --num_samples 400
@@ -323,7 +419,7 @@ python scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py \
 **Infilling metrics (CP / GS / PCHE) on a results directory:**
 
 ```bash
-python scripts/Evaluation_Infilling/compute_muspy_metrics.py \
+uv run python scripts/Evaluation_Infilling/compute_muspy_metrics.py \
     --results_dir outputs/samples_1000 \
     --output_csv  outputs/metrics/samples_1000.csv
 ```
@@ -332,27 +428,33 @@ python scripts/Evaluation_Infilling/compute_muspy_metrics.py \
 
 ```bash
 # 1. reference aggregate (LMD corpus statistics)
-python scripts/Evaluation_Infilling/Matteo/compute_reference_agg.py \
+uv run python scripts/Evaluation_Infilling/Matteo/compute_reference_agg.py \
     --midi_dir data/midi_files/lmd_full/ --output_json outputs/ref_agg.json \
     --max_files 1000 --seed 42
 
 # 2. model aggregate (masked-bar crops of the reconstructions)
-python scripts/Evaluation_Infilling/Matteo/compute_model_agg.py \
+uv run python scripts/Evaluation_Infilling/Matteo/compute_model_agg.py \
     --samples_dir outputs/samples_1000 --output_json outputs/model_agg.json
 
 # 3. JS score
-python scripts/Evaluation_Infilling/Matteo/compute_js_score.py \
+uv run python scripts/Evaluation_Infilling/Matteo/compute_js_score.py \
     --ref_agg outputs/ref_agg.json --model_agg outputs/model_agg.json
 ```
 
 **Integrity & verification probes** (audit that inference cannot copy the input):
 
 ```bash
-python scripts/audit_fixes/check_sample_integrity.py --samples_dir outputs/samples_1000
-python scripts/audit_fixes/probe_no_cheat.py \
+uv run python scripts/audit_fixes/check_sample_integrity.py --samples_dir outputs/samples_1000
+uv run python scripts/audit_fixes/probe_no_cheat.py \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --data_dir data/preprocessed_v2_50k --seed 79 --n_slots 20 --mask_bars 3 4 5
 ```
+
+> **Evaluation dependency note.** `compute_muspy_metrics.py`, the JS-similarity
+> utilities (`Matteo/`) and `audit_fixes/paired_stats_fixed.py` import `muspy` and/or
+> `scipy`, which are not yet declared in `pyproject.toml`. Until they are, install
+> them into the environment with `uv pip install muspy scipy` (a later `uv sync`
+> removes undeclared packages, so repeat it after syncing).
 
 ---
 
@@ -381,6 +483,15 @@ Disclosed and quantified in the thesis:
 - **50k / 168k files** — Pitch and Tempo learning curves still descending at the best checkpoint
 
 **Future work:** full-dataset training with shard-based I/O · stochastic decoding · BPE ablation · Phase 2 text-conditioned infilling (MidiCaps + FLAN-T5).
+
+---
+
+## 📝 Notes on the thesis text
+
+A few statements in the printed thesis about the training configuration differ
+from the released checkpoints (e.g. the Tempo/TimeSig/Rest loss weights in
+Table 4.1). The corrections are listed in [`docs/ERRATA.md`](docs/ERRATA.md). All
+reported results are computed on the released checkpoints and are unaffected.
 
 ---
 

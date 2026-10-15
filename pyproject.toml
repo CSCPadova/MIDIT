@@ -1,7 +1,7 @@
 [project]
 name = "midit"
 version = "0.1.0"
-description = "A Masked Diffusion Transformer for text-to-MIDI generation"
+description = "Bidirectional masked language modeling for symbolic MIDI infilling"
 readme = "README.md"
 license = "MIT"
 authors = [

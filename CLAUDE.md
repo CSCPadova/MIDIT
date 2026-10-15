@@ -153,3 +153,25 @@ training or inference of the generation set. The audit that produced this file's
 verified numbers lives under [scripts/audit_fixes/](scripts/audit_fixes/); remaining
 work follows the current revision plan (results-integrity and discussion framing).
 Phase 2 (text-conditioned, MidiCaps) remains **deferred** and out of thesis scope.
+
+---
+
+## Correction note (2026-10-15) — Phase-1 batch / schedule — INFERRED, pending W&B confirmation
+
+The claim "effective batch 8 / ~44,151 optimizer steps per epoch" for the thesis
+Phase-1 run (from `Modifiche_luglio/checkpoint_audit_findings.md`) is **superseded**.
+
+- **FACT:** the epoch-14 checkpoint (`midit-phase1-epoch14.ckpt`, HF release) stores
+  `global_step = 2,516,273` and `num_training_steps = 2,207,550`. Lightning's
+  `global_step` counts optimizer steps (checked with a minimal CPU run).
+- **FACT:** commit `be61f54` (2026-03-26) divides `total_training_steps` by
+  `accumulate_grad_batches` but does not pass it to `L.Trainer` (added in `b060a7c`);
+  its `lr_lambda` has no `min(1.0, …)` clamp (added in `5de167b`, whose message
+  reports a "cosine restart observed at epoch ~14"). Config then: batch_size 2,
+  accumulate 4, lr 3e-4, val_check_interval 0.25.
+- **INFERRED:** `global_step` ≈ 14.25 epochs × 176,605 batches → one optimizer step per
+  batch of 2, i.e. **effective batch 2** (accumulation not applied), and the cosine
+  schedule passed its planned horizon around **epoch 12.5** (LR then rising again).
+- Not stated in the public README/ERRATA until confirmed from the W&B run / job log.
+- Also verified 2026-10-15: both released checkpoints store λ Tempo/TimeSig/Rest =
+  1.0/0.5/1.0; thesis Table 4.1 (0.0/0.0/0.5) is wrong → `docs/ERRATA.md`.

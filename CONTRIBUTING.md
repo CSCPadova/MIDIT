@@ -1,6 +1,6 @@
 # Contributing to MIDIT
 
-First off, thank you for considering contributing to MIDIT! It's people like you that make MIDIT such a great tool for text-to-MIDI generation.
+First off, thank you for considering contributing to MIDIT! MIDIT is a research project for bidirectional symbolic MIDI infilling.
 
 Following these guidelines helps to communicate that you respect the time of the developers managing and developing this open source project. In return, they should reciprocate that respect in addressing your issue, assessing changes, and helping you finalize your pull requests.
 
@@ -65,11 +65,15 @@ MIDIT is an open source project and we love to receive contributions from our co
    uv run pre-commit run --all-files
    ```
 
-4. **Test your changes** (if applicable):
+4. **Run the relevant checks** (if applicable):
    ```bash
-   # Run fast training to verify your changes work
-   uv run train train.fast_run=true
+   # Run formatting and repository checks.
+   uv run pre-commit run --all-files
    ```
+
+   Training requires a preprocessed dataset and configured accelerator. See the
+   root README and `scripts/README.md` for supported workflows; do not treat a
+   training run as the default development check.
 
 5. **Push to your fork**:
    ```bash
@@ -117,11 +121,11 @@ Common gitmojis for this project:
 
 **Example**:
 ```bash
-git commit -m "✨ feat: add text-to-MIDI generation with FLAN-T5
+git commit -m "✨ feat: add top-k sampling to infilling inference
 
-- Implement FLAN-T5 text encoder
-- Add masked diffusion transformer
-- Support configurable model sizes"
+- Add --top_k option to scripts/infer_from_midi.py
+- Keep argmax decoding as the default
+- Document the new option in README.md"
 ```
 
 Install the gitmoji CLI tool (optional but helpful):
@@ -191,19 +195,19 @@ The core team reviews Pull Requests on a regular basis. Here's what to expect:
 
 ### Quick Testing
 
-Use fast run mode to quickly test your changes:
-```bash
-uv run train train.fast_run=true
-```
-
-This uses a small dataset and trains for only 2 epochs.
+The repository does not currently provide a data-free training test command.
+Use the targeted validation or diagnostic script relevant to the area you changed,
+and document any required local dataset or checkpoint inputs.
 
 ### Configuration Override
 
-Test different configurations without modifying files:
+Override Hydra configuration values without modifying files:
 ```bash
-uv run train model.d_model=256 train.batch_size=16
+uv run python midit/train_phase1.py model.d_model=256 train.batch_size=16
 ```
+
+This command starts training and therefore requires the configured dataset and
+accelerator; it is an example of configuration composition, not a lightweight test.
 
 ### Logging
 

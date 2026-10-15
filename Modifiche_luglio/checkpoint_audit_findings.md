@@ -155,3 +155,17 @@ same `srun`/`torch.load` snippet audits any checkpoint; just point it at the fil
 **All numbers above are the authoritative checkpoint values; `config.yaml` has
 drifted and should not be cited.** The two OPEN items (§7) confirm the exact
 batch/accumulate/limit verbatim if you want zero inference in the Methods section.
+
+---
+
+## Correction note (2026-10-15) — INFERRED, pending W&B confirmation
+
+The "effective batch 8 / ~44,151 optimizer steps per epoch" conclusion in §2–§3
+above is **superseded**. The epoch-14 checkpoint (HF release) stores
+`global_step = 2,516,273` (Lightning counts optimizer steps), against a planned
+`num_training_steps = 2,207,550`. This is consistent with **effective batch 2**:
+batch_size 2 with gradient accumulation not passed to the Trainer (commit `be61f54`,
+fixed in `b060a7c`), i.e. ≈14.25 epochs × 176,605 batches. The cosine schedule,
+which had no clamp at the time (added in `5de167b`), therefore passed its planned
+horizon around **epoch 12.5**. Status: INFERRED from checkpoint metadata and commit
+history; confirm from the W&B run or the Phase-1 job log.
