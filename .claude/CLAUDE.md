@@ -6,7 +6,8 @@ tracker. For history, run `git log`. If a fact here conflicts with something you
 recall or with an old doc, this file wins — but verify against the repo before
 acting, and never propagate a claim you cannot cite.
 
-Last audited: **2026-08-10** (branch `audit-fixes`).
+Last audited: **2026-10-15** (branch `masked-transformer`, after merging `repo-cleanup`).
+See [docs/ERRATA.md](../docs/ERRATA.md) for thesis-text corrections and [scripts/README.md](../scripts/README.md) for the script map.
 
 ---
 
@@ -16,7 +17,7 @@ Last audited: **2026-08-10** (branch `audit-fixes`).
 - **Supervisor:** Prof. Antonio Rodà · **Co-supervisor:** Matteo Spanio (PhD)
 - **Thesis:** *"MIDIT: Bidirectional Masked Language Modeling for Symbolic Music
   Infilling"* — submission **2026-09-10**, defense **2026-09-25**
-- **Working branch:** `audit-fixes` (contains `masked-transformer`, already merged)
+- **Working branch:** `masked-transformer` (default branch; `repo-cleanup` merged into it)
 - **What MIDIT is:** a BERT-style Masked Language Model over REMI+ MIDI tokens.
   Phase 1 = unconditional MLM pre-training (Lakh); Phase 1b = infilling fine-tuning.
 
