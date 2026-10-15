@@ -82,7 +82,7 @@ MIDIT FT 0.729 — gap vs B2 is only **+0.075**.
   tpq = 50; MIDIT/REMI+ uses tpq = 16. An earlier eval script applied MIDIT's
   tick-based crop window verbatim to Anticipatory files without unit conversion,
   misaligning the evaluated region. Fixed in
-  [scripts/audit_fixes/recompute_anticipatory_metrics_fixed.py](../scripts/audit_fixes/recompute_anticipatory_metrics_fixed.py)
+  [scripts/evaluation/baselines/recompute_anticipatory_metrics_fixed.py](../scripts/evaluation/baselines/recompute_anticipatory_metrics_fixed.py)
   with a time-based (seconds-aligned) crop. MIDIT's own scores were unaffected
   (same tick grid on both sides).
   **NEVER cite the superseded numbers:** Anticipatory CP = 0.435, PCHE = 0.790,

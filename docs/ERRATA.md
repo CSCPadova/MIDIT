@@ -50,8 +50,8 @@ released checkpoints.
 - The CP values in Table 5.11 are correct as printed. The qualitative finding is
   unchanged: GC is higher when the first bars are masked (0.896–0.932) than when
   the last bars are masked (0.813–0.826).
-- **Provenance.** Recomputed with `scripts/Evaluation_Infilling/compute_muspy_metrics.py`
-  (unchanged since commit `ec9ea11`; muspy 0.5.0) on the original MIDI outputs of
+- **Provenance.** Recomputed with `scripts/evaluation/compute_muspy_metrics.py` (formerly in `scripts/Evaluation_Infilling/`)
+  (metric code unchanged since commit `ec9ea11`; muspy 0.5.0) on the original MIDI outputs of
   the extreme-infilling runs (first/last configurations) and of the 3-bar
   fine-tuned run (central). Averaging the same per-seed values over seeds 1–5 and
   10 reproduces every printed GC value exactly.

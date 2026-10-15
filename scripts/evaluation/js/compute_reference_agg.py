@@ -1,11 +1,11 @@
 """
-scripts/Evaluation_Infilling/Matteo/compute_reference_agg.py
+scripts/evaluation/js/compute_reference_agg.py
 
 Compute reference aggregate muspy statistics over a directory of MIDI files.
 Output JSON is consumed by compute_js_similarity() as ref_agg.
 
 Usage:
-    python scripts/Evaluation_Infilling/Matteo/compute_reference_agg.py \
+    python scripts/evaluation/js/compute_reference_agg.py \
         --midi_dir data/midi_files/lmd_full/ \
         --output_json outputs/lmd_ref_agg.json \
         --max_files 1000 \

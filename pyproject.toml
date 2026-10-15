@@ -34,7 +34,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-# Evaluation metrics (scripts/Evaluation_Infilling, scripts/audit_fixes):
+# Evaluation metrics (scripts/evaluation, scripts/verification):
 #   uv sync --group eval
 eval = [
     "muspy==0.5.0",

@@ -1,5 +1,8 @@
 #!/bin/bash
-# scripts/run_js_upperbound.sh
+# scripts/evaluation/js/run_js_upperbound.sh
+#
+# CLUSTER-ONLY: the /nfsd paths below are records of the DEI cluster runs; run
+# from the repository root (cd ~/MIDIT) after editing them for another machine.
 #
 # Upper-bound JS Similarity for the infilling pipeline.
 #
@@ -56,7 +59,7 @@ echo
 
 # ── 2. Compute model aggregate over upper-bound dir ──────────────────────────
 echo "[2/3] Running compute_model_agg.py"
-python -u scripts/Evaluation_Infilling/Matteo/compute_model_agg.py \
+python -u scripts/evaluation/js/compute_model_agg.py \
     --samples_dir "$UPPER" \
     --output_json "$MODEL_AGG" \
     --max_files   1000
@@ -64,7 +67,7 @@ echo
 
 # ── 3. Compute JS similarity score ───────────────────────────────────────────
 echo "[3/3] Running compute_js_score.py"
-python -u scripts/Evaluation_Infilling/Matteo/compute_js_score.py \
+python -u scripts/evaluation/js/compute_js_score.py \
     --model_agg   "$MODEL_AGG" \
     --ref_agg     "$REF_AGG" \
     --model_name  "Upper_Bound" \

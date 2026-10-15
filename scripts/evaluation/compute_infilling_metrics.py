@@ -1,5 +1,5 @@
 """
-scripts/Evaluation_Infilling/compute_infilling_metrics.py
+scripts/evaluation/compute_infilling_metrics.py
 
 Three standard symbolic-music infilling evaluation metrics:
 
@@ -22,7 +22,7 @@ Three standard symbolic-music infilling evaluation metrics:
          Reference: Wu & Yang (2020).
 
 Usage (standalone):
-    python scripts/Evaluation_Infilling/compute_infilling_metrics.py \\
+    python scripts/evaluation/compute_infilling_metrics.py \\
         --original  outputs/infilling_v2/seed_2/original.mid \\
         --infilled  outputs/infilling_v2/seed_2/reconstructed.mid \\
         --bar_start 3 \\
@@ -30,7 +30,7 @@ Usage (standalone):
         [--grid_res 16]
 
 Usage (as importable module):
-    from scripts.Evaluation_Infilling.compute_infilling_metrics import compute_metrics
+    from scripts.evaluation.compute_infilling_metrics import compute_metrics
     results = compute_metrics(
         original_midi = "original.mid",
         infilled_midi = "reconstructed.mid",

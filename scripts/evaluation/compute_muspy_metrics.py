@@ -1,5 +1,5 @@
 """
-scripts/Evaluation_Infilling/compute_muspy_metrics.py
+scripts/evaluation/compute_muspy_metrics.py
 
 Batch evaluation of MIDIT infilling outputs.
 
@@ -26,7 +26,7 @@ Requirements:
     pip install muspy pretty_midi symusic numpy
 
 Usage:
-    python scripts/Evaluation_Infilling/compute_muspy_metrics.py \\
+    python scripts/evaluation/compute_muspy_metrics.py \\
         --results_dir outputs/infilling/ \\
         --output_csv  outputs/muspy_metrics.csv
 """

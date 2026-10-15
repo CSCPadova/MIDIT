@@ -1,8 +1,8 @@
 # CP and GS — exact definitions (read-only findings)
 
 Both metrics are defined **only** in
-`scripts/Evaluation_Infilling/compute_infilling_metrics.py`.
-`compute_muspy_metrics.py` and `scripts/decoding_ablation.py` **import**
+`scripts/evaluation/compute_infilling_metrics.py`.
+`compute_muspy_metrics.py` and `scripts/evaluation/decoding/decoding_ablation.py` **import**
 `compute_CP` / `compute_GS` from there — there is no inline reimplementation.
 All line numbers below are in `compute_infilling_metrics.py`. **FACT** = read in
 code.

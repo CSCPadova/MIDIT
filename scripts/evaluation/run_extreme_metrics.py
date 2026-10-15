@@ -1,10 +1,10 @@
 """
-scripts/run_extreme_metrics.py
+scripts/evaluation/run_extreme_metrics.py
 
 Run compute_muspy_metrics.py for all 6 extreme infilling configurations.
 
 Usage:
-    python scripts/run_extreme_metrics.py --base_dir <extreme_outputs> --out_dir <metrics_dir>
+    python scripts/evaluation/run_extreme_metrics.py --base_dir <extreme_outputs> --out_dir <metrics_dir>
 
     Thesis run (local paths at the time):
         --base_dir C:/Users/simoz/OneDrive/Desktop/ResultsInfilling/Extreme/extreme
@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 
 CONFIGS   = ['first1', 'first2', 'first3', 'last1', 'last2', 'last3']
-SCRIPT    = Path('scripts/Evaluation_Infilling/compute_muspy_metrics.py')
+SCRIPT    = Path('scripts/evaluation/compute_muspy_metrics.py')
 
 parser = argparse.ArgumentParser(description=__doc__.splitlines()[3])
 parser.add_argument('--base_dir', required=True,

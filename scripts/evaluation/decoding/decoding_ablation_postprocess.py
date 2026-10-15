@@ -1,5 +1,5 @@
 """
-scripts/decoding_ablation_postprocess.py
+scripts/evaluation/decoding/decoding_ablation_postprocess.py
 
 Post-processes the decoding ablation: adds S-I metrics (pitch_class_entropy,
 groove_consistency, scale_consistency, pitch_range, n_pitches_used) for each
@@ -15,8 +15,8 @@ decoding_ablation_full_results.csv into --ablation_dir.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))                       # repo root
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts" / "Evaluation_Infilling"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))                       # repo root
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts" / "evaluation"))
 
 from compute_muspy_metrics import _compute_si_metrics
 from compute_infilling_metrics import _bar_boundaries

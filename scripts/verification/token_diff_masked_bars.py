@@ -1,5 +1,5 @@
 """
-scripts/audit_fixes/token_diff_masked_bars.py
+scripts/verification/token_diff_masked_bars.py
 
 THROWAWAY diagnostic (no GPU, read-only). Proves the model GENERATES content in
 the masked bars rather than copying the input, by comparing REMI tokens (not raw
@@ -22,9 +22,9 @@ Method (as agreed)
   (preserved). Structural diff should be ~0%.
 
 Usage (cluster, main .venv, NO GPU):
-    python scripts/audit_fixes/token_diff_masked_bars.py \
+    python scripts/verification/token_diff_masked_bars.py \
         --samples_dir /nfsd/tesi/zanettisim/MIDIT/outputs/samples_1000 \
-        --manifest    scripts/audit_fixes/sample_manifest.csv \
+        --manifest    scripts/verification/sample_manifest.csv \
         --seeds 5 79 216 500 900
 """
 
@@ -38,7 +38,7 @@ from pathlib import Path
 
 _THIS = Path(__file__).resolve()
 _ROOT = _THIS.parents[2]
-_EVAL = _ROOT / "scripts" / "Evaluation_Infilling"
+_EVAL = _ROOT / "scripts" / "evaluation"
 sys.path.insert(0, str(_ROOT))     # midit.infer
 sys.path.insert(0, str(_EVAL))     # compute_muspy_metrics
 

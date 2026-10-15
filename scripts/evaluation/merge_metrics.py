@@ -1,5 +1,5 @@
 """
-scripts/Evaluation_Infilling/merge_metrics.py
+scripts/evaluation/merge_metrics.py
 
 Merges per-seed CSVs produced by compute_muspy_metrics.py into a single
 summary table and generates a LaTeX table for the thesis.
@@ -40,7 +40,7 @@ NOTE on groove_consistency:
   then rerun that script before re-merging.
 
 Usage:
-  python scripts/Evaluation_Infilling/merge_metrics.py \\
+  python scripts/evaluation/merge_metrics.py \\
       --metrics_dir /path/to/metrics/ \\
       --output_csv  /path/to/merged_metrics.csv
 """

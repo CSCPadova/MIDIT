@@ -1,11 +1,11 @@
 """
-scripts/decoding_ablation.py
+scripts/evaluation/decoding/decoding_ablation.py
 
 Decoding-strategy ablation for MIDIT infilling (argmax vs temperature/top-k/top-p
 vs MaskGIT-style iterative decoding). Analogous to MIDI-RWKV Appendix E.3 Table 15.
 
 Self-contained: imports utilities from midit.infer and metric functions from
-scripts/Evaluation_Infilling/compute_infilling_metrics.py WITHOUT modifying them.
+scripts/evaluation/compute_infilling_metrics.py WITHOUT modifying them.
 Every decoding condition keeps the same oracle token-type read-out and the
 Position/Bar/Tempo/TimeSig/Rest scaffolding as midit.infer.reconstruct(); only the
 per-slot read-out changes, so results are comparable to the thesis main table.
@@ -16,9 +16,9 @@ Runnable locally (small --n_seeds) and via sbatch (slurm/decoding_ablation.sh).
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))                       # repo root
-sys.path.insert(0, str(Path(__file__).parent.parent /
-                        "scripts" / "Evaluation_Infilling"))                # metrics
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))                       # repo root
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] /
+                        "scripts" / "evaluation"))                # metrics
 
 from compute_infilling_metrics import compute_CP, compute_GS, compute_PCHE, _bar_boundaries
 from midit.infer import (

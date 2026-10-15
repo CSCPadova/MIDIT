@@ -91,10 +91,10 @@ HELP_COMMANDS = [
     ["scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py"],
     ["scripts/audit_fixes/check_sample_integrity.py"],
     ["scripts/audit_fixes/probe_no_cheat.py"],
-    pytest.param(["scripts/Evaluation_Infilling/compute_muspy_metrics.py"], marks=needs_eval),
-    pytest.param(["scripts/Evaluation_Infilling/Matteo/compute_reference_agg.py"], marks=needs_eval),
-    pytest.param(["scripts/Evaluation_Infilling/Matteo/compute_model_agg.py"], marks=needs_eval),
-    pytest.param(["scripts/Evaluation_Infilling/Matteo/compute_js_score.py"], marks=needs_eval),
+    pytest.param(["scripts/evaluation/compute_muspy_metrics.py"], marks=needs_eval),
+    pytest.param(["scripts/evaluation/js/compute_reference_agg.py"], marks=needs_eval),
+    pytest.param(["scripts/evaluation/js/compute_model_agg.py"], marks=needs_eval),
+    pytest.param(["scripts/evaluation/js/compute_js_score.py"], marks=needs_eval),
 ]
 
 

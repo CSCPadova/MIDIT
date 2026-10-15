@@ -1,8 +1,8 @@
 """
-scripts/audit_fixes/build_sample_manifest.py
+scripts/verification/build_sample_manifest.py
 
 THROWAWAY audit script (Task 2). Read-only w.r.t. samples_1000.
-Writes ONLY scripts/audit_fixes/sample_manifest.csv (the single source of
+Writes ONLY scripts/verification/sample_manifest.csv (the single source of
 truth for Tasks 4/5/7).
 
 What it does
@@ -12,12 +12,12 @@ What it does
    kept; the others are excluded with reason "duplicate".
 2. Re-runs the EXACT masked-bar detection used by the real pipeline, by
    importing `_detect_masked_bars` from
-   scripts/Evaluation_Infilling/compute_muspy_metrics.py. Its criterion:
+   scripts/evaluation/compute_muspy_metrics.py. Its criterion:
    a bar is "masked" iff original.mid has >=1 note there AND masked.mid has 0
    notes there (bar boundaries from symusic, max_bars=64). The function's
    second return value `used_fallback=True` means detection FAILED (would have
    fallen back to the full piece).
-3. Emits scripts/audit_fixes/sample_manifest.csv with columns:
+3. Emits scripts/verification/sample_manifest.csv with columns:
      seed, md5_original, status, exclusion_reason, dup_group_id, n_masked_bars
    status in {included, excluded}
    exclusion_reason in {"", incomplete, duplicate, detection_failed}
@@ -30,7 +30,7 @@ What it does
 Exclusion precedence: incomplete > duplicate > detection_failed.
 
 Usage (on cluster, in the eval env with symusic installed; NO GPU):
-    python scripts/audit_fixes/build_sample_manifest.py \
+    python scripts/verification/build_sample_manifest.py \
         --samples_dir /nfsd/tesi/zanettisim/MIDIT/outputs/samples_1000
 """
 
@@ -49,7 +49,7 @@ REQUIRED = ("original.mid", "masked.mid", "reconstructed.mid")
 
 _THIS = Path(__file__).resolve()
 _ROOT = _THIS.parents[2]                      # repo root
-_EVAL_DIR = _ROOT / "scripts" / "Evaluation_Infilling"
+_EVAL_DIR = _ROOT / "scripts" / "evaluation"
 _MANIFEST = _THIS.parent / "sample_manifest.csv"
 
 # Import the REAL detection function so the criterion is identical.

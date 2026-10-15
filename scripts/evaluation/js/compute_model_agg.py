@@ -1,5 +1,5 @@
 """
-scripts/Evaluation_Infilling/Matteo/compute_model_agg.py
+scripts/evaluation/js/compute_model_agg.py
 
 Compute model aggregate muspy statistics over generated infilling samples.
 Output JSON is consumed by compute_js_similarity() as model_agg.
@@ -13,7 +13,7 @@ to the full reconstructed.mid when original.mid is absent or bar
 detection fails.
 
 Usage:
-    python scripts/Evaluation_Infilling/Matteo/compute_model_agg.py \
+    python scripts/evaluation/js/compute_model_agg.py \
         --samples_dir /nfsd/.../outputs/samples_1000 \
         --output_json outputs/model_agg.json \
         --max_files   1000
@@ -35,7 +35,7 @@ sys.path.insert(0, str(_HERE))
 # _detect_masked_bars and _crop_music_to_range live in the parent directory.
 # Guarded by try/except: if symusic or muspy is not installed the script
 # falls back to computing metrics on the full reconstructed.mid.
-_EVAL_DIR = _HERE.parent   # scripts/Evaluation_Infilling/
+_EVAL_DIR = _HERE.parent   # scripts/evaluation/
 sys.path.insert(0, str(_EVAL_DIR))
 
 _CROP_AVAILABLE = False

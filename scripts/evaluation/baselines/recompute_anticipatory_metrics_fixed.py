@@ -1,5 +1,5 @@
 """
-scripts/audit_fixes/recompute_anticipatory_metrics_fixed.py
+scripts/evaluation/baselines/recompute_anticipatory_metrics_fixed.py
 
 THROWAWAY audit fix (read-only inputs). Recomputes CP/GS/PCHE for the
 Anticipatory MT baseline with a TIME-BASED crop, fixing the tpq mismatch AND
@@ -39,7 +39,7 @@ Reuses primitives UNCHANGED from compute_infilling_metrics.py:
 Inputs (all read-only):
   --recon_dir   samples_anticipatory_1000  (seed_N/reconstructed.mid)
   --orig_dir    samples_1000               (seed_N/original.mid + masked.mid)
-  --manifest    scripts/audit_fixes/sample_manifest.csv (restrict to 973 included)
+  --manifest    scripts/verification/sample_manifest.csv (restrict to 973 included)
 
 Modes:
   sanity (default): --sanity_seeds ... -> seconds cross-check, note counts
@@ -61,8 +61,8 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-_ROOT = Path(__file__).resolve().parents[2]
-_EVAL = _ROOT / "scripts" / "Evaluation_Infilling"
+_ROOT = Path(__file__).resolve().parents[3]
+_EVAL = _ROOT / "scripts" / "evaluation"
 sys.path.insert(0, str(_EVAL))
 
 from compute_infilling_metrics import (          # noqa: E402
@@ -503,7 +503,7 @@ def main() -> None:
     ap.add_argument("--recon_dir", required=True, help="Dir with seed_N/reconstructed.mid (anticipatory).")
     ap.add_argument("--orig_dir", default="/nfsd/tesi/zanettisim/MIDIT/outputs/samples_1000",
                     help="Dir with seed_N/original.mid + masked.mid.")
-    ap.add_argument("--manifest", default=str(Path(__file__).parent / "sample_manifest.csv"))
+    ap.add_argument("--manifest", default=str(_ROOT / "scripts" / "verification" / "sample_manifest.csv"))
     ap.add_argument("--sanity_seeds", type=int, nargs="+",
                     default=[5, 79, 216, 500, 900, 100, 300, 700])
     ap.add_argument("--run_full", action="store_true", help="Run full pass and write CSV.")

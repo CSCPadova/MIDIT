@@ -425,7 +425,7 @@ uv run python scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py \
 **Infilling metrics (CP / GS / PCHE) on a results directory:**
 
 ```bash
-uv run python scripts/Evaluation_Infilling/compute_muspy_metrics.py \
+uv run python scripts/evaluation/compute_muspy_metrics.py \
     --results_dir outputs/samples_1000 \
     --output_csv  outputs/metrics/samples_1000.csv
 ```
@@ -434,16 +434,16 @@ uv run python scripts/Evaluation_Infilling/compute_muspy_metrics.py \
 
 ```bash
 # 1. reference aggregate (LMD corpus statistics)
-uv run python scripts/Evaluation_Infilling/Matteo/compute_reference_agg.py \
+uv run python scripts/evaluation/js/compute_reference_agg.py \
     --midi_dir data/midi_files/lmd_full/ --output_json outputs/ref_agg.json \
     --max_files 1000 --seed 42
 
 # 2. model aggregate (masked-bar crops of the reconstructions)
-uv run python scripts/Evaluation_Infilling/Matteo/compute_model_agg.py \
+uv run python scripts/evaluation/js/compute_model_agg.py \
     --samples_dir outputs/samples_1000 --output_json outputs/model_agg.json
 
 # 3. JS score
-uv run python scripts/Evaluation_Infilling/Matteo/compute_js_score.py \
+uv run python scripts/evaluation/js/compute_js_score.py \
     --ref_agg outputs/ref_agg.json --model_agg outputs/model_agg.json
 ```
 

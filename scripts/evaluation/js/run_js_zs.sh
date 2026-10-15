@@ -1,5 +1,8 @@
 #!/bin/bash
-# scripts/run_js_zs.sh
+# scripts/evaluation/js/run_js_zs.sh
+#
+# CLUSTER-ONLY: the /nfsd paths below are records of the DEI cluster runs; run
+# from the repository root (cd ~/MIDIT) after editing them for another machine.
 #
 # Zero-shot JS Similarity for the Phase 1 (pre-trained, NOT fine-tuned)
 # checkpoint on the bar 3-4-5 infilling task.
@@ -43,7 +46,7 @@ source .venv/bin/activate
 
 # ── 1. Compute model aggregate over zero-shot samples ────────────────────────
 echo "[1/2] Running compute_model_agg.py"
-python -u scripts/Evaluation_Infilling/Matteo/compute_model_agg.py \
+python -u scripts/evaluation/js/compute_model_agg.py \
     --samples_dir "$SAMPLES" \
     --output_json "$MODEL_AGG" \
     --max_files   1000
@@ -51,7 +54,7 @@ echo
 
 # ── 2. Compute JS similarity score ───────────────────────────────────────────
 echo "[2/2] Running compute_js_score.py"
-python -u scripts/Evaluation_Infilling/Matteo/compute_js_score.py \
+python -u scripts/evaluation/js/compute_js_score.py \
     --model_agg   "$MODEL_AGG" \
     --ref_agg     "$REF_AGG" \
     --model_name  "MIDIT_ZS" \

@@ -81,17 +81,17 @@ i.e. they only change lines analogous to [infer.py:295-305](../../../midit/model
 **All three P-I metrics operate on `symusic.Score` objects loaded from MIDI files,
 cropped by tick ranges — NOT on tokens (FACT).**
 
-- **CP** — `compute_CP(orig, recon, bar_range)` ([compute_infilling_metrics.py:198](../../../scripts/Evaluation_Infilling/compute_infilling_metrics.py#L198)): duration-weighted 12-bin chroma cosine per masked bar, averaged. Inputs are `symusic` Scores + tick `bar_range`.
-- **GS** — `compute_GS(orig, recon, bar_range, tpq, grid_res=16)` ([compute_infilling_metrics.py:224](../../../scripts/Evaluation_Infilling/compute_infilling_metrics.py#L224)): per-bar Jaccard of 16th-note onset grids.
-- **PCHE** — `compute_PCHE(orig, recon, bar_range)` ([compute_infilling_metrics.py:255](../../../scripts/Evaluation_Infilling/compute_infilling_metrics.py#L255)): |ΔH| of pitch-class histograms.
+- **CP** — `compute_CP(orig, recon, bar_range)` ([compute_infilling_metrics.py:198](../../../scripts/evaluation/compute_infilling_metrics.py#L198)): duration-weighted 12-bin chroma cosine per masked bar, averaged. Inputs are `symusic` Scores + tick `bar_range`.
+- **GS** — `compute_GS(orig, recon, bar_range, tpq, grid_res=16)` ([compute_infilling_metrics.py:224](../../../scripts/evaluation/compute_infilling_metrics.py#L224)): per-bar Jaccard of 16th-note onset grids.
+- **PCHE** — `compute_PCHE(orig, recon, bar_range)` ([compute_infilling_metrics.py:255](../../../scripts/evaluation/compute_infilling_metrics.py#L255)): |ΔH| of pitch-class histograms.
 - The batch driver `process_experiment` reads `original.mid / masked.mid /
   reconstructed.mid` from a seed dir, detects masked bars via `_detect_masked_bars`
   (original-vs-masked note presence), and computes P-I + muspy S-I
-  ([compute_muspy_metrics.py:284-329](../../../scripts/Evaluation_Infilling/compute_muspy_metrics.py#L284-L329)). All file-based.
+  ([compute_muspy_metrics.py:284-329](../../../scripts/evaluation/compute_muspy_metrics.py#L284-L329)). All file-based.
 
 **Can I compute from raw token IDs without MIDI?** **Not with the existing
 functions** — they take `symusic` Scores loaded from `.mid` via `_load`
-([compute_infilling_metrics.py](../../../scripts/Evaluation_Infilling/compute_infilling_metrics.py)). Two viable approaches:
+([compute_infilling_metrics.py](../../../scripts/evaluation/compute_infilling_metrics.py)). Two viable approaches:
 
 - **Recommended (lowest risk, comparable to thesis): go through MIDI files.**
   For each condition, `save_midi(tokens, tokenizer, path)` ([infer.py:365](../../../midit/infer.py#L365)) → then either call `_load` + `compute_CP/GS/PCHE` directly with the masked-bar tick range, or (simplest) write the `original.mid / masked.mid / reconstructed.mid` trio per condition and reuse `process_experiment`/`compute_muspy_metrics.py` unchanged. This guarantees the ablation numbers are computed by the **exact same code** as the thesis's main table — the safest choice for a defensible comparison.

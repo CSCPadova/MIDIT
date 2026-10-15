@@ -1,5 +1,5 @@
 """
-scripts/Evaluation_Infilling/Matteo/compute_js_score.py
+scripts/evaluation/js/compute_js_score.py
 
 Final step of the JS similarity pipeline.
 Loads model_agg.json + ref_agg.json and computes JS Divergence Similarity.
@@ -10,7 +10,7 @@ JS Similarity = 100 × exp(−2 × mean_JS) over 3 metrics:
   - muspy_scale_consistency
 
 Usage:
-    python scripts/Evaluation_Infilling/Matteo/compute_js_score.py \
+    python scripts/evaluation/js/compute_js_score.py \
         --model_agg  outputs/model_agg.json \
         --ref_agg    outputs/ref_agg.json \
         --model_name MIDIT \

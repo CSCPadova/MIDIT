@@ -1,7 +1,7 @@
 # S-I metrics — how they are computed (read-only findings)
 
-Source: `scripts/Evaluation_Infilling/compute_muspy_metrics.py` (the S-I metrics
-live here) and `scripts/Evaluation_Infilling/compute_infilling_metrics.py`
+Source: `scripts/evaluation/compute_muspy_metrics.py` (the S-I metrics
+live here) and `scripts/evaluation/compute_infilling_metrics.py`
 (the P-I metrics CP/GS/PCHE; imported by the muspy script). No file modified.
 
 ---
@@ -9,7 +9,7 @@ live here) and `scripts/Evaluation_Infilling/compute_infilling_metrics.py`
 ## Q1 — `_compute_si_metrics`
 
 **Yes, it exists.**
-- **File / lines:** `scripts/Evaluation_Infilling/compute_muspy_metrics.py:231-279`.
+- **File / lines:** `scripts/evaluation/compute_muspy_metrics.py:231-279`.
 - **Signature:** `_compute_si_metrics(path: Path, bar_range: Optional[List[Tuple[int, int]]] = None) -> Dict[str, float]`.
 - **Input type:** a **filesystem path to a MIDI file** (not a `muspy.Music` or
   `symusic.Score`). Internally it loads the file with `muspy.read_midi(str(path))`
@@ -70,7 +70,7 @@ load + crop + all 5 muspy calls with the project's exact settings (groove res 4)
 ## Q5 — Cropping a `muspy.Music` to a tick range
 
 **Yes — `_crop_music_to_range(music, bar_range)` exists.**
-- **File / lines:** `scripts/Evaluation_Infilling/compute_muspy_metrics.py:196-228`.
+- **File / lines:** `scripts/evaluation/compute_muspy_metrics.py:196-228`.
 - **Behaviour:** returns a **new `muspy.Music`** containing only notes whose onset
   `note.time` falls inside any `(t_start, t_end)` tuple in `bar_range`, and
   **re-times** surviving notes by subtracting `bar_range[0][0]` so the cropped
@@ -117,7 +117,7 @@ load + crop + all 5 muspy calls with the project's exact settings (groove res 4)
 ## Reuse recommendation for a new post-processing script
 
 - Import from the flat module (as the project does): add
-  `scripts/Evaluation_Infilling` to `sys.path`, then
+  `scripts/evaluation` to `sys.path`, then
   `from compute_muspy_metrics import _compute_si_metrics, _crop_music_to_range, _detect_masked_bars`.
 - For each reconstruction MIDI, call
   `_compute_si_metrics(recon_path, bar_range=<masked-bar tick ranges>)` and read
