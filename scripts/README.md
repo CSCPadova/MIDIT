@@ -45,7 +45,7 @@ inference from dataset-backed workflows.
   Some scripts are intended for the original cluster storage layout.
 - `Tests/validate_v2_preprocessing.py` validates the V2 preprocessing output.
   The automated smoke tests live in `../tests/` (`uv run pytest`).
-- `figures/` produces thesis figures.
+- `figures/` produces thesis figures (see [`../figures/README.md`](../figures/README.md)).
   `figures/generate_piano_roll_figure.py` (`--input_dir`) and `run_extreme_metrics.py`
   (`--base_dir`, `--out_dir`) take their input/output locations as arguments.
 
