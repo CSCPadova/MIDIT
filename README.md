@@ -29,7 +29,7 @@ MIDIT is a BERT-style masked language model for symbolic multi-track music infil
 - **Different quality profiles, not a ranking, vs the Anticipatory Music Transformer.**
   On 878 paired samples MIDIT preserves more of the original content (CP 0.728 vs 0.649,
   d_z = 0.33), pitch-class entropy is statistically indistinguishable (p = 0.47), and
-  the autoregressive model remains competitive on groove consistency.
+  the autoregressive model shows higher groove consistency (0.911 vs 0.840 for MIDIT).
 
 <p align="center">
   <img src="figures/midit_architecture.png" alt="MIDIT architecture: REMI+ tokens, token and positional embeddings, 12 pre-norm Transformer encoder layers, nine type-specific output heads" width="460">
@@ -118,6 +118,12 @@ crop of the masked region, paired t-test; thesis Table 5.17):
 its samples have GS = 1.0 by construction, while Anticipatory MT regenerates
 onsets. GS is therefore not used to rank the two systems.*
 
+**Groove consistency** (reference-free; same 878 matched samples; thesis Table 5.18):
+
+| | MIDIT FT | Anticipatory MT |
+|---|---|---|
+| Groove consistency ↑ | 0.840 | 0.911 |
+
 **JS Similarity** to the LMD reference distribution (thesis Table 5.15):
 
 | | JS Similarity | n |
@@ -132,8 +138,9 @@ for context; its JS Similarity is not directly comparable with the MIDIT rows.*
 The two paradigms — bidirectional, parallel (MIDIT) vs. autoregressive
 (Anticipatory MT) — show **different quality profiles** rather than a ranking:
 on the paired samples, MIDIT stays closer to the original content of the masked
-bars (higher CP, moderate effect) while pitch-class entropy is statistically
-indistinguishable; on JS Similarity, MIDIT matches the ground-truth upper bound.
+bars (higher CP, moderate effect), pitch-class entropy is statistically
+indistinguishable, and Anticipatory MT has the higher groove consistency; on JS
+Similarity, MIDIT matches the ground-truth upper bound.
 
 ### Verified genuinely generative 🔬
 
