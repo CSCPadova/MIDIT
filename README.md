@@ -271,14 +271,17 @@ checkpoint. The input MIDI is tokenized on the fly — **no dataset required.**
 
 ```bash
 uv run python scripts/infer_from_midi.py \
-    --midi_path  path/to/your_song.mid \
+    --midi_path  examples/0000799e8672292fe6f0fff08554ca40.mid \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --mask_bars 3 4 5 \
     --start_bar 12 \
-    --output_dir outputs/my_song/
+    --output_dir outputs/example/
 ```
 
 Produces `original.mid`, `masked.mid` and `reconstructed.mid` in `--output_dir`.
+Replace `--midi_path` with your own file to infill it; the two files in
+[`examples/`](examples/) come from the Lakh MIDI Dataset (CC BY 4.0, attribution
+in [`examples/README.md`](examples/README.md)).
 
 > ⚠️ Unless `--skip_filters` is passed, the input MIDI must pass the same quality
 > filters used in training (≥ 50 notes, ≥ 15 s, velocity diversity), otherwise the
