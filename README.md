@@ -230,7 +230,7 @@ MIDIT/
 ├── tests/                             # CPU smoke tests (uv run pytest)
 ├── slurm/                             # SLURM job scripts (DEI cluster, user-specific paths)
 ├── docs/                              # ERRATA.md, analysis/ notes, audits/ (2026-07 audit trail)
-├── figures/                           # Thesis figures
+├── figures/                           # Architecture figure (thesis figures: see the PDF)
 └── research/                          # Historical / V1 / exploratory scripts and
                                        #   thesis_materials/ (earlier approaches) — not maintained
 ```

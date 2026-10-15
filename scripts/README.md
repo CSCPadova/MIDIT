@@ -39,7 +39,7 @@ checkpoints.
 | | `probe_no_cheat.py` | Runtime probe: inference cannot copy masked tokens | "genuinely generative" check |
 | | `token_diff_masked_bars.py` | Token-level diff of masked bars vs ground truth | "genuinely generative" check |
 | | `build_sample_manifest.py` | Builds `sample_manifest.csv` (matched sample set) | Table 5.17 sample set |
-| `figures/` | see [`../figures/README.md`](../figures/README.md) | Thesis/README figures | Figs. 3.4, … |
+| `figures/` | `generate_architecture.py`, `preprocessing_pipeline_v2.py`, `generate_piano_roll_figure.py` | Figure scripts; only `../figures/midit_architecture.png` is kept in the repo (see [`../figures/README.md`](../figures/README.md)) | README architecture figure; Fig. 3.4 |
 
 ## Notes
 
