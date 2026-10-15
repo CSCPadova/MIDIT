@@ -9,7 +9,38 @@ Padova, A.Y. 2025/2026).
 errata concern only how the training configuration is described and do not affect
 any result. The only reported values that change are the GC column of Table 5.11
 and the reference line of Figure 5.5 (seed-set averaging, see below); no
-conclusion changes.
+conclusion changes. Figure 2.9, an illustration of the token stream, has incorrect
+token labels; no result depends on it.
+
+## Figure 2.9 — REMI+ token-stream example (p. ?)
+
+- **Figure 2.9** (caption: "REMI+ token stream from a real multi-track file in the
+  Lakh MIDI Dataset, tokenized with the MIDIT V2 configuration") does not depict a
+  V2 stream. It shows a file tokenized with the earlier **V1** configuration
+  (518-token vocabulary) whose token ids were decoded with the **V2** vocabulary
+  (550 tokens), so 14 of the 28 labels are wrong:
+
+  | Position | Printed | Actual token |
+  |---|---|---|
+  | 2 | Prog. 105 | TimeSig 4/4 |
+  | 3 | Dur. 4.1 | Position 0 |
+  | 4 | Rest 2.1 | Tempo 121.29 |
+  | 5 | Drum 72 | Rest 4.0 |
+  | 6 | Dur. 4.1 | Position 0 |
+  | 7, 11, 25 | Prog. 55 | Program 87 |
+  | 15, 19 | Prog. 96 | Program −1 (drums) |
+  | 16 | Pos. 73 | PitchDrum 36 |
+  | 20 | Pos. 79 | PitchDrum 42 |
+  | 23 | Drum 57 | Rest 0.1 |
+  | 24 | Dur. 5.1 | Position 4 |
+
+  The remaining labels (Bar, Pitch, Velocity and Duration tokens) are correct. The
+  figure is illustrative only; no result depends on it.
+- **Provenance.** Re-rendering the first 28 tokens of the V1 file
+  `lakh_00000_Caught Up In You.pt` with the V2 vocabulary using
+  `scripts/preprocessing/visualize_tokenization_v2.py` reproduces the printed
+  figure byte for byte; the same ids decoded with the V1 tokenizer give the
+  actual tokens above.
 
 ## Loss weights
 

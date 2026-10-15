@@ -532,8 +532,9 @@ Disclosed and quantified in the thesis:
 
 A few statements in the printed thesis need correction: some descriptions of the
 training configuration differ from the released checkpoints (e.g. the
-Tempo/TimeSig/Rest loss weights in Table 4.1), and the GC column of Table 5.11
-averaged a different set of seeds than stated in its caption. The corrections are
+Tempo/TimeSig/Rest loss weights in Table 4.1), the GC column of Table 5.11
+averaged a different set of seeds than stated in its caption, and the token labels
+of the illustrative Figure 2.9 are wrong. The corrections are
 listed in [`docs/ERRATA.md`](docs/ERRATA.md). All reported results are computed on
 the released checkpoints; apart from the GC column of Table 5.11 and the
 reference line of Figure 5.5, no reported value changes, and no conclusion changes.
