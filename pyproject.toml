@@ -5,7 +5,8 @@ description = "Bidirectional masked language modeling for symbolic MIDI infillin
 readme = "README.md"
 license = "MIT"
 authors = [
-    { name = "Matteo Spanio", email = "spanio@dei.unipd.it" }
+    { name = "Simone Zanetti" },
+    { name = "Matteo Spanio", email = "spanio@dei.unipd.it" },
 ]
 requires-python = ">=3.12"
 dependencies = [
