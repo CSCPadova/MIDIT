@@ -182,9 +182,12 @@ MIDIT/
 │   ├── Pre_Processing/                # Tokenization & preprocessing pipeline
 │   └── audit_fixes/                   # Evaluation-integrity audit & verification probes
 ├── conf/                              # Hydra configs — see conf/README.md (drift, checkpoints)
+├── examples/                          # Two Lakh MIDI files for the quickstart (CC BY 4.0)
+├── tests/                             # CPU smoke tests (uv run pytest)
 ├── slurm/                             # SLURM job scripts (DEI cluster, user-specific paths)
 ├── docs/analysis/                     # Dataset, tokenizer and protocol analysis notes
 ├── figures/                           # Thesis figures
+├── research/                          # Historical / V1 / exploratory scripts (not maintained)
 └── thesis_materials/                  # Archive: earlier approaches and early results
 ```
 
@@ -223,7 +226,7 @@ Run repository commands through `uv run` so they use the locked environment. On
 Windows, this avoids shell-specific activation commands. `uv run python -m midit`
 (and the `infer` console command) is an alias for `midit/infer.py`; the examples
 below use the explicit scripts. See [`scripts/README.md`](scripts/README.md) for a maintained
-map of canonical, historical, diagnostic, and cluster-only scripts.
+map of the scripts, and [`research/README.md`](research/README.md) for the historical ones.
 
 ---
 

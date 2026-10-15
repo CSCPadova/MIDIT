@@ -11,7 +11,7 @@
 
 cd $HOME/MIDIT
 
-~/.local/bin/uv run python scripts/Pre_Processing/preprocess_500.py \
+~/.local/bin/uv run python research/Pre_Processing/preprocess_500.py \
     --input_dir data/lakh_clean \
     --output_dir data/preprocessed_phase1 \
     --num_workers 16

@@ -14,7 +14,7 @@
 cd ~/MIDIT
 source .venv/bin/activate
 
-python scripts/Analyze_dataset/epoch_semantics.py \
+python research/Analyze_dataset/epoch_semantics.py \
     --data_dir /nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k \
     --out_dir  /nfsd/tesi/zanettisim/MIDIT/outputs/thesis_analysis \
     --phase1_ckpt /nfsd/tesi/zanettisim/MIDIT/logs/checkpoints_phase1/phase1-epoch=14-val_loss=2.7254.ckpt \
