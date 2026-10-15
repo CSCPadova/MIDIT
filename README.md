@@ -38,7 +38,7 @@ MIDIT is a BERT-style masked language model for symbolic multi-track music infil
 ## Quickstart
 
 ```bash
-git clone https://github.com/SimoneZanetti00/MIDIT.git && cd MIDIT && git checkout repo-cleanup && uv sync
+git clone https://github.com/SimoneZanetti00/MIDIT.git && cd MIDIT && uv sync
 uv run hf download SimoneZanetti00/MIDIT-checkpoints midit-infilling-epoch05.ckpt --local-dir logs/checkpoints/
 uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
@@ -258,13 +258,11 @@ Requires **Python 3.12** and [uv](https://github.com/astral-sh/uv).
 ```bash
 git clone https://github.com/SimoneZanetti00/MIDIT.git
 cd MIDIT
-git checkout repo-cleanup   # current branch (temporary step — see note)
 uv sync                     # add --group eval for the evaluation scripts
 ```
 
-> **Branch note.** Until the repository's default branch is updated, this layout
-> lives on `repo-cleanup` (the thesis state is tagged `thesis-final`). The current default branch (`masked-transformer`)
-> predates the evaluation audit and does not contain its verification scripts.
+> The code state at thesis submission, before this repository reorganisation, is
+> tagged `thesis-final`.
 
 Run repository commands through `uv run` so they use the locked environment. On
 Windows, this avoids shell-specific activation commands. `uv run python -m midit`
