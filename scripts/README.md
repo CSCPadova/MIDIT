@@ -1,86 +1,58 @@
 # Script guide
 
-This directory holds the scripts needed to reproduce the MIDIT pipeline and the
-thesis results: preprocessing, inference, evaluation, verification probes and
-figures. Historical, exploratory and V1-tokenizer scripts were moved to
-[`../research/`](../research/README.md); the original layout is preserved in the
-`thesis-final` tag.
+Scripts that reproduce the MIDIT pipeline and the thesis results. Historical,
+exploratory and V1-tokenizer scripts are in [`../research/`](../research/README.md);
+the pre-reorganisation layout is preserved in the `thesis-final` tag.
 
-Run scripts from the repository root with `uv run python ...`. Commands that need a
-dataset, checkpoint, raw MIDI corpus, or cluster filesystem state that requirement in
-their help text or source. Do not download data or checkpoints implicitly.
+Run everything from the repository root with `uv run python ...`. Scripts that need
+a dataset, checkpoint or cluster storage say so in their `--help`. The evaluation
+scripts need the optional dependency group: `uv sync --group eval`. All scripts that
+build a tokenizer use the **V2** configuration (vocabulary 550) of the released
+checkpoints.
 
-## Canonical workflows
+| Folder | Script | Purpose | Backs (thesis) |
+|---|---|---|---|
+| `preprocessing/` | `preprocess_v2.py` | Lakh MIDI → filtered, pitch-shifted, REMI+ `.pt` dataset | Fig. 3.4 pipeline; dataset counts |
+| | `visualize_tokenization_v2.py` | Inspect the token stream of a preprocessed `.pt` file | — |
+| `analysis/` | `analyze_lakh_dataset.py` | Raw Lakh statistics (500-file sample) | dataset description (`docs/analysis/dataset_analysis.txt`) |
+| | `analyze_quality_filter.py` | Quality-filter simulation (500-file sample) | filter design (`docs/analysis/quality_filter_simulation.txt`) |
+| | `analyze_config_and_pitch.py` | V2 tokenizer vocabulary impact and pitch-shift validation | V2 config, ±5 augmentation (`docs/analysis/config_v2_analysis.txt`, `pitch_shift_analysis.txt`) |
+| | `analyze_preprocessed_v2_dataset.py` | Statistics of the preprocessed V2 dataset | Ch. 3 dataset analysis |
+| | `thesis_mini_analyses.py` | Per-class frequencies, loss-weight audit, sequence lengths | Ch. 3–4 analyses |
+| `inference/` | `infer_from_midi.py` | Infill bars of any MIDI file (also importable: `infill_midi()`) | README quickstart |
+| | `generate_samples_batch.py` | Generate N validation samples with one model load | evaluation sample sets |
+| `evaluation/` | `evaluate_phase1_accuracy_DIRECT.py` | Cloze Top-1/Top-5 accuracy per token type | Fig. 5.1, cloze results |
+| | `compute_infilling_metrics.py` | CP / GS / PCHE implementation (library + CLI) | Ch. 5 infilling metrics |
+| | `compute_muspy_metrics.py` | Per-sample CP/GS/PCHE + S-I metrics for a results folder (library + CLI) | Figs. 5.4–5.5, Table 5.11 |
+| | `merge_metrics.py` | Merge per-seed CSVs into summary/LaTeX tables | Ch. 5 tables |
+| | `run_extreme_metrics.py` | Metrics for the first/last-bar extreme-infilling runs | Table 5.11, Fig. 5.5 |
+| | `paired_stats_fixed.py` | Paired t-test / Wilcoxon / d_z, MIDIT vs Anticipatory MT | Table 5.17 |
+| `evaluation/js/` | `compute_reference_agg.py`, `compute_model_agg.py`, `compute_js_score.py`, `js_similarity.py`, `muspy_metrics.py` | JS Similarity pipeline (author: Matteo Spanio, see [`README`](evaluation/js/README.md)) | Table 5.15 |
+| | `run_js_upperbound.sh`, `run_js_zs.sh` | Cluster-only wrappers (upper bound, zero-shot) | Table 5.15 |
+| `evaluation/decoding/` | `decoding_ablation.py`, `decoding_ablation_postprocess.py` | Argmax vs sampling vs MaskGIT-style decoding, + S-I metrics | §5.11 decoding |
+| `evaluation/baselines/` | `recompute_anticipatory_metrics_fixed.py` | Anticipatory MT metrics with time-aligned crop (tpq fix) | Tables 5.17, 5.18 |
+| | `baseline_random_in_key.py` | Random-in-key pitch baselines B1/B2 (CP floor) | baseline comparison |
+| | `anticipatory/` | Anticipatory MT sample generation (separate venv, see its README) | Tables 5.15, 5.17 |
+| `verification/` | `validate_v2_preprocessing.py` | Validate the V2 preprocessed dataset | `docs/analysis/v2_preprocessing_validation.txt` |
+| | `checkpoint_config_audit.py` | Dump checkpoint hyperparameters vs config | Table 4.1 correction (`docs/ERRATA.md`) |
+| | `check_sample_integrity.py` | Integrity of generated sample folders | evaluation sample sets |
+| | `probe_no_cheat.py` | Runtime probe: inference cannot copy masked tokens | "genuinely generative" check |
+| | `token_diff_masked_bars.py` | Token-level diff of masked bars vs ground truth | "genuinely generative" check |
+| | `build_sample_manifest.py` | Builds `sample_manifest.csv` (matched sample set) | Table 5.17 sample set |
+| `figures/` | see [`../figures/README.md`](../figures/README.md) | Thesis/README figures | Figs. 3.4, … |
 
-| Task | Script | Required inputs |
-| --- | --- | --- |
-| Infilling a user-provided MIDI file | `inference/infer_from_midi.py` | A MIDI file and compatible checkpoint; no preprocessed dataset |
-| Infilling a validation example | `../midit/infer.py` | Compatible checkpoint and preprocessed dataset |
-| Batch sample generation | `inference/generate_samples_batch.py` | Compatible checkpoint and preprocessed dataset |
-| Current preprocessing pipeline | `preprocessing/preprocess_v2.py` | Lakh MIDI files at the script's configured input path |
-| Phase 1 training | `../midit/train_phase1.py` | Preprocessed dataset and configured accelerator |
-| Phase 1b infilling fine-tuning | `../midit/train_infilling.py` | Base checkpoint, preprocessed dataset, and configured accelerator |
-| Cloze evaluation | `Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py` | Compatible checkpoint and preprocessed dataset |
-| Infilling metric report | `Evaluation_Infilling/compute_muspy_metrics.py` | Generated sample directory |
+## Notes
 
-The root [README](../README.md) contains command examples and distinguishes local
-inference from dataset-backed workflows.
-
-## Evaluation and reproducibility utilities
-
-- `Evaluation_Infilling/compute_infilling_metrics.py` (CP / GS / PCHE) and
-  `compute_muspy_metrics.py` are also imported by other scripts through `sys.path`;
-  keep them in place.
-- `Evaluation_Infilling/Matteo/` contains the reference aggregate, model aggregate,
-  and JS-score pipeline (`run_js_upperbound.sh`, `run_js_zs.sh` drive it on the
-  cluster). It needs the optional `eval` dependency group (`muspy`, `scipy`):
-  `uv sync --group eval`.
-- `audit_fixes/` contains integrity probes, manifests, recomputation, baseline, and
-  paired-statistics tools created during research auditing. Preserve their outputs and
-  use them only with the matching experiment artifacts.
-- `decoding_ablation.py` / `decoding_ablation_postprocess.py`: decoding-strategy
-  comparison (argmax, sampling, MaskGIT-style). `run_extreme_metrics.py`: metrics for
-  the extreme-infilling configurations.
-- `Analyze_dataset/` contains dataset and checkpoint analyses used for the thesis.
-  Some scripts are intended for the original cluster storage layout.
-- `Tests/validate_v2_preprocessing.py` validates the V2 preprocessing output.
-  The automated smoke tests live in `../tests/` (`uv run pytest`).
-- `figures/` produces thesis figures (see [`../figures/README.md`](../figures/README.md)).
-  `figures/generate_piano_roll_figure.py` (`--input_dir`) and `run_extreme_metrics.py`
-  (`--base_dir`, `--out_dir`) take their input/output locations as arguments.
-
-### Tokenizer version per script
-
-The model and released checkpoints use the **V2** tokenizer (vocabulary 550,
-`beat_res={(0,4):8, (4,12):4}`). Scripts here that build their own tokenizer are all
-V2: `analysis/analyze_config_and_pitch.py`,
-`analysis/analyze_preprocessed_v2_dataset.py`,
-`analysis/thesis_mini_analyses.py`,
-`Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py`,
-`preprocessing/preprocess_v2.py`, `Tests/validate_v2_preprocessing.py`,
-`preprocessing/visualize_tokenization_v2.py`. Scripts that import `midit.infer`
-(e.g. `infer_from_midi.py`, `generate_samples_batch.py`) use the package's V2
-tokenizer. The V1 scripts are listed in [`../research/README.md`](../research/README.md).
-
-### Known caveats
-
-| Script | Caveat |
-| --- | --- |
-| `../slurm/generate_samples_zs.sh` | Generates "zero-shot" samples from the `epoch=49` checkpoint, not the thesis epoch-14 model. |
-| `audit_fixes/recompute_anticipatory_metrics_fixed.py`, `audit_fixes/token_diff_masked_bars.py` | Default `--manifest scripts/audit_fixes/sample_manifest.csv`, which is written by `build_sample_manifest.py` and is not versioned. |
-
-## Cluster-specific scripts
-
-The `../slurm/` directory preserves DEI SLURM launchers. Many contain historical
-absolute paths, module/virtual-environment assumptions, checkpoint names, and resource
-requests. They are reproducibility records rather than portable commands. Do not alter
-their paths or use them on another cluster without review.
-
-`sota_baselines/anticipatory/` is likewise a separate baseline workflow with its own
-model and environment assumptions. Consult its local README before use.
-
-## Maintenance policy
-
-Before changing a script, identify its tokenizer version, required checkpoint/data
-lineage, and any referenced thesis result. Preserve audit, baseline, and cluster
-scripts unless their removal or relocation has explicit research approval.
+- `evaluation/compute_infilling_metrics.py` and `evaluation/compute_muspy_metrics.py`
+  are imported through `sys.path` by `evaluation/js/compute_model_agg.py`, the
+  decoding scripts, `evaluation/baselines/recompute_anticipatory_metrics_fixed.py`,
+  `verification/build_sample_manifest.py` and `verification/token_diff_masked_bars.py`.
+  Move them only together with these importers.
+- `verification/sample_manifest.csv` (written by `build_sample_manifest.py`, read by
+  default by `recompute_anticipatory_metrics_fixed.py` and `token_diff_masked_bars.py`)
+  is **not versioned**; on the cluster it was written to the former
+  `scripts/audit_fixes/` folder.
+- `../slurm/generate_samples_zs.sh` generated the "zero-shot" samples from the
+  `epoch=49` checkpoint, not the thesis epoch-14 model.
+- The `../slurm/` launchers contain DEI cluster paths and are kept as run records;
+  only their script paths are updated.

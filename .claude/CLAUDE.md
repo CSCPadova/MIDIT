@@ -126,14 +126,16 @@ midit/
 ├── loss/                      # unused template placeholder
 └── logs/
 
-scripts/                       # CORE only (index: scripts/README.md)
-├── audit_fixes/               # 2026-08 audit + correction scripts (tpq fix, baselines, stats, probes)
-├── sota_baselines/anticipatory/   # Anticipatory MT baseline
-├── Evaluation_Infilling/      # CP/GS/PCHE + MusPy metrics, merge, Matteo/ JS pipeline
-├── Evaluation_Accuracy/       # cloze Top-1/Top-5 (DIRECT = V2)
-├── Pre_Processing/            # preprocess_v2.py
-├── Analyze_dataset/  Tests/  Tokenization/  figures/
-├── infer_from_midi.py  generate_samples_batch.py  decoding_ablation*.py  run_*.{py,sh}
+scripts/                       # CORE only (index + thesis mapping: scripts/README.md)
+├── preprocessing/             # preprocess_v2.py, visualize_tokenization_v2.py
+├── inference/                 # infer_from_midi.py (infill_midi()), generate_samples_batch.py
+├── evaluation/                # cloze DIRECT (V2), compute_{infilling,muspy}_metrics (shared libs), merge, paired stats, extreme
+│   ├── js/                    # JS Similarity pipeline (M. Spanio) + run_js_*.sh (cluster-only)
+│   ├── decoding/              # decoding ablation
+│   └── baselines/             # recompute_anticipatory (tpq fix), random-in-key B1/B2, anticipatory/
+├── verification/              # probes, integrity, checkpoint audit, sample manifest (not versioned)
+├── analysis/                  # dataset + thesis analyses
+└── figures/
 research/                      # historical / V1 / broken scripts + thesis_materials/ (not maintained)
 examples/                      # two Lakh MIDI files for the quickstart (CC BY 4.0)
 docs/ERRATA.md                 # thesis-text corrections
@@ -155,7 +157,8 @@ position 0.5, rest 0.5, **bar/tempo/timesig = 0.0** (zeroed).
 Thesis is in the **write-up + audit** stage (submission 2026-09-10). All experiments
 are frozen: work is **analysis and correction on existing outputs only** — no new
 training or inference of the generation set. The audit that produced this file's
-verified numbers lives under [scripts/audit_fixes/](../scripts/audit_fixes/); remaining
+verified numbers lives under [scripts/evaluation/](../scripts/evaluation/) and
+[scripts/verification/](../scripts/verification/) (formerly `scripts/audit_fixes/`); remaining
 work follows the current revision plan (results-integrity and discussion framing).
 Phase 2 (text-conditioned, MidiCaps) remains **deferred** and out of thesis scope.
 

@@ -175,12 +175,15 @@ MIDIT/
 │   ├── train_infilling.py             # Phase 1b: BarFillMasking fine-tuning
 │   └── infer.py                       # Infilling inference (validation set)
 ├── scripts/                           # Pipelines & analyses — index in scripts/README.md
-│   ├── infer_from_midi.py             # Infilling on an external MIDI file
-│   ├── generate_samples_batch.py      # Batch generation (N seeds, one model load)
-│   ├── Evaluation_Accuracy/           # Top-1/Top-5 cloze evaluation
-│   ├── Evaluation_Infilling/          # CP / GS / PCHE + JS similarity pipeline
-│   ├── Pre_Processing/                # Tokenization & preprocessing pipeline
-│   └── audit_fixes/                   # Evaluation-integrity audit & verification probes
+│   ├── preprocessing/                 # Lakh MIDI → REMI+ .pt dataset (preprocess_v2.py)
+│   ├── inference/                     # infer_from_midi.py (any MIDI), generate_samples_batch.py
+│   ├── evaluation/                    # cloze accuracy, CP / GS / PCHE, statistics
+│   │   ├── js/                        # JS Similarity pipeline (M. Spanio)
+│   │   ├── decoding/                  # decoding-strategy ablation
+│   │   └── baselines/                 # Anticipatory MT + random-in-key baselines
+│   ├── verification/                  # integrity probes, checkpoint audit, sample manifest
+│   ├── analysis/                      # dataset and thesis analyses
+│   └── figures/                       # figure scripts
 ├── conf/                              # Hydra configs — see conf/README.md (drift, checkpoints)
 ├── examples/                          # Two Lakh MIDI files for the quickstart (CC BY 4.0)
 ├── tests/                             # CPU smoke tests (uv run pytest)

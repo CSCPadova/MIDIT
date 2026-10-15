@@ -59,7 +59,7 @@ load + crop + all 5 muspy calls with the project's exact settings (groove res 4)
 ## Q4 — Loading a MIDI file as `muspy.Music`
 
 - The exact call is **`muspy.read_midi(str(path))`** (`compute_muspy_metrics.py:250`,
-  and again at `compute_reference_agg` / `compute_model_agg` in the `Matteo/`
+  and again at `compute_reference_agg` / `compute_model_agg` in the `scripts/evaluation/js/`
   pipeline). Not `muspy.load`.
 - Guarded by a top-level `try: import muspy` → `MUSPY_AVAILABLE` flag
   (`compute_muspy_metrics.py:61-67`); if the import fails the code uses the
