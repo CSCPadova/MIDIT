@@ -9,7 +9,7 @@ Two short multi-track MIDI files for trying MIDIT without the dataset
 | `00012722c199ae2a628ebb792ccc617a.mid` | 8.6 KB | 102 | |
 
 Both pass the training quality filters (≥ 50 notes, ≥ 15 s, velocity diversity),
-so `scripts/infer_from_midi.py` runs on them without `--skip_filters`.
+so `scripts/inference/infer_from_midi.py` runs on them without `--skip_filters`.
 
 ## Source and license
 

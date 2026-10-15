@@ -1,12 +1,12 @@
-"""scripts/infer_from_midi.py — Run MIDIT bar infilling on a raw .mid file.
+"""scripts/inference/infer_from_midi.py — Run MIDIT bar infilling on a raw .mid file.
 
 Command line:
-    python scripts/infer_from_midi.py --midi_path song.mid \
+    python scripts/inference/infer_from_midi.py --midi_path song.mid \
         --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
         --mask_bars 3 4 5 --start_bar 0 --output_dir outputs/my_song/
 
 From Python (e.g. a demo), with the repository root on sys.path:
-    from scripts.infer_from_midi import infill_midi
+    from scripts.inference.infer_from_midi import infill_midi
     paths = infill_midi('song.mid', 'logs/checkpoints/midit-infilling-epoch05.ckpt',
                         mask_bars=[3, 4, 5], start_bar=0, output_dir='outputs/my_song')
 """
@@ -16,9 +16,9 @@ from pathlib import Path
 if __name__ == '__main__':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / 'scripts' / 'Pre_Processing'))
+sys.path.insert(0, str(ROOT / 'scripts' / 'preprocessing'))
 
 from preprocess_v2 import _init_worker, _process_file
 from midit.infer import build_tokenizer, build_vocab_lookups, apply_bar_mask, reconstruct, save_midi

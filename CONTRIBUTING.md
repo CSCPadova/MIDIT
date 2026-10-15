@@ -125,7 +125,7 @@ Common gitmojis for this project:
 ```bash
 git commit -m "✨ feat: add top-k sampling to infilling inference
 
-- Add --top_k option to scripts/infer_from_midi.py
+- Add --top_k option to scripts/inference/infer_from_midi.py
 - Keep argmax decoding as the default
 - Document the new option in README.md"
 ```

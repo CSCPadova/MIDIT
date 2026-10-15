@@ -197,8 +197,8 @@ MIDIT/
 
 | Use case | Needs | Entry point | Section |
 |---|---|---|---|
-| **Infill bars of your own MIDI file** | a checkpoint only (CPU is enough) | `scripts/infer_from_midi.py` | [Quickstart](#-quickstart--infilling-on-your-own-midi) |
-| Infill held-out validation songs | checkpoint + preprocessed dataset | `midit/infer.py`, `scripts/generate_samples_batch.py` | [Dataset-backed inference](#dataset-backed-inference) |
+| **Infill bars of your own MIDI file** | a checkpoint only (CPU is enough) | `scripts/inference/infer_from_midi.py` | [Quickstart](#-quickstart--infilling-on-your-own-midi) |
+| Infill held-out validation songs | checkpoint + preprocessed dataset | `midit/infer.py`, `scripts/inference/generate_samples_batch.py` | [Dataset-backed inference](#dataset-backed-inference) |
 | Train Phase 1 / Phase 1b | preprocessed dataset + GPU | `midit/train_phase1.py`, `midit/train_infilling.py` | [Training](#%EF%B8%8F-training) |
 | Reproduce the evaluation | generated samples (+ dataset for cloze accuracy) | `scripts/Evaluation_*/`, `scripts/audit_fixes/` | [Evaluation](#-evaluation) |
 
@@ -273,7 +273,7 @@ This is the **out-of-the-box** path: it needs only the installed package and a
 checkpoint. The input MIDI is tokenized on the fly — **no dataset required.**
 
 ```bash
-uv run python scripts/infer_from_midi.py \
+uv run python scripts/inference/infer_from_midi.py \
     --midi_path  examples/0000799e8672292fe6f0fff08554ca40.mid \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --mask_bars 3 4 5 \
@@ -311,7 +311,7 @@ uv run python midit/infer.py \
     --seed 5 --mask_bars 3 4 5 --output_dir outputs/demo_seed5/
 
 # Batch generation (loads the model once, generates N samples)
-uv run python scripts/generate_samples_batch.py \
+uv run python scripts/inference/generate_samples_batch.py \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
     --data_dir   data/preprocessed_v2_50k \
     --output_dir outputs/samples_1000 \
@@ -332,13 +332,13 @@ rebuild it from scratch:
 1. Download the [Lakh MIDI Dataset](https://colinraffel.com/projects/lmd/)
    (`lmd_full`) and place the raw `.mid` files at **`data/midi_files/lmd_full/`**.
    This input location is currently a `DATASET_DIR` constant in
-   `scripts/Pre_Processing/preprocess_v2.py`; it is not a command-line option.
+   `scripts/preprocessing/preprocess_v2.py`; it is not a command-line option.
 
 2. Run the single-stage preprocessing pipeline (filter → tokenize → augment →
    save):
 
    ```bash
-   uv run python scripts/Pre_Processing/preprocess_v2.py \
+   uv run python scripts/preprocessing/preprocess_v2.py \
        --output_dir data/preprocessed_v2_50k \
        --num_workers 32
    ```

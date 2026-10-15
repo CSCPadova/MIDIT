@@ -1,11 +1,11 @@
 """
-scripts/generate_samples_batch.py
+scripts/inference/generate_samples_batch.py
 
 Batch infilling: loads the model checkpoint ONCE and runs all seeds
 in-process, avoiding 1000x checkpoint reload overhead (~10-20s each).
 
 Usage:
-    python scripts/generate_samples_batch.py \
+    python scripts/inference/generate_samples_batch.py \
         --checkpoint /nfsd/.../infilling-epoch=05-val_loss=8.5836.ckpt \
         --data_dir   /nfsd/.../preprocessed_v2_50k \
         --output_dir /nfsd/.../outputs/samples_1000 \

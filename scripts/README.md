@@ -14,10 +14,10 @@ their help text or source. Do not download data or checkpoints implicitly.
 
 | Task | Script | Required inputs |
 | --- | --- | --- |
-| Infilling a user-provided MIDI file | `infer_from_midi.py` | A MIDI file and compatible checkpoint; no preprocessed dataset |
+| Infilling a user-provided MIDI file | `inference/infer_from_midi.py` | A MIDI file and compatible checkpoint; no preprocessed dataset |
 | Infilling a validation example | `../midit/infer.py` | Compatible checkpoint and preprocessed dataset |
-| Batch sample generation | `generate_samples_batch.py` | Compatible checkpoint and preprocessed dataset |
-| Current preprocessing pipeline | `Pre_Processing/preprocess_v2.py` | Lakh MIDI files at the script's configured input path |
+| Batch sample generation | `inference/generate_samples_batch.py` | Compatible checkpoint and preprocessed dataset |
+| Current preprocessing pipeline | `preprocessing/preprocess_v2.py` | Lakh MIDI files at the script's configured input path |
 | Phase 1 training | `../midit/train_phase1.py` | Preprocessed dataset and configured accelerator |
 | Phase 1b infilling fine-tuning | `../midit/train_infilling.py` | Base checkpoint, preprocessed dataset, and configured accelerator |
 | Cloze evaluation | `Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py` | Compatible checkpoint and preprocessed dataset |
@@ -57,8 +57,8 @@ V2: `Analyze_dataset/analyze_config_and_pitch.py`,
 `Analyze_dataset/analyze_preprocessed_v2_dataset.py`,
 `Analyze_dataset/thesis_mini_analyses.py`,
 `Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py`,
-`Pre_Processing/preprocess_v2.py`, `Tests/validate_v2_preprocessing.py`,
-`Tokenization/visualize_tokenization_v2.py`. Scripts that import `midit.infer`
+`preprocessing/preprocess_v2.py`, `Tests/validate_v2_preprocessing.py`,
+`preprocessing/visualize_tokenization_v2.py`. Scripts that import `midit.infer`
 (e.g. `infer_from_midi.py`, `generate_samples_batch.py`) use the package's V2
 tokenizer. The V1 scripts are listed in [`../research/README.md`](../research/README.md).
 

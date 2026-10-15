@@ -154,7 +154,7 @@ export PYTHONPATH=/home/zanettisim/MIDIT:$PYTHONPATH
    `--data_dir` points at the **same** `preprocessed_v2_50k` (song-level split,
    seed 42, [infer.py:133-139](../../../midit/infer.py#L133-L139)). Use the same data_dir as the thesis; don't re-preprocess.
 4. **Sequence-length guard.** `generate_samples_batch` skips sequences `>= 8000`
-   tokens ([generate_samples_batch.py:80](../../../scripts/generate_samples_batch.py#L80)); the model's `max_seq_length` is 8192. For 50 fixed val files this is unlikely to bite, but a very dense 8-bar chunk could exceed it — add the same guard and log skips rather than crash on the position embedding.
+   tokens ([generate_samples_batch.py:80](../../../scripts/inference/generate_samples_batch.py#L80)); the model's `max_seq_length` is 8192. For 50 fixed val files this is unlikely to bite, but a very dense 8-bar chunk could exceed it — add the same guard and log skips rather than crash on the position embedding.
 5. **MaskGIT cost & correctness.** Iterative decoding re-runs `model()` K times per
    sample (K× the ~989-run inference cost per condition). Budget `--time`
    accordingly. Also: MaskGIT confidence must be taken from the **chosen (oracle)

@@ -13,7 +13,7 @@ cd ~/MIDIT
 source .venv/bin/activate
 export PYTHONPATH=/home/zanettisim/MIDIT:$PYTHONPATH
 
-python -u scripts/generate_samples_batch.py \
+python -u scripts/inference/generate_samples_batch.py \
     --checkpoint /nfsd/tesi/zanettisim/MIDIT/logs/checkpoints_infilling/infilling-epoch=05-val_loss=8.5836.ckpt \
     --data_dir   /nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k \
     --output_dir /nfsd/tesi/zanettisim/MIDIT/outputs/samples_1000 \

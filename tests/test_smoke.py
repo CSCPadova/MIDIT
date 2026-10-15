@@ -81,11 +81,11 @@ def test_compose_readme_overrides():
 # =================================
 
 HELP_COMMANDS = [
-    ["scripts/infer_from_midi.py"],
+    ["scripts/inference/infer_from_midi.py"],
     ["midit/infer.py"],
     ["-m", "midit"],
-    ["scripts/generate_samples_batch.py"],
-    ["scripts/Pre_Processing/preprocess_v2.py"],
+    ["scripts/inference/generate_samples_batch.py"],
+    ["scripts/preprocessing/preprocess_v2.py"],
     ["midit/train_phase1.py"],
     ["midit/train_infilling.py"],
     ["scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py"],

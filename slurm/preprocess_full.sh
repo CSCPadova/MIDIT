@@ -1,6 +1,6 @@
 #!/bin/bash
 # Historical V1 preprocessing (beat_res={(0,4):8}); not compatible with the V2
-# (vocab 550) model. The current pipeline is scripts/Pre_Processing/preprocess_v2.py.
+# (vocab 550) model. The current pipeline is scripts/preprocessing/preprocess_v2.py.
 #SBATCH --job-name=preprocess-lakh
 #SBATCH --partition=allgroups
 #SBATCH --mem=64G

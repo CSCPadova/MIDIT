@@ -27,13 +27,13 @@ Pitch augmentation: 11 shifts per file (-5 ... +5 semitones)
 
 Usage:
     # Dry run (filter stats only, nothing saved):
-    python scripts/Pre_Processing/preprocess_v2.py --dry_run
+    python scripts/preprocessing/preprocess_v2.py --dry_run
 
     # Test on 10 files:
-    python scripts/Pre_Processing/preprocess_v2.py --max_files 10 --dry_run
+    python scripts/preprocessing/preprocess_v2.py --max_files 10 --dry_run
 
     # Full run on cluster:
-    python scripts/Pre_Processing/preprocess_v2.py \\
+    python scripts/preprocessing/preprocess_v2.py \\
         --output_dir /nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2 \\
         --num_workers 32
 

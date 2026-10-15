@@ -3,10 +3,10 @@ Visualizza la tokenizzazione V2 di un file preprocessato (.pt).
 Versione V2: tokenizer config aggiornato, vocab=550, pitch-shift check.
 
 Uso:
-    python scripts/Tokenization/visualize_tokenization_v2.py
-    python scripts/Tokenization/visualize_tokenization_v2.py --file /path/to/file.pt
-    python scripts/Tokenization/visualize_tokenization_v2.py --bars 3
-    python scripts/Tokenization/visualize_tokenization_v2.py --no-color
+    python scripts/preprocessing/visualize_tokenization_v2.py
+    python scripts/preprocessing/visualize_tokenization_v2.py --file /path/to/file.pt
+    python scripts/preprocessing/visualize_tokenization_v2.py --bars 3
+    python scripts/preprocessing/visualize_tokenization_v2.py --no-color
 """
 
 import torch
