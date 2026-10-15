@@ -416,7 +416,7 @@ uv run python midit/train_infilling.py \
 **Cloze accuracy (Top-1 / Top-5, per token type):**
 
 ```bash
-uv run python scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py \
+uv run python scripts/evaluation/evaluate_phase1_accuracy_DIRECT.py \
     --checkpoint logs/checkpoints/midit-phase1-epoch14.ckpt \
     --data_dir   data/preprocessed_v2_50k \
     --split val --num_samples 400
@@ -457,7 +457,7 @@ uv run python scripts/audit_fixes/probe_no_cheat.py \
 ```
 
 > **Evaluation dependencies.** `compute_muspy_metrics.py`, the JS-similarity
-> utilities (`Matteo/`) and `audit_fixes/paired_stats_fixed.py` need `muspy` and
+> utilities (`scripts/evaluation/js/`) and `scripts/evaluation/paired_stats_fixed.py` need `muspy` and
 > `scipy`, declared in the optional `eval` dependency group:
 > `uv sync --group eval`.
 
@@ -514,7 +514,7 @@ value changes, and no conclusion changes.
 
 ## 🙏 Acknowledgements
 
-Developed at the University of Padova. Cluster infrastructure based on the [DEI Blade Template](https://github.com/CSCPadova/dei-blade-template). Evaluation metric utilities (`Matteo/`) courtesy of PhD Matteo Spanio.
+Developed at the University of Padova. Cluster infrastructure based on the [DEI Blade Template](https://github.com/CSCPadova/dei-blade-template). Evaluation metric utilities (`scripts/evaluation/js/`) courtesy of PhD Matteo Spanio.
 
 ## 📄 License
 

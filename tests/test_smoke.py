@@ -88,7 +88,7 @@ HELP_COMMANDS = [
     ["scripts/preprocessing/preprocess_v2.py"],
     ["midit/train_phase1.py"],
     ["midit/train_infilling.py"],
-    ["scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py"],
+    ["scripts/evaluation/evaluate_phase1_accuracy_DIRECT.py"],
     ["scripts/audit_fixes/check_sample_integrity.py"],
     ["scripts/audit_fixes/probe_no_cheat.py"],
     pytest.param(["scripts/evaluation/compute_muspy_metrics.py"], marks=needs_eval),

@@ -1,5 +1,5 @@
 """
-scripts/audit_fixes/baseline_random_in_key.py
+scripts/evaluation/baselines/baseline_random_in_key.py
 
 Baseline for CP/GS/PCHE floor. Randomizes ONLY pitch; onsets/duration/velocity/
 program taken from ground truth. Isolates the pitch component. This is a random
@@ -31,13 +31,13 @@ Fill rules (family-preserving):
 RNG is seeded per seed (rng_seed + seed) for reproducibility.
 
 Metrics afterwards (UNCHANGED pipeline), e.g.:
-    python scripts/Evaluation_Infilling/compute_muspy_metrics.py \
+    python scripts/evaluation/compute_muspy_metrics.py \
         --results_dir outputs/baseline_random_1000/b1_uniform \
         --output_csv  outputs/baseline_random_1000/metrics_b1.csv
     (then filter to the 973 seeds in sample_manifest.csv)
 
 Usage:
-    python scripts/audit_fixes/baseline_random_in_key.py \
+    python scripts/evaluation/baselines/baseline_random_in_key.py \
         --mode b1_uniform \
         --data_dir /nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k \
         --output_dir outputs/baseline_random_1000 \

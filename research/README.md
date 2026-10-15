@@ -13,7 +13,7 @@ relative paths inside the scripts resolve to the same depth as before.
 | Folder | Contents |
 | --- | --- |
 | `Analyze_dataset/` | V1 token/velocity/program analyses (outputs in `../docs/analysis/`), raw-MIDI pitch/token exploration, MidiCaps exploration, dataloader debugging, `epoch_semantics.py` (its config-based conclusions are superseded) |
-| `Evaluation_Accuracy/` | `evaluate_phase1_EXTENDED.py` — V1 cloze evaluation, superseded by `scripts/Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py` |
+| `Evaluation_Accuracy/` | `evaluate_phase1_EXTENDED.py` — V1 cloze evaluation, superseded by `scripts/evaluation/evaluate_phase1_accuracy_DIRECT.py` |
 | `Generation/` | V1 generation scripts |
 | `Masking/` | V1 masking test |
 | `Pre_Processing/` | V1 preprocessing and validation (`preprocess_500.py` is still launched by `../slurm/preprocess_full.sh`) |

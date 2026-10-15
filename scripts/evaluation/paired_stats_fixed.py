@@ -1,5 +1,5 @@
 """
-scripts/audit_fixes/paired_stats_fixed.py
+scripts/evaluation/paired_stats_fixed.py
 
 THROWAWAY stats (read-only). Paired comparison MIDIT FT vs Anticipatory MT
 (time-crop fixed) to update thesis Table tab:anticipatory_direct.
@@ -19,7 +19,7 @@ otherwise; MIDIT is not recomputed. GS is reported but flagged not strictly
 comparable across paradigms.
 
 Usage:
-    python scripts/audit_fixes/paired_stats_fixed.py \
+    python scripts/evaluation/paired_stats_fixed.py \
         --midit_csv /nfsd/.../thesis_freeze_20jul/metrics_midit.csv \
         --fixed_csv /nfsd/.../metrics_anticipatory_fixed.csv
 """
