@@ -5,9 +5,10 @@ via BERT-Style Pre-Training and Distribution-Aware Fine-Tuning* (University of
 Padova, A.Y. 2025/2026).
 
 **All reported results are computed on the released checkpoints
-(`midit-phase1-epoch14.ckpt`, `midit-infilling-epoch05.ckpt`) and are unaffected
-by these corrections.** The errata concern only how the training configuration is
-described.
+(`midit-phase1-epoch14.ckpt`, `midit-infilling-epoch05.ckpt`).** The loss-weight
+errata concern only how the training configuration is described and do not affect
+any result. The only reported values that change are the GC column of Table 5.11
+(seed-set averaging, see below); no conclusion changes.
 
 ## Loss weights
 
@@ -23,6 +24,34 @@ described.
 
 The values above are the `lambda_weights` stored in the `hyper_parameters` of both
 released checkpoints.
+
+## Table 5.11 — extreme infilling GC (p. 80) and text (p. 81)
+
+- **Table 5.11 (p. 80).** The caption states seeds 1–5 with seed 10 excluded, and
+  the CP column follows it. The GC (groove consistency) column, however, averaged
+  seeds 1–5 **and** seed 10. Corrected GC values (mean over seeds 1–5):
+
+  | Configuration | GC printed | GC corrected (seeds 1–5) |
+  |---|---|---|
+  | first1 | 0.942 | 0.932 |
+  | first2 | 0.924 | 0.912 |
+  | first3 | 0.899 | 0.896 |
+  | last1 | 0.819 | 0.826 |
+  | last2 | 0.820 | 0.820 |
+  | last3 | 0.814 | 0.813 |
+  | central | 0.848 | 0.856 |
+
+- **p. 81.** The sentence quoting first1 = 0.942, first3 = 0.899, last1 = 0.819
+  and last3 = 0.814 should read first1 = 0.932, first3 = 0.896, last1 = 0.826 and
+  last3 = 0.813.
+- The CP values in Table 5.11 are correct as printed. The qualitative finding is
+  unchanged: GC is higher when the first bars are masked (0.896–0.932) than when
+  the last bars are masked (0.813–0.826).
+- **Provenance.** Recomputed with `scripts/Evaluation_Infilling/compute_muspy_metrics.py`
+  (unchanged since commit `ec9ea11`; muspy 0.5.0) on the original MIDI outputs of
+  the extreme-infilling runs (first/last configurations) and of the 3-bar
+  fine-tuned run (central). Averaging the same per-seed values over seeds 1–5 and
+  10 reproduces every printed GC value exactly.
 
 ## Pending verification
 
