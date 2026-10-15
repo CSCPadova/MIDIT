@@ -1,4 +1,8 @@
-"""Configuration dataclasses for MIDIT project."""
+"""Configuration dataclasses for MIDIT project.
+
+UNUSED, kept for history: not imported anywhere and out of sync with the YAML
+configs (see conf/README.md).
+"""
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple

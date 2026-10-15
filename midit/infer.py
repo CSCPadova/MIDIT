@@ -7,9 +7,12 @@ original, masked, and reconstructed.
 
 Usage:
     python midit/infer.py \
-        --checkpoint logs/checkpoints_phase1/phase1-epoch=04-val_loss=4.1604.ckpt \
-        --data_dir /nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k \
+        --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt \
+        --data_dir data/preprocessed_v2_50k \
         --output_dir outputs/infilling/
+
+    (released checkpoints: midit-infilling-epoch05.ckpt = fine-tuned model,
+     midit-phase1-epoch14.ckpt = Phase-1 / zero-shot model)
 """
 
 import argparse

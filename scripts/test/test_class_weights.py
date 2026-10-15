@@ -1,4 +1,6 @@
 """
+BROKEN: imports removed module midit.model.masked_transformer1; kept for history.
+
 Quick test: Class weights loading and application
 Tests the NEW masked_transformer1.py and multi_head_output1.py modules
 """
