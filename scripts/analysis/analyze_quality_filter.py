@@ -18,7 +18,7 @@ ANALYSIS B -- Combined quality filter simulation:
   Reports per-filter counts, union, and survival rate.
 
 Run from MIDIT project root:
-    python scripts/Analyze_dataset/analyze_quality_filter.py
+    python scripts/analysis/analyze_quality_filter.py
 """
 
 from __future__ import annotations

@@ -53,9 +53,9 @@ inference from dataset-backed workflows.
 
 The model and released checkpoints use the **V2** tokenizer (vocabulary 550,
 `beat_res={(0,4):8, (4,12):4}`). Scripts here that build their own tokenizer are all
-V2: `Analyze_dataset/analyze_config_and_pitch.py`,
-`Analyze_dataset/analyze_preprocessed_v2_dataset.py`,
-`Analyze_dataset/thesis_mini_analyses.py`,
+V2: `analysis/analyze_config_and_pitch.py`,
+`analysis/analyze_preprocessed_v2_dataset.py`,
+`analysis/thesis_mini_analyses.py`,
 `Evaluation_Accuracy/evaluate_phase1_accuracy_DIRECT.py`,
 `preprocessing/preprocess_v2.py`, `Tests/validate_v2_preprocessing.py`,
 `preprocessing/visualize_tokenization_v2.py`. Scripts that import `midit.infer`

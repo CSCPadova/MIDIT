@@ -14,7 +14,7 @@
 cd ~/MIDIT
 source .venv/bin/activate
 
-python scripts/Analyze_dataset/thesis_mini_analyses.py \
+python scripts/analysis/thesis_mini_analyses.py \
     --data_dir /nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k \
     --out_dir  /nfsd/tesi/zanettisim/MIDIT/outputs/thesis_analysis \
     --n 100 --seed 42 \

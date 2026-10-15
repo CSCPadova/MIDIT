@@ -8,7 +8,7 @@ Saves:
   logs/pitch_shift_analysis.txt
 
 Run from MIDIT project root:
-  python scripts/Analyze_dataset/analyze_config_and_pitch.py
+  python scripts/analysis/analyze_config_and_pitch.py
 
 Requirements: miditok, miditoolkit
 """

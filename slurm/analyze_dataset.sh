@@ -13,7 +13,7 @@
 cd ~/MIDIT
 source .venv/bin/activate
 
-python scripts/Analyze_dataset/analyze_preprocessed_v2_dataset.py \
+python scripts/analysis/analyze_preprocessed_v2_dataset.py \
     --data_dir /nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k \
     --out_dir  /nfsd/tesi/zanettisim/MIDIT/outputs/dataset_analysis \
     --n 5000 --seed 42

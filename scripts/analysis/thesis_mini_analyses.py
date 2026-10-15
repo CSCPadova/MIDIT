@@ -1,5 +1,5 @@
 """
-scripts/Analyze_dataset/thesis_mini_analyses.py
+scripts/analysis/thesis_mini_analyses.py
 
 Three lightweight thesis analyses (READ-ONLY). Writes a single markdown file
 thesis_analysis_results.md to --out_dir.

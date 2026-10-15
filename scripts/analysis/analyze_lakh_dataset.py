@@ -11,7 +11,7 @@ Reports:
   5. Saves full report to logs/dataset_analysis.txt
 
 Usage:
-  python scripts/Analyze_dataset/analyze_lakh_dataset.py
+  python scripts/analysis/analyze_lakh_dataset.py
 
 Run from the MIDIT project root.
 Requires: miditoolkit  (pip install miditoolkit)

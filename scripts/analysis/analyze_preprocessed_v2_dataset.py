@@ -1,5 +1,5 @@
 """
-scripts/Analyze_dataset/analyze_preprocessed_v2_dataset.py
+scripts/analysis/analyze_preprocessed_v2_dataset.py
 
 Chapter-3 dataset analysis of the MIDIT preprocessed training data (READ-ONLY).
 Samples N=5000 .pt files from the TRAINING split (song-level split replicated
@@ -9,7 +9,7 @@ GM-program frequencies, and emits 4 thesis-quality plots + a per-file CSV.
 Does NOT load all files at once; does NOT modify any data.
 
 Usage (cluster):
-    python scripts/Analyze_dataset/analyze_preprocessed_v2_dataset.py \
+    python scripts/analysis/analyze_preprocessed_v2_dataset.py \
         --data_dir /nfsd/tesi/zanettisim/MIDIT/data/preprocessed_v2_50k \
         --out_dir  /nfsd/tesi/zanettisim/MIDIT/outputs/dataset_analysis \
         --n 5000 --seed 42
