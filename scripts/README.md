@@ -48,8 +48,8 @@ inference from dataset-backed workflows.
   a conventional automated test suite. Several require a local preprocessed dataset.
 - `figures/` produces thesis/research figures. Curated figures are tracked in
   `../figures/`; other generated output belongs in `../outputs/` (gitignored).
-  `figures/generate_piano_roll_figure.py` and `run_extreme_metrics.py` read from
-  hard-coded local paths — edit them before running.
+  `figures/generate_piano_roll_figure.py` (`--input_dir`) and `run_extreme_metrics.py`
+  (`--base_dir`, `--out_dir`) take their input/output locations as arguments.
 
 ### Tokenizer version per script
 

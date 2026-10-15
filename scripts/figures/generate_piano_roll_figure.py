@@ -10,8 +10,12 @@ Verified crop parameters (derived by pixel analysis):
   Masked:  x=1100 – 1580  (bars 5-7, confirmed from orig vs masked pixel diff)
 
 Usage:
-    python scripts/figures/generate_piano_roll_figure.py
-    python scripts/figures/generate_piano_roll_figure.py --output figures/custom.png
+    python scripts/figures/generate_piano_roll_figure.py --input_dir <screenshots_dir>
+    python scripts/figures/generate_piano_roll_figure.py --input_dir <screenshots_dir> --output figures/custom.png
+
+    <screenshots_dir> must contain Original.png, Masked.png and Recostructed.png.
+    Thesis figure (local path at the time):
+        --input_dir C:/Users/simoz/OneDrive/Desktop/Image_FL/Seed_5_FineTunedModel_3_bars
 """
 
 import argparse
@@ -20,7 +24,6 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-BASE = Path('C:/Users/simoz/OneDrive/Desktop/Image_FL/Seed_5_FineTunedModel_3_bars')
 DEFAULT_OUT = Path('figures/piano_roll_seed5.png')
 
 # ── Crop parameters (original image coordinates) ─────────────────────────────
@@ -69,7 +72,7 @@ def load_font(path, size, fallback_size=None):
     return ImageFont.load_default()
 
 
-def make_figure(output_path: Path = DEFAULT_OUT) -> None:
+def make_figure(input_dir: Path, output_path: Path = DEFAULT_OUT) -> None:
 
     # ── Canvas ────────────────────────────────────────────────────────────────
     canvas = Image.new('RGB', (TOTAL_W_PX, TOTAL_H), (255, 255, 255))
@@ -84,7 +87,7 @@ def make_figure(output_path: Path = DEFAULT_OUT) -> None:
 
     panel_tops = []
     for i, (fname, lbl) in enumerate(zip(filenames, labels)):
-        img  = Image.open(BASE / f'{fname}.png').convert('RGB')
+        img  = Image.open(input_dir / f'{fname}.png').convert('RGB')
         crop = img.crop((X0, Y0, X1, Y1))
         panel = crop.resize((PANEL_W, PANEL_H), Image.LANCZOS)
 
@@ -162,6 +165,8 @@ def make_figure(output_path: Path = DEFAULT_OUT) -> None:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--input_dir', required=True,
+                        help='Directory with Original.png, Masked.png and Recostructed.png.')
     parser.add_argument('--output', default=str(DEFAULT_OUT))
     args = parser.parse_args()
-    make_figure(Path(args.output))
+    make_figure(Path(args.input_dir), Path(args.output))
