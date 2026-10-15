@@ -28,8 +28,8 @@ inference from dataset-backed workflows.
 ## Evaluation and reproducibility utilities
 
 - `Evaluation_Infilling/Matteo/` contains the reference aggregate, model aggregate,
-  and JS-score pipeline. It is optional and currently needs dependencies not declared
-  by the project package (`muspy` and `scipy`); this is a known maintenance item.
+  and JS-score pipeline. It needs the optional `eval` dependency group
+  (`muspy`, `scipy`): `uv sync --group eval`.
 - `audit_fixes/` contains integrity probes, manifests, recomputation, baseline, and
   paired-statistics tools created during research auditing. Preserve their outputs and
   use them only with the matching experiment artifacts.

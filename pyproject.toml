@@ -28,6 +28,17 @@ dependencies = [
     "kaggle>=1.8.0",
     "miditoolkit>=1.0.1",
     "symusic>=0.5.9",
+    "matplotlib>=3.10.7",
+    "numpy>=2.2.4",
+    "tqdm>=4.67.1",
+]
+
+[dependency-groups]
+# Evaluation metrics (scripts/Evaluation_Infilling, scripts/audit_fixes):
+#   uv sync --group eval
+eval = [
+    "muspy==0.5.0",
+    "scipy==1.17.1",
 ]
 
 [project.scripts]

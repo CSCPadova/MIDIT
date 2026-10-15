@@ -212,7 +212,7 @@ Requires **Python 3.12** and [uv](https://github.com/astral-sh/uv).
 git clone https://github.com/SimoneZanetti00/MIDIT.git
 cd MIDIT
 git checkout audit-fixes    # thesis branch (temporary step — see note)
-uv sync
+uv sync                     # add --group eval for the evaluation scripts
 ```
 
 > **Branch note.** Until the repository's default branch is updated, the thesis
@@ -450,11 +450,10 @@ uv run python scripts/audit_fixes/probe_no_cheat.py \
     --data_dir data/preprocessed_v2_50k --seed 79 --n_slots 20 --mask_bars 3 4 5
 ```
 
-> **Evaluation dependency note.** `compute_muspy_metrics.py`, the JS-similarity
-> utilities (`Matteo/`) and `audit_fixes/paired_stats_fixed.py` import `muspy` and/or
-> `scipy`, which are not yet declared in `pyproject.toml`. Until they are, install
-> them into the environment with `uv pip install muspy scipy` (a later `uv sync`
-> removes undeclared packages, so repeat it after syncing).
+> **Evaluation dependencies.** `compute_muspy_metrics.py`, the JS-similarity
+> utilities (`Matteo/`) and `audit_fixes/paired_stats_fixed.py` need `muspy` and
+> `scipy`, declared in the optional `eval` dependency group:
+> `uv sync --group eval`.
 
 ---
 
