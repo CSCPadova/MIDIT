@@ -31,8 +31,7 @@ dependencies = [
 ]
 
 [project.scripts]
-train = "midit.train:train"
-infer = "midit.infer:infer"
+infer = "midit.infer:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["midit"]

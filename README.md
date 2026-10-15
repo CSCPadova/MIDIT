@@ -220,9 +220,9 @@ uv sync
 > predates the evaluation audit and does not contain `scripts/audit_fixes/`.
 
 Run repository commands through `uv run` so they use the locked environment. On
-Windows, this avoids shell-specific activation commands. The package console commands
-and `python -m midit` are not currently supported interfaces; use the explicit Python
-scripts shown below. See [`scripts/README.md`](scripts/README.md) for a maintained
+Windows, this avoids shell-specific activation commands. `uv run python -m midit`
+(and the `infer` console command) is an alias for `midit/infer.py`; the examples
+below use the explicit scripts. See [`scripts/README.md`](scripts/README.md) for a maintained
 map of canonical, historical, diagnostic, and cluster-only scripts.
 
 ---

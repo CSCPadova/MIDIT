@@ -1,4 +1,5 @@
 #!/bin/bash
+# Template launcher, not used for thesis runs (see slurm/train_phase_1_v3.sh).
 #SBATCH --job-name midit-train
 #SBATCH --output logs/out/%j.txt
 #SBATCH --error logs/err/%j.txt
