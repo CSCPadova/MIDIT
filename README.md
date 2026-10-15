@@ -501,8 +501,8 @@ training configuration differ from the released checkpoints (e.g. the
 Tempo/TimeSig/Rest loss weights in Table 4.1), and the GC column of Table 5.11
 averaged a different set of seeds than stated in its caption. The corrections are
 listed in [`docs/ERRATA.md`](docs/ERRATA.md). All reported results are computed on
-the released checkpoints; apart from the GC column of Table 5.11, no reported
-value changes, and no conclusion changes.
+the released checkpoints; apart from the GC column of Table 5.11 and the
+reference line of Figure 5.5, no reported value changes, and no conclusion changes.
 
 ---
 

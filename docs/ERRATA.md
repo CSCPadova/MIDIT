@@ -8,7 +8,8 @@ Padova, A.Y. 2025/2026).
 (`midit-phase1-epoch14.ckpt`, `midit-infilling-epoch05.ckpt`).** The loss-weight
 errata concern only how the training configuration is described and do not affect
 any result. The only reported values that change are the GC column of Table 5.11
-(seed-set averaging, see below); no conclusion changes.
+and the reference line of Figure 5.5 (seed-set averaging, see below); no
+conclusion changes.
 
 ## Loss weights
 
@@ -55,6 +56,15 @@ released checkpoints.
   the extreme-infilling runs (first/last configurations) and of the 3-bar
   fine-tuned run (central). Averaging the same per-seed values over seeds 1–5 and
   10 reproduces every printed GC value exactly.
+
+## Figure 5.5 — extreme infilling CP (p. 80)
+
+- **Figure 5.5 (p. 80).** The bars are means over seeds 1–5, as captioned. The
+  dashed reference line for central 3-bar infilling, however, is drawn at
+  CP = 0.622, the mean over seeds 1–5 **and** seed 10. The caption's value,
+  0.602 ± 0.265 (seeds 1–5, as in Table 5.11), is correct; only the line's
+  position is affected. This is the same seed-set issue as the Table 5.11 GC
+  column; no conclusion changes.
 
 ## Pending verification
 
