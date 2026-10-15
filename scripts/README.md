@@ -70,7 +70,7 @@ Scripts that import `midit.infer` (e.g. `infer_from_midi.py`,
 | --- | --- |
 | `test/test_class_weights.py` | Imports `midit.model.masked_transformer1`, which no longer exists. |
 | `debug/debug_per_class_accuracy.py`, `Tokenization/verify_token_head_mapping.py` | Hard-code the invalid `phase1-epoch=44-val_loss=0.0982.ckpt`. |
-| `../slurm/preprocess_full.sh` | Calls `scripts/preprocess_500.py`; the file is at `scripts/Pre_Processing/preprocess_500.py` (V1 pipeline). |
+| `../slurm/preprocess_full.sh` | Historical V1 preprocessing launcher (`Pre_Processing/preprocess_500.py`); output is not compatible with the V2 model. |
 | `../slurm/generate_samples_zs.sh` | Generates "zero-shot" samples from the `epoch=49` checkpoint, not the thesis epoch-14 model. |
 
 ## Cluster-specific scripts

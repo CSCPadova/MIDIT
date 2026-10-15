@@ -1,4 +1,6 @@
 #!/bin/bash
+# Historical V1 preprocessing (beat_res={(0,4):8}); not compatible with the V2
+# (vocab 550) model. The current pipeline is scripts/Pre_Processing/preprocess_v2.py.
 #SBATCH --job-name=preprocess-lakh
 #SBATCH --partition=allgroups
 #SBATCH --mem=64G
@@ -9,7 +11,7 @@
 
 cd $HOME/MIDIT
 
-~/.local/bin/uv run python scripts/preprocess_500.py \
+~/.local/bin/uv run python scripts/Pre_Processing/preprocess_500.py \
     --input_dir data/lakh_clean \
     --output_dir data/preprocessed_phase1 \
     --num_workers 16
