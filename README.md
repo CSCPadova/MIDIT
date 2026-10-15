@@ -1,10 +1,8 @@
 <div align="center">
 
-# 🎹 MIDIT
+# MIDIT: Multi-Track Symbolic Music Infilling via BERT-Style Pre-Training and Distribution-Aware Fine-Tuning
 
-### Multi-Track Symbolic Music Infilling via BERT-Style Pre-Training and Distribution-Aware Fine-Tuning
-
-*A BERT-style Transformer that reconstructs missing bars of multi-track MIDI —<br>using the musical context **before and after** the gap.*
+Simone Zanetti · MSc thesis, Data Science, University of Padova, 2025/26 · Supervisor: Prof. Antonio Rodà · Co-supervisor: Matteo Spanio
 
 [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C.svg)](https://pytorch.org/)
@@ -13,11 +11,46 @@
 [![Checkpoints](https://img.shields.io/badge/🤗%20Hub-checkpoints-yellow.svg)](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**MSc thesis in Data Science — Department of Mathematics, University of Padova — A.Y. 2025/2026**<br>
-*MIDIT: Multi-Track Symbolic Music Infilling via BERT-Style Pre-Training and Distribution-Aware Fine-Tuning*<br>
-*Candidate:* Simone Zanetti · *Supervisor:* Prof. Antonio Rodà · *Co-supervisor:* Matteo Spanio
-
 </div>
+
+## What it is
+
+MIDIT is a BERT-style masked language model for symbolic multi-track music infilling: given a MIDI piece with some bars removed, it reconstructs their content from the music before **and** after the gap. It works on REMI+ tokens with a 12-layer Transformer encoder (~42.5M parameters) and nine prediction heads (Pitch and PitchDrum share one), pre-trained on 50,000 Lakh MIDI files. MIDIT is presented not as a state-of-the-art system, but as a controlled study of how masking strategy, generation paradigm, structural conditioning and evaluation methodology interact in symbolic music infilling.
+
+## Key findings
+
+- **Token-level pre-training does not transfer to infilling.** Cloze accuracy is high
+  (average Top-1 83.18%), but used zero-shot on contiguous masked bars, pitch accuracy
+  falls from 26.2% (1 bar) to 0.8% (5 bars). At a matched ~42% masking rate, Content
+  Preservation is 0.966 for scattered masking vs 0.128 for contiguous bars.
+- **BarFillMasking recovers infilling.** Fine-tuning with contiguous bar masking, which
+  matches the inference-time task, raises 5-bar pitch accuracy from 0.8% to 33.9% and
+  Content Preservation on 50 songs from 0.297 to 0.681.
+- **Different quality profiles, not a ranking, vs the Anticipatory Music Transformer.**
+  On 878 paired samples MIDIT preserves more of the original content (CP 0.728 vs 0.649,
+  d_z = 0.33), pitch-class entropy is statistically indistinguishable (p = 0.47), and
+  the autoregressive model remains competitive on groove consistency.
+
+<p align="center">
+  <img src="figures/midit_architecture.png" alt="MIDIT architecture: REMI+ tokens, token and positional embeddings, 12 pre-norm Transformer encoder layers, nine type-specific output heads" width="460">
+</p>
+
+## Quickstart
+
+```bash
+git clone https://github.com/SimoneZanetti00/MIDIT.git && cd MIDIT && git checkout repo-cleanup && uv sync
+uv run hf download SimoneZanetti00/MIDIT-checkpoints midit-infilling-epoch05.ckpt --local-dir logs/checkpoints/
+uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
+```
+
+Runs on CPU; writes `original.mid`, `masked.mid` and `reconstructed.mid` (details in [Quickstart](#-quickstart--infilling-on-your-own-midi) below).
+
+## Links
+
+[Thesis PDF — Release v1.0 (to be published)](https://github.com/SimoneZanetti00/MIDIT/releases) ·
+[Checkpoints on Hugging Face](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints) ·
+[Errata](docs/ERRATA.md) ·
+[Cite](CITATION.cff)
 
 ---
 
@@ -217,12 +250,12 @@ Requires **Python 3.12** and [uv](https://github.com/astral-sh/uv).
 ```bash
 git clone https://github.com/SimoneZanetti00/MIDIT.git
 cd MIDIT
-git checkout audit-fixes    # thesis branch (temporary step — see note)
+git checkout repo-cleanup   # current branch (temporary step — see note)
 uv sync                     # add --group eval for the evaluation scripts
 ```
 
-> **Branch note.** Until the repository's default branch is updated, the thesis
-> code lives on `audit-fixes`. The current default branch (`masked-transformer`)
+> **Branch note.** Until the repository's default branch is updated, this layout
+> lives on `repo-cleanup` (the thesis state is tagged `thesis-final`). The current default branch (`masked-transformer`)
 > predates the evaluation audit and does not contain its verification scripts.
 
 Run repository commands through `uv run` so they use the locked environment. On
