@@ -12,7 +12,7 @@ and the reference line of Figure 5.5 (seed-set averaging, see below); no
 conclusion changes. Figure 2.9, an illustration of the token stream, has incorrect
 token labels; no result depends on it.
 
-## Figure 2.9 — REMI+ token-stream example (p. ?)
+## Figure 2.9 — REMI+ token-stream example (p. 15)
 
 - **Figure 2.9** (caption: "REMI+ token stream from a real multi-track file in the
   Lakh MIDI Dataset, tokenized with the MIDIT V2 configuration") does not depict a
