@@ -69,6 +69,8 @@ MIDIT is an open source project and we love to receive contributions from our co
    ```bash
    # Run formatting and repository checks.
    uv run pre-commit run --all-files
+   # CPU smoke tests (imports, Hydra configs, CLI --help); no data needed.
+   uv run pytest
    ```
 
    Training requires a preprocessed dataset and configured accelerator. See the
@@ -195,9 +197,11 @@ The core team reviews Pull Requests on a regular basis. Here's what to expect:
 
 ### Quick Testing
 
-The repository does not currently provide a data-free training test command.
-Use the targeted validation or diagnostic script relevant to the area you changed,
-and document any required local dataset or checkpoint inputs.
+`uv run pytest` runs the CPU smoke tests in `tests/` (imports, Hydra config
+composition, `--help` of the documented commands); add `--group eval` to the sync
+to include the evaluation scripts. There is no data-free training test. For
+changes to inference, also run the quickstart in the README and check that the
+output MIDI files are unchanged.
 
 ### Configuration Override
 

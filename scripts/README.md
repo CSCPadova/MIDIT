@@ -46,6 +46,7 @@ inference from dataset-backed workflows.
   running them.
 - `debug/`, `test/`, `Tests/`, and `Smoke_test_training/` are diagnostic scripts, not
   a conventional automated test suite. Several require a local preprocessed dataset.
+  The automated smoke tests live in `../tests/` (`uv run pytest`).
 - `figures/` produces thesis/research figures. Curated figures are tracked in
   `../figures/`; other generated output belongs in `../outputs/` (gitignored).
   `figures/generate_piano_roll_figure.py` (`--input_dir`) and `run_extreme_metrics.py`

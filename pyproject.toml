@@ -40,6 +40,19 @@ eval = [
     "muspy==0.5.0",
     "scipy==1.17.1",
 ]
+# Development tools; installed by default with `uv sync`.
+dev = [
+    "pytest>=8.3",
+    "pre-commit>=4.0",
+    # Newer virtualenv (via pre-commit) would force newer filelock/packaging
+    # than the locked runtime versions.
+    "virtualenv<20.36",
+]
+
+[tool.pytest.ini_options]
+# Only the smoke tests; the scripts/**/test_*.py files are diagnostic scripts
+# that need data or checkpoints and must not be collected.
+testpaths = ["tests"]
 
 [project.scripts]
 infer = "midit.infer:main"
