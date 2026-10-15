@@ -40,7 +40,8 @@ MIDIT is a BERT-style masked language model for symbolic multi-track music infil
 ```bash
 git clone https://github.com/SimoneZanetti00/MIDIT.git && cd MIDIT && git checkout repo-cleanup && uv sync
 uv run hf download SimoneZanetti00/MIDIT-checkpoints midit-infilling-epoch05.ckpt --local-dir logs/checkpoints/
-uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
+uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid \
+    --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
 ```
 
 Runs on CPU; writes `original.mid`, `masked.mid` and `reconstructed.mid` (details in [Quickstart](#-quickstart--infilling-on-your-own-midi) below).
