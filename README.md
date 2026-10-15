@@ -490,7 +490,8 @@ Disclosed and quantified in the thesis:
 A few statements in the printed thesis about the training configuration differ
 from the released checkpoints (e.g. the Tempo/TimeSig/Rest loss weights in
 Table 4.1). The corrections are listed in [`docs/ERRATA.md`](docs/ERRATA.md). All
-reported results are computed on the released checkpoints and are unaffected.
+reported results are computed on the released checkpoints; apart from the GC
+column of Table 5.11, no reported value changes.
 
 ---
 

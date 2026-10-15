@@ -29,17 +29,20 @@ released checkpoints.
 
 - **Table 5.11 (p. 80).** The caption states seeds 1–5 with seed 10 excluded, and
   the CP column follows it. The GC (groove consistency) column, however, averaged
-  seeds 1–5 **and** seed 10. Corrected GC values (mean over seeds 1–5):
+  seeds 1–5 **and** seed 10. Corrected GC values (seeds 1–5):
 
-  | Configuration | GC printed | GC corrected (seeds 1–5) |
+  | Configuration | GC printed (seeds 1–5 + 10) | GC corrected (seeds 1–5) |
   |---|---|---|
-  | first1 | 0.942 | 0.932 |
-  | first2 | 0.924 | 0.912 |
-  | first3 | 0.899 | 0.896 |
-  | last1 | 0.819 | 0.826 |
-  | last2 | 0.820 | 0.820 |
-  | last3 | 0.814 | 0.813 |
-  | central | 0.848 | 0.856 |
+  | first1 | 0.942 ± 0.044 | 0.932 ± 0.042 |
+  | first2 | 0.924 ± 0.046 | 0.912 ± 0.041 |
+  | first3 | 0.899 ± 0.034 | 0.896 ± 0.036 |
+  | last1 | 0.819 ± 0.043 | 0.826 ± 0.044 |
+  | last2 | 0.820 ± 0.042 | 0.820 ± 0.046 |
+  | last3 | 0.814 ± 0.044 | 0.813 ± 0.048 |
+  | central | 0.848 ± 0.069 | 0.856 ± 0.073 |
+
+  ± is the population standard deviation (ddof = 0) across seeds, the convention
+  that reproduces all 14 printed ± values in Table 5.11 (CP and GC).
 
 - **p. 81.** The sentence quoting first1 = 0.942, first3 = 0.899, last1 = 0.819
   and last3 = 0.814 should read first1 = 0.932, first3 = 0.896, last1 = 0.826 and
