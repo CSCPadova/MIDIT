@@ -22,16 +22,13 @@ export PRINT_HELP_PYSCRIPT
 help: ## Show this help.
 	@python3 -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
-infer: ## Run the inference script.
+infer: ## Submit slurm/infer.sh (template launcher, not used for thesis runs).
 	sbatch slurm/infer.sh
 
 install: ## Install the project dependencies with uv
 	$(UV) sync
 
-multirun: ## Run many experiments on the cluster using slurm.
-	bash slurm/multirun.sh
-
-train: ## Train the model using slurm.
+train: ## Submit slurm/train.sh (template launcher, not used for thesis runs).
 	sbatch slurm/train.sh
 
-.PHONY: help, install, multirun, train
+.PHONY: help install infer train

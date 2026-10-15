@@ -9,23 +9,52 @@ venv/
 ENV/
 *.egg-info/
 
+# Environment and local settings
+.env
+.claude/settings.local.json
+
 # Data (too large)
 /data/
-!midit/data/
+amaai-lab___midi_caps/
+token_frequencies.pt
 
-# Logs
-logs/checkpoints/*.ckpt
-logs/wandb/
-logs/slurm/*.out
-logs/slurm/*.err
-logs/out/*.txt
-logs/err/*.txt
+# Logs: ignore everything under logs/, keep only the directory skeleton
+logs/*
+!logs/checkpoints/
+logs/checkpoints/*
+!logs/checkpoints/.gitkeep
+!logs/wandb/
+logs/wandb/*
+!logs/wandb/.gitkeep
+!logs/slurm/
+logs/slurm/*
+!logs/slurm/.gitkeep
+!logs/out/
+logs/out/*
+!logs/out/.gitkeep
+!logs/err/
+logs/err/*
+!logs/err/.gitkeep
+# nested logs/ directories (e.g. midit/logs/)
+*/**/logs/
 *.log
+
+# Checkpoints and archives
+*.ckpt
+*.zip
+*.tar.gz
 
 # Outputs
 outputs/
 multirun/
 results/
+generated_*/
+figures/debug_*.png
+tmp/
+
+# Lockfiles (uv.lock is tracked)
+*.lock
+!uv.lock
 
 # IDE
 .vscode/
@@ -37,47 +66,3 @@ results/
 # OS
 .DS_Store
 Thumbs.db
-
-# Datasets cache
-amaai-lab___midi_caps/
-*.lock
-
-# Keep structure
-!logs/checkpoints/.gitkeep
-!logs/wandb/.gitkeep
-!logs/slurm/.gitkeep
-!logs/out/.gitkeep
-!logs/err/.gitkeep
-!results/.gitkeep
-logs/
-
-tmp/
-*.tar.gz
-
-# Generated MIDI outputs
-generated_*/
-
-# Environment files
-.env
-
-# Temporary files
-
-# Generated MIDI outputs
-generated_*/
-
-# Environment files
-.env
-
-# Temporary files
-
-preprocessed_phase1.zip
-*.zip
-# Large files
-*.zip
-*.ckpt
-*.tar.gz
-preprocessed_phase1.zip
-logs/checkpoints_phase1/
-
-# Data files
-token_frequencies.pt

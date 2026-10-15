@@ -1,5 +1,5 @@
 import sys
 
-from midit.infer import infer
+from midit.infer import main
 
-sys.exit(infer())
+sys.exit(main())

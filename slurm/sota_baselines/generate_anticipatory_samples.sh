@@ -15,7 +15,7 @@ source .venv_anticipation/bin/activate
 # Redirect HuggingFace cache to /nfsd (home filesystem is shared and may be full)
 export HF_HOME=/nfsd/tesi/zanettisim/huggingface_cache
 
-python -u scripts/sota_baselines/anticipatory/generate_anticipatory_samples.py \
+python -u scripts/evaluation/baselines/anticipatory/generate_anticipatory_samples.py \
     --input_dir /nfsd/tesi/zanettisim/MIDIT/outputs/samples_1000 \
     --output_dir /nfsd/tesi/zanettisim/MIDIT/outputs/samples_anticipatory_1000 \
     --model_name stanford-crfm/music-medium-800k \

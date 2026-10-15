@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the thesis below."
+type: software
+title: "MIDIT: Multi-Track Symbolic Music Infilling via BERT-Style Pre-Training and Distribution-Aware Fine-Tuning"
+authors:
+  - family-names: Zanetti
+    given-names: Simone
+repository-code: "https://github.com/SimoneZanetti00/MIDIT"
+license: MIT
+keywords:
+  - symbolic music
+  - music infilling
+  - masked language model
+  - MIDI
+preferred-citation:
+  type: thesis
+  thesis-type: "Master's thesis"
+  title: "MIDIT: Multi-Track Symbolic Music Infilling via BERT-Style Pre-Training and Distribution-Aware Fine-Tuning"
+  authors:
+    - family-names: Zanetti
+      given-names: Simone
+  institution:
+    name: "University of Padova"
+  year: 2026

@@ -2,6 +2,10 @@
 
 This directory stores historical configurations for reproducibility.
 
+> These are **December 2025** Phase-1 configs (before the V2 tokenizer, vocabulary
+> 550). They do **not** describe the thesis models. For the thesis checkpoints and
+> how the current configs differ from them, see [`../README.md`](../README.md).
+
 ## Files
 
 | Config | Date | Checkpoint | Accuracy | Notes |
@@ -11,7 +15,8 @@ This directory stores historical configurations for reproducibility.
 
 ## Usage
 
-To reproduce a specific experiment:
+To reproduce a specific experiment (⚠️ the `cp` below **overwrites** the live
+`conf/config.yaml` — commit or back it up first):
 ```bash
 # Copy archived config to main config
 cp conf/configs_archive/config_lambda-fix_2025-12-17.yaml conf/config.yaml

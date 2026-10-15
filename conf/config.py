@@ -1,4 +1,8 @@
-"""Configuration dataclasses for MIDIT project."""
+"""Configuration dataclasses for MIDIT project.
+
+UNUSED, kept for history: not imported anywhere and out of sync with the YAML
+configs (see conf/README.md).
+"""
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
@@ -24,20 +28,20 @@ class Chunking:
     """Chunking strategy configuration (flexible preprocessing)."""
     # Strategy
     strategy: str  # 'bar_based' or 'token_based'
-    
+
     # Bar-based parameters
     bars_per_chunk: int
     overlap_bars: int
-    
+
     # Token-based parameters
     tokens_per_chunk: int
     overlap_tokens: int
-    
+
     # Filtering
     max_tokens: int
     min_tokens_per_bar: int
     filter_empty_bars: bool
-    
+
     # Paths
     raw_data_dir: str
     preprocessed_dir: str

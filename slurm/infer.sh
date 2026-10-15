@@ -1,4 +1,5 @@
 #!/bin/bash
+# Template launcher, not used for thesis runs.
 #SBATCH --job-name midit-infer
 #SBATCH --output logs/out/%j.txt
 #SBATCH --error logs/err/%j.txt

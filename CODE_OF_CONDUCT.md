@@ -61,7 +61,8 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
-[INSERT CONTACT METHOD].
+the project maintainer on GitHub, [@SimoneZanetti00](https://github.com/SimoneZanetti00)
+(open an issue on this repository or contact the maintainer via GitHub).
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

@@ -1,5 +1,1 @@
-"""Loss functions for diffusion models."""
-
-from .diffusion_loss import DiffusionLoss
-
-__all__ = ["DiffusionLoss"]
+"""Unused placeholder from the project template; MIDIT's loss lives in midit/model/multi_head_output.py."""

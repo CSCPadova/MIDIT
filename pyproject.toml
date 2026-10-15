@@ -1,11 +1,12 @@
 [project]
 name = "midit"
 version = "0.1.0"
-description = "A Masked Diffusion Transformer for text-to-MIDI generation"
+description = "Bidirectional masked language modeling for symbolic MIDI infilling"
 readme = "README.md"
 license = "MIT"
 authors = [
-    { name = "Matteo Spanio", email = "spanio@dei.unipd.it" }
+    { name = "Simone Zanetti" },
+    { name = "Matteo Spanio", email = "spanio@dei.unipd.it" },
 ]
 requires-python = ">=3.12"
 dependencies = [
@@ -28,11 +29,34 @@ dependencies = [
     "kaggle>=1.8.0",
     "miditoolkit>=1.0.1",
     "symusic>=0.5.9",
+    "matplotlib>=3.10.7",
+    "numpy>=2.2.4",
+    "tqdm>=4.67.1",
 ]
 
+[dependency-groups]
+# Evaluation metrics (scripts/evaluation, scripts/verification):
+#   uv sync --group eval
+eval = [
+    "muspy==0.5.0",
+    "scipy==1.17.1",
+]
+# Development tools; installed by default with `uv sync`.
+dev = [
+    "pytest>=8.3",
+    "pre-commit>=4.0",
+    # Newer virtualenv (via pre-commit) would force newer filelock/packaging
+    # than the locked runtime versions.
+    "virtualenv<20.36",
+]
+
+[tool.pytest.ini_options]
+# Only the smoke tests; the scripts/**/test_*.py files are diagnostic scripts
+# that need data or checkpoints and must not be collected.
+testpaths = ["tests"]
+
 [project.scripts]
-train = "midit.train:train"
-infer = "midit.infer:infer"
+infer = "midit.infer:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["midit"]

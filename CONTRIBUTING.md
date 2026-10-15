@@ -1,6 +1,6 @@
 # Contributing to MIDIT
 
-First off, thank you for considering contributing to MIDIT! It's people like you that make MIDIT such a great tool for text-to-MIDI generation.
+First off, thank you for considering contributing to MIDIT! MIDIT is a research project for bidirectional symbolic MIDI infilling.
 
 Following these guidelines helps to communicate that you respect the time of the developers managing and developing this open source project. In return, they should reciprocate that respect in addressing your issue, assessing changes, and helping you finalize your pull requests.
 
@@ -65,11 +65,17 @@ MIDIT is an open source project and we love to receive contributions from our co
    uv run pre-commit run --all-files
    ```
 
-4. **Test your changes** (if applicable):
+4. **Run the relevant checks** (if applicable):
    ```bash
-   # Run fast training to verify your changes work
-   uv run train train.fast_run=true
+   # Run formatting and repository checks.
+   uv run pre-commit run --all-files
+   # CPU smoke tests (imports, Hydra configs, CLI --help); no data needed.
+   uv run pytest
    ```
+
+   Training requires a preprocessed dataset and configured accelerator. See the
+   root README and `scripts/README.md` for supported workflows; do not treat a
+   training run as the default development check.
 
 5. **Push to your fork**:
    ```bash
@@ -117,11 +123,11 @@ Common gitmojis for this project:
 
 **Example**:
 ```bash
-git commit -m "✨ feat: add text-to-MIDI generation with FLAN-T5
+git commit -m "✨ feat: add top-k sampling to infilling inference
 
-- Implement FLAN-T5 text encoder
-- Add masked diffusion transformer
-- Support configurable model sizes"
+- Add --top_k option to scripts/inference/infer_from_midi.py
+- Keep argmax decoding as the default
+- Document the new option in README.md"
 ```
 
 Install the gitmoji CLI tool (optional but helpful):
@@ -191,19 +197,21 @@ The core team reviews Pull Requests on a regular basis. Here's what to expect:
 
 ### Quick Testing
 
-Use fast run mode to quickly test your changes:
-```bash
-uv run train train.fast_run=true
-```
-
-This uses a small dataset and trains for only 2 epochs.
+`uv run pytest` runs the CPU smoke tests in `tests/` (imports, Hydra config
+composition, `--help` of the documented commands); add `--group eval` to the sync
+to include the evaluation scripts. There is no data-free training test. For
+changes to inference, also run the quickstart in the README and check that the
+output MIDI files are unchanged.
 
 ### Configuration Override
 
-Test different configurations without modifying files:
+Override Hydra configuration values without modifying files:
 ```bash
-uv run train model.d_model=256 train.batch_size=16
+uv run python midit/train_phase1.py model.d_model=256 train.batch_size=16
 ```
+
+This command starts training and therefore requires the configured dataset and
+accelerator; it is an example of configuration composition, not a lightweight test.
 
 ### Logging
 
