@@ -544,7 +544,7 @@ Disclosed and quantified in the thesis:
 - **Oracle token-type selection** at inference (mitigated: the type is always observable from REMI+ grammar)
 - **Deterministic argmax decoding** — one completion per input; stochastic sampling is future work
 - **Local 8-bar context** — no long-range song structure
-- **50k / 168k files** — Pitch and Tempo learning curves still descending at the best checkpoint
+- **50k / 168k files** — learning curves (notably Pitch) still improving at the best checkpoint
 
 **Future work:** full-dataset training with shard-based I/O · stochastic decoding · BPE ablation · Phase 2 text-conditioned infilling (MidiCaps + FLAN-T5).
 
