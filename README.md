@@ -267,6 +267,9 @@ cd MIDIT
 uv sync                     # add --group eval for the evaluation scripts
 ```
 
+Windows: if `uv sync` fails with a hardlink / cloud-file error (e.g. under
+OneDrive), run `uv sync --link-mode=copy`.
+
 > The code state at thesis submission, before this repository reorganisation, is
 > tagged `thesis-final`.
 
