@@ -252,7 +252,8 @@ MIDIT/
 │   └── infer.py                       # Infilling inference (validation set)
 ├── scripts/                           # Pipelines & analyses — index in scripts/README.md
 │   ├── preprocessing/                 # Lakh MIDI → REMI+ .pt dataset (preprocess_v2.py)
-│   ├── inference/                     # infer_from_midi.py (any MIDI), generate_samples_batch.py
+│   ├── inference/                     # infer_from_midi.py (any MIDI), inspect_infill.py,
+│   │                                  #   generate_samples_batch.py
 │   ├── evaluation/                    # cloze accuracy, CP / GS / PCHE, statistics
 │   │   ├── js/                        # JS Similarity pipeline (M. Spanio)
 │   │   ├── decoding/                  # decoding-strategy ablation
@@ -261,14 +262,16 @@ MIDIT/
 │   ├── analysis/                      # dataset and thesis analyses
 │   └── figures/                       # figure scripts
 ├── conf/                              # Hydra configs — see conf/README.md (drift, checkpoints)
+│   └── configs_archive/               # Historical configs (not thesis configs)
 ├── examples/                          # Two Lakh MIDI files for the quickstart (CC BY 4.0)
 ├── tests/                             # CPU smoke tests (uv run pytest)
-├── slurm/                             # SLURM job scripts (DEI cluster, user-specific paths)
-├── docs/                              # ERRATA.md, analysis/ notes, audits/ (2026-07 audit trail)
-├── figures/                           # Architecture figure (thesis figures: see the PDF)
-└── research/                          # Historical / V1 / exploratory scripts and
-                                       #   thesis_materials/ (earlier approaches) — not maintained
+├── slurm/                             # Thesis-run SLURM launchers (cluster-only) — see slurm/README.md
+└── docs/                              # ERRATA.md, analysis/ notes, img/ (architecture figure)
 ```
+
+Historical scripts, the full set of SLURM launchers and the 2026-07 audit notes are not
+in the tree. They are preserved at the `archive-full-tree` tag (layout before this
+slimming) and, in the layout at thesis submission, at the `thesis-final` tag.
 
 ---
 
