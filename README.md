@@ -200,7 +200,7 @@ TokenizerConfig(
 | **Quality filters** | ≥ 50 notes · ≥ 15 s duration · velocity diversity (80.3% survival) |
 | **Augmentation** | pitch shifting ±5 semitones (×11 per file, drums excluded) |
 | **Split** | 80/10/10 **song-level** (all transposed variants share the split — zero leakage), seed = 42 |
-| **Output** | 441,518 pre-tokenized `.pt` sequences (66 GB), ~14.5M 8-bar training chunks |
+| **Output** | 441,518 pre-tokenized `.pt` sequences (66 GB), 8-bar training windows sampled on the fly (one per file per epoch) |
 
 ---
 
