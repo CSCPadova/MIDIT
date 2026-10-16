@@ -4,6 +4,10 @@
 **Status:** analysis + proposals. Implementation: only **Proposal A + deterministic val masking** was applied (see §6). Proposals B and C are documented but NOT implemented.
 **Author:** generated from a full audit of `train_infilling.py`, `lakh_dataset.py`, `masking.py`, `config_infilling.yaml`, `config.yaml`.
 
+> **Post-thesis experiment.** Proposal A is not a thesis model. Its launcher
+> `slurm/train_infilling_v2.sh` is no longer in the tree; it is preserved at the
+> `archive-full-tree` tag.
+
 ---
 
 ## 0. Honest expectations (read first)

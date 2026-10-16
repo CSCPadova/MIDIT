@@ -450,15 +450,14 @@ rebuild it from scratch:
 **Phase 1 — MLM pre-training** (BERT-style 15% token-level masking):
 
 ```bash
-# local / configured accelerator
 uv run python midit/train_phase1.py \
     chunking.preprocessed_dir=data/preprocessed_v2_50k \
     train.lr=3e-4
-
-# Cluster-only launcher; contains DEI-specific paths and settings.
-# Extra arguments are forwarded to Hydra.
-sbatch slurm/train_phase_1_v3.sh train.lr=3e-4
 ```
+
+Cluster record: the thesis run was launched with
+[`slurm/train_phase1_v2_50k_safe.sh`](slurm/train_phase1_v2_50k_safe.sh) (inferred; DEI paths,
+see [`slurm/README.md`](slurm/README.md)). Use the `uv run` command above to train elsewhere.
 
 | Parameter | Thesis value (Phase 1, best checkpoint) |
 |---|---|
