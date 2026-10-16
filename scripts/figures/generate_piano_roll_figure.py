@@ -11,7 +11,7 @@ Verified crop parameters (derived by pixel analysis):
 
 Usage:
     python scripts/figures/generate_piano_roll_figure.py --input_dir <screenshots_dir>
-    python scripts/figures/generate_piano_roll_figure.py --input_dir <screenshots_dir> --output figures/custom.png
+    python scripts/figures/generate_piano_roll_figure.py --input_dir <screenshots_dir> --output docs/img/custom.png
 
     <screenshots_dir> must contain Original.png, Masked.png and Recostructed.png.
     Thesis figure (local path at the time):
@@ -24,7 +24,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-DEFAULT_OUT = Path('figures/piano_roll_seed5.png')
+DEFAULT_OUT = Path('docs/img/piano_roll_seed5.png')
 
 # ── Crop parameters (original image coordinates) ─────────────────────────────
 Y0, Y1 = 0, 960          # piano roll including bar ruler; no velocity section

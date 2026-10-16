@@ -137,7 +137,7 @@ ax.text(CX, 0.40,
         linespacing=1.5)
 
 out = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..",
-                                    "figures", "preprocessing_pipeline_v2.png"))
+                                    "docs", "img", "preprocessing_pipeline_v2.png"))
 os.makedirs(os.path.dirname(out), exist_ok=True)
 fig.savefig(out, dpi=300, bbox_inches="tight", facecolor="white")
 print("Saved:", out)

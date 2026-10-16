@@ -16,7 +16,7 @@ Architecture facts (code-verified):
 
 Usage:
     python scripts/figures/generate_architecture.py
-    python scripts/figures/generate_architecture.py --output figures/custom.png
+    python scripts/figures/generate_architecture.py --output docs/img/custom.png
 """
 
 import argparse
@@ -77,7 +77,7 @@ def vline(ax, x, y0, y1, lw=0.9, color='#444444'):
 
 # ── Main ────────────────────────────────────────────────────────────────────────
 
-def make_figure(output_path: str = 'figures/midit_architecture.png') -> None:
+def make_figure(output_path: str = 'docs/img/midit_architecture.png') -> None:
 
     FIG_W = 6.5
     FIG_H = 10.2
@@ -317,6 +317,6 @@ def make_figure(output_path: str = 'figures/midit_architecture.png') -> None:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', default='figures/midit_architecture.png')
+    parser.add_argument('--output', default='docs/img/midit_architecture.png')
     args = parser.parse_args()
     make_figure(args.output)

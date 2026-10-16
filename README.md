@@ -32,7 +32,7 @@ MIDIT is a BERT-style masked language model for symbolic multi-track music infil
   the autoregressive model shows higher groove consistency (0.911 vs 0.840 for MIDIT).
 
 <p align="center">
-  <img src="figures/midit_architecture.png" alt="MIDIT architecture: REMI+ tokens, token and positional embeddings, 12 pre-norm Transformer encoder layers, nine type-specific output heads" width="460">
+  <img src="docs/img/midit_architecture.png" alt="MIDIT architecture: REMI+ tokens, token and positional embeddings, 12 pre-norm Transformer encoder layers, nine type-specific output heads" width="460">
 </p>
 
 ## Quickstart

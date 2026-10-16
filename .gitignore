@@ -34,7 +34,6 @@ outputs/
 multirun/
 results/
 generated_*/
-figures/debug_*.png
 tmp/
 
 # Lockfiles (uv.lock is tracked)
