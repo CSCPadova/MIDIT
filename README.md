@@ -31,9 +31,17 @@ MIDIT is a BERT-style masked language model for symbolic multi-track music infil
   d_z = 0.33), pitch-class entropy is statistically indistinguishable (p = 0.47), and
   the autoregressive model shows higher groove consistency (0.911 vs 0.840 for MIDIT).
 
-<p align="center">
-  <img src="docs/img/midit_architecture.png" alt="MIDIT architecture: REMI+ tokens, token and positional embeddings, 12 pre-norm Transformer encoder layers, nine type-specific output heads" width="460">
-</p>
+```mermaid
+flowchart TD
+    A["🎼 Input MIDI"] --> B["REMI+ tokenizer · MidiTok · vocab 550"]
+    B --> C["8-bar window<br/>masked bars: Pitch/PitchDrum · Velocity · Duration · Program → [MASK]<br/>Bar · Position · Tempo · TimeSig · Rest kept"]
+    C --> D["Token embedding 550×512 + learned positional embedding 8192×512<br/>→ LayerNorm"]
+    D --> E["12 × Transformer encoder layer · pre-norm<br/>8 heads · d_model 512 · FF 2048 · GELU<br/>full bidirectional attention"]
+    E --> F["LayerNorm + Dropout 0.1 (shared, before the heads)"]
+    F --> G["9 type-specific linear heads<br/>Pitch (+PitchDrum) · Velocity · Duration · Program · Position · Bar · Tempo · TimeSig · Rest"]
+    G --> H["argmax at each [MASK] position<br/>(head chosen by the masked token's type)"]
+    H --> I["🎼 Reconstructed MIDI"]
+```
 
 ## Quickstart
 
@@ -185,21 +193,15 @@ Inference integrity was audited mechanically: the model input contains `[MASK]` 
 
 ## 🏗️ Architecture
 
-```
-Input: REMI+ token sequence (vocab 550, up to 8,192 positions), content tokens → [MASK]
-  │
-  ├─ Token Embedding (550 × 512) + learned Positional Embedding
-  │
-  ├─ 12 × TransformerEncoder layer (pre-norm)
-  │     · Multi-Head Self-Attention (h = 8, d_model = 512)
-  │     · Feed-Forward (dim = 2048, GELU) · dropout 0.1
-  │     · no causal mask — full bidirectional attention
-  │
-  └─ Multi-Head Output: 9 type-specific linear heads
-        Pitch · Velocity · Duration · Program · Position · Bar · Tempo · TimeSig · Rest
+The model is shown in the diagram at the top. **Loss** — weighted sum over token types of the
+mean cross-entropy over that type's masked positions:
 
-Loss:  L = Σₜ λₜ · (1/|Mₜ|) · Σᵢ∈Mₜ CE(yₜ⁽ⁱ⁾, ŷₜ⁽ⁱ⁾)     (per-type masked-token normalization)
 ```
+L = Σₜ λₜ · (1/|Mₜ|) · Σᵢ∈Mₜ CE(yₜ⁽ⁱ⁾, ŷₜ⁽ⁱ⁾)     (per-type masked-token normalization)
+```
+
+λ (stored in the released checkpoints): Pitch 3.0 · Velocity 1.5 · Duration 1.0 ·
+Program 1.5 · Position 0.5 · Bar 0.0 · Tempo 1.0 · TimeSig 0.5 · Rest 1.0.
 
 **Tokenizer** — MidiTok REMI+ (V2 config, vocab = 550):
 
@@ -266,7 +268,7 @@ MIDIT/
 ├── examples/                          # Two Lakh MIDI files for the quickstart (CC BY 4.0)
 ├── tests/                             # CPU smoke tests (uv run pytest)
 ├── slurm/                             # Thesis-run SLURM launchers (cluster-only) — see slurm/README.md
-└── docs/                              # ERRATA.md, analysis/ notes, img/ (architecture figure)
+└── docs/                              # ERRATA.md, analysis/ notes
 ```
 
 Historical scripts, the full set of SLURM launchers and the 2026-07 audit notes are not
