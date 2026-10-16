@@ -15,8 +15,8 @@ See [docs/ERRATA.md](../docs/ERRATA.md) for thesis-text corrections and [scripts
 
 - **Candidate:** Simone Zanetti — MSc Data Science, University of Padova (DEI)
 - **Supervisor:** Prof. Antonio Rodà · **Co-supervisor:** Matteo Spanio (PhD)
-- **Thesis:** *"MIDIT: Bidirectional Masked Language Modeling for Symbolic Music
-  Infilling"* — submission **2026-09-10**, defense **2026-09-25**
+- **Thesis:** *"MIDIT: Multi-Track Symbolic Music Infilling via BERT-Style
+  Pre-Training and Distribution-Aware Fine-Tuning"* — submission **2026-09-10**, defense **2026-09-25**
 - **Working branch:** `masked-transformer` (default branch; `repo-cleanup` merged into it)
 - **What MIDIT is:** a BERT-style Masked Language Model over REMI+ MIDI tokens.
   Phase 1 = unconditional MLM pre-training (Lakh); Phase 1b = infilling fine-tuning.
