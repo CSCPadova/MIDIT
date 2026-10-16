@@ -340,7 +340,7 @@ The warning "The loaded checkpoint was produced with Lightning v2.6.0, which is 
 
 The two checkpoints above are the thesis models; the fine-tuned model was trained
 from the epoch-14 Phase-1 checkpoint. Other Phase-1 checkpoints referenced in the
-repository are **not** thesis models: `epoch=49` (a later epoch of the same run,
+repository are **not** thesis models: `epoch=49` (from a separate post-thesis Phase-1 run, May 2026;
 used by the current infilling configs and a post-thesis experiment) and
 `epoch=44` (invalid, from an early val_loss≈0 bug). The checkpoints' stored
 hyperparameters are authoritative where they disagree with the current Hydra
@@ -485,8 +485,9 @@ uv run python midit/train_infilling.py \
 ```
 
 > Always pass `train.checkpoint_path` explicitly: the default in
-> `conf/config_infilling.yaml` is an absolute cluster path to the later `epoch=49`
-> checkpoint, not the epoch-14 base of the thesis model.
+> `conf/config_infilling.yaml` is an absolute cluster path to the `epoch=49`
+> checkpoint from a separate post-thesis Phase-1 run (May 2026), not the epoch-14 base of
+> the thesis model.
 
 | Parameter | Thesis value (Phase 1b) |
 |---|---|

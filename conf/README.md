@@ -23,7 +23,7 @@ hard-coded in `midit/data/lakh_dataset.py` (V2, vocabulary 550).
 |---|---|---|
 | `phase1-epoch=14-val_loss=2.7254.ckpt` | `midit-phase1-epoch14.ckpt` | **Thesis** Phase-1 model (zero-shot base) |
 | `infilling-epoch=05-val_loss=8.5836.ckpt` | `midit-infilling-epoch05.ckpt` | **Thesis** Phase-1b model, fine-tuned from epoch 14 |
-| `phase1-epoch=49-val_loss=2.3866.ckpt` | — | Later epoch of the same Phase-1 run. Used by the current `config_infilling.yaml`, the archived `configs_archive/config_infilling_v2.yaml` and `slurm/generate_samples_zs.sh`. **Not a thesis model.** |
+| `phase1-epoch=49-val_loss=2.3866.ckpt` | — | From a separate post-thesis Phase-1 run (May 2026). Used by the current `config_infilling.yaml`, the archived `configs_archive/config_infilling_v2.yaml` and `slurm/generate_samples_zs.sh`. **Not a thesis model.** |
 | `phase1-epoch=44-val_loss=0.0982.ckpt` | — | **Invalid** (December 2025 val_loss≈0 bug). Still referenced by two historical debug scripts (`research/debug/debug_per_class_accuracy.py` and `research/Tokenization/verify_token_head_mapping.py` at the `archive-full-tree` tag; `scripts/debug/` and `scripts/Tokenization/` at `thesis-final`); do not trust their output. |
 
 Evidence that the thesis Phase-1b model was fine-tuned from epoch 14:
