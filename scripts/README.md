@@ -20,6 +20,7 @@ checkpoints.
 | | `analyze_preprocessed_v2_dataset.py` | Statistics of the preprocessed V2 dataset | Ch. 3 dataset analysis |
 | | `thesis_mini_analyses.py` | Per-class frequencies, loss-weight audit, sequence lengths | Ch. 3–4 analyses |
 | `inference/` | `infer_from_midi.py` | Infill bars of any MIDI file (also importable: `infill_midi()`) | README quickstart |
+| | `inspect_infill.py` | Print original vs MIDIT notes per onset in the masked bars of an `infer_from_midi.py` output (writes no files) | README "Inspecting a reconstruction" |
 | | `generate_samples_batch.py` | Generate N validation samples with one model load | evaluation sample sets |
 | `evaluation/` | `evaluate_phase1_accuracy_DIRECT.py` | Cloze Top-1/Top-5 accuracy per token type | Fig. 5.1, cloze results |
 | | `compute_infilling_metrics.py` | CP / GS / PCHE implementation (library + CLI) | Ch. 5 infilling metrics |
