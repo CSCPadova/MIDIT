@@ -1,8 +1,8 @@
 # Script guide
 
 Scripts that reproduce the MIDIT pipeline and the thesis results. Historical,
-exploratory and V1-tokenizer scripts are in [`../research/`](../research/README.md);
-the pre-reorganisation layout is preserved in the `thesis-final` tag.
+exploratory and V1-tokenizer scripts are in `research/` at the `archive-full-tree`
+tag; the pre-reorganisation layout is preserved in the `thesis-final` tag.
 
 Run everything from the repository root with `uv run python ...`. Scripts that need
 a dataset, checkpoint or cluster storage say so in their `--help`. The evaluation

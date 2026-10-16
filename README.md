@@ -90,7 +90,7 @@ independently, which can produce duplicate notes (6 here).
 
 ---
 
-> **Research-status note.** MIDIT's supported code paths are Phase 1 masked-language-model pre-training and Phase 1b infilling fine-tuning. The repository also preserves exploratory text-conditioning code and historical experiment material; these are not an end-to-end, supported text-to-MIDI workflow. The numerical results below are those reported in the thesis; the thesis is the authoritative reference for protocols and statistics. Hydra configs in `conf/` have drifted since the thesis runs — see [`conf/README.md`](conf/README.md) before reproducing a run.
+> **Research-status note.** MIDIT's supported code paths are Phase 1 masked-language-model pre-training and Phase 1b infilling fine-tuning. The repository also contains exploratory text-conditioning code (`midit/model/text_encoder.py`), which is not an end-to-end, supported text-to-MIDI workflow. The numerical results below are those reported in the thesis; the thesis is the authoritative reference for protocols and statistics. Hydra configs in `conf/` have drifted since the thesis runs — see [`conf/README.md`](conf/README.md) before reproducing a run.
 
 ## 🎯 What is MIDIT?
 
@@ -306,7 +306,7 @@ Run repository commands through `uv run` so they use the locked environment. On
 Windows, this avoids shell-specific activation commands. `uv run python -m midit`
 (and the `infer` console command) is an alias for `midit/infer.py`; the examples
 below use the explicit scripts. See [`scripts/README.md`](scripts/README.md) for a maintained
-map of the scripts, and [`research/README.md`](research/README.md) for the historical ones.
+map of the scripts; the historical ones are in `research/` at the `archive-full-tree` tag.
 
 ---
 

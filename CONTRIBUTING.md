@@ -37,8 +37,6 @@ MIDIT is an open source project and we love to receive contributions from our co
 
 4. **Install dependencies** using uv:
    ```bash
-   make install
-   # or manually
    uv sync
    ```
 

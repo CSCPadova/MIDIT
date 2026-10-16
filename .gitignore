@@ -18,23 +18,8 @@ ENV/
 amaai-lab___midi_caps/
 token_frequencies.pt
 
-# Logs: ignore everything under logs/, keep only the directory skeleton
-logs/*
-!logs/checkpoints/
-logs/checkpoints/*
-!logs/checkpoints/.gitkeep
-!logs/wandb/
-logs/wandb/*
-!logs/wandb/.gitkeep
-!logs/slurm/
-logs/slurm/*
-!logs/slurm/.gitkeep
-!logs/out/
-logs/out/*
-!logs/out/.gitkeep
-!logs/err/
-logs/err/*
-!logs/err/.gitkeep
+# Logs (checkpoints, TensorBoard, W&B, SLURM output)
+logs/
 # nested logs/ directories (e.g. midit/logs/)
 */**/logs/
 *.log

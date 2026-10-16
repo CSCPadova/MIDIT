@@ -3,7 +3,8 @@
 The term "cloze" appears only in `.claude/CLAUDE.md`/`README.md`, not in code. The cloze
 Top-1/Top-5 accuracy is computed by the Phase-1 accuracy scripts formerly in
 `scripts/Evaluation_Accuracy/` (now `scripts/evaluation/evaluate_phase1_accuracy_DIRECT.py`
-and `research/Evaluation_Accuracy/evaluate_phase1_EXTENDED.py`). There are **two** scripts:
+and `research/Evaluation_Accuracy/evaluate_phase1_EXTENDED.py` at the `archive-full-tree`
+tag, `scripts/Evaluation_Accuracy/` at `thesis-final`). There are **two** scripts:
 
 - **`evaluate_phase1_accuracy_DIRECT.py` — authoritative / thesis.** V2 tokenizer
   (`beat_res={(0,4):8,(4,12):4}`, delete-equal flags → vocab 550), a proper
