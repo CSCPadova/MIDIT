@@ -52,6 +52,34 @@ uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e
 
 Runs on CPU; writes `original.mid`, `masked.mid` and `reconstructed.mid` (details in [Quickstart](#-quickstart--infilling-on-your-own-midi) below).
 
+## Inspecting a reconstruction
+
+```bash
+uv run python scripts/inference/inspect_infill.py --output_dir outputs/example/ --mask_bars 3 4 5
+```
+
+Prints the original and the MIDIT notes for every onset in the masked bars (`note:program`), then a summary. Excerpt for the quickstart example:
+
+```text
+  bar 3 beat 1.5    | orig : C3:p0 F4:p0 F4:p73
+                    | MIDIT: E4:p0 E4:p0 G4:p73
+  Onsets         : original 45  |  MIDIT 45  |  identical sets: yes
+    original: E 24  C 20  G 16  D 14  F 9
+    MIDIT   : G 65  E 13  C 5  A 1  B 1
+  Duplicate notes (same pitch + program + onset): MIDIT 6  (original 0)
+```
+
+This is one illustrative example, not a representative result. The onsets are
+identical because Position tokens are preserved: the model predicts what to
+play, not when. The predicted pitches concentrate on the chord tones C, E and G
+(83 of 86 notes, G alone 65), which are also the three most frequent pitch
+classes of the original bars. The infill stays harmonically plausible for the
+passage, but melodic lines are simplified to repeated chord tones; in this
+example Content Preservation is 0.449 (`scripts/evaluation/compute_infilling_metrics.py`),
+below the 0.681 average over 50 songs. This reflects argmax decoding (thesis
+decoding ablation, Table 5.13). Simultaneous masked slots are predicted
+independently, which can produce duplicate notes (6 here).
+
 ## Links
 
 [Thesis PDF — Release v1.0 (to be published)](https://github.com/SimoneZanetti00/MIDIT/releases) ·
