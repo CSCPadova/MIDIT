@@ -76,7 +76,8 @@ play, not when. The predicted pitches concentrate on the chord tones C, E and G
 classes of the original bars. The infill stays harmonically plausible for the
 passage, but melodic lines are simplified to repeated chord tones; in this
 example Content Preservation is 0.449 (`scripts/evaluation/compute_infilling_metrics.py`),
-below the 0.681 average over 50 songs. This reflects argmax decoding (thesis
+below the 0.681 average over 50 songs (per-song CP varies widely: 0.681 ± 0.206,
+thesis Table 5.9). This reflects argmax decoding (thesis
 decoding ablation, Table 5.13). Simultaneous masked slots are predicted
 independently, which can produce duplicate notes (6 here).
 
@@ -330,7 +331,7 @@ hf download SimoneZanetti00/MIDIT-checkpoints \
 
 Weights contain the Lightning `state_dict` + hyperparameters only (optimizer state removed). Trained on the Lakh MIDI Dataset; released for research purposes.
 
-The warning "checkpoint produced with Lightning v2.6.0, newer than v2.5.5" on loading is harmless: the files were re-saved without optimizer state.
+The warning "The loaded checkpoint was produced with Lightning v2.6.0, which is newer than your current Lightning version: v2.5.5" on loading is harmless: the files were re-saved without optimizer state.
 
 ### Configuration and checkpoint provenance
 
