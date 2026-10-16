@@ -44,6 +44,12 @@ uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
 ```
 
+Windows (PowerShell):
+
+```powershell
+uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
+```
+
 Runs on CPU; writes `original.mid`, `masked.mid` and `reconstructed.mid` (details in [Quickstart](#-quickstart--infilling-on-your-own-midi) below).
 
 ## Links
@@ -321,6 +327,12 @@ uv run python scripts/inference/infer_from_midi.py \
     --mask_bars 3 4 5 \
     --start_bar 12 \
     --output_dir outputs/example/
+```
+
+Windows (PowerShell):
+
+```powershell
+uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
 ```
 
 Produces `original.mid`, `masked.mid` and `reconstructed.mid` in `--output_dir`.
