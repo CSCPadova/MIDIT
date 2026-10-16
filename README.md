@@ -302,6 +302,8 @@ hf download SimoneZanetti00/MIDIT-checkpoints \
 
 Weights contain the Lightning `state_dict` + hyperparameters only (optimizer state removed). Trained on the Lakh MIDI Dataset; released for research purposes.
 
+The warning "checkpoint produced with Lightning v2.6.0, newer than v2.5.5" on loading is harmless: the files were re-saved without optimizer state.
+
 ### Configuration and checkpoint provenance
 
 The two checkpoints above are the thesis models; the fine-tuned model was trained
