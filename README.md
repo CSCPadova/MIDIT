@@ -31,17 +31,53 @@ MIDIT is a BERT-style masked language model for symbolic multi-track music infil
   d_z = 0.33), pitch-class entropy is statistically indistinguishable (p = 0.47), and
   the autoregressive model shows higher groove consistency (0.911 vs 0.840 for MIDIT).
 
-```mermaid
-flowchart TD
-    A["🎼 Input MIDI"] --> B["REMI+ tokenizer · MidiTok · vocab 550"]
-    B --> C["8-bar window<br/>masked bars: Pitch/PitchDrum · Velocity · Duration · Program → [MASK]<br/>Bar · Position · Tempo · TimeSig · Rest kept"]
-    C --> D["Token embedding 550×512 + learned positional embedding 8192×512<br/>→ LayerNorm"]
-    D --> E["12 × Transformer encoder layer · pre-norm<br/>8 heads · d_model 512 · FF 2048 · GELU<br/>full bidirectional attention"]
-    E --> F["LayerNorm + Dropout 0.1 (shared, before the heads)"]
-    F --> G["9 type-specific linear heads<br/>Pitch (+PitchDrum) · Velocity · Duration · Program · Position · Bar · Tempo · TimeSig · Rest"]
-    G --> H["argmax at each [MASK] position<br/>(head chosen by the masked token's type)"]
-    H --> I["🎼 Reconstructed MIDI"]
-```
+````text
+                      Input MIDI
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────┐
+│ REMI+ tokenizer  (MidiTok, vocab 550)               │
+└─────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────┐
+│ 8-bar window                                        │
+│   masked bars → [MASK]:                             │
+│     Pitch/PitchDrum · Velocity · Duration · Program │
+│   kept as context scaffold:                         │
+│     Bar · Position · Tempo · TimeSig · Rest         │
+└─────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────┐
+│ Token embedding (550 × 512)                         │
+│ + learned positional embedding (8192 × 512)         │
+│ → LayerNorm                                         │
+└─────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────┐
+│ Transformer encoder  × 12   (pre-norm)              │
+│   8 heads · d_model 512 · FF 2048 · GELU            │
+│   full bidirectional attention (no causal mask)     │
+└─────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────┐
+│ LayerNorm + Dropout 0.1   (shared)                  │
+└─────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────┐
+│ 9 linear heads, one per token type                  │
+│   Pitch (+PitchDrum) · Velocity · Duration          │
+│   Program · Position · Bar · Tempo · TimeSig · Rest │
+└─────────────────────────────────────────────────────┘
+                           │   argmax at each [MASK] position,
+                           │   using the head of that token's type
+                           ▼
+                   Reconstructed MIDI
+````
 
 ## Quickstart
 
