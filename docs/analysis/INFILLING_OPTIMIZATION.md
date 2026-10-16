@@ -6,7 +6,9 @@
 
 > **Post-thesis experiment.** Proposal A is not a thesis model. Its launcher
 > `slurm/train_infilling_v2.sh` is no longer in the tree; it is preserved at the
-> `archive-full-tree` tag.
+> `archive-full-tree` tag. Its config is archived as
+> `conf/configs_archive/config_infilling_v2.yaml`; the `conf/config_infilling_v2.yaml`
+> paths below refer to its original location.
 
 ---
 

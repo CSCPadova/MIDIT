@@ -13,6 +13,15 @@ This directory stores historical configurations for reproducibility.
 | `config_baseline_epoch44.yaml` | 2025-12-11 | epoch=44 | 22.58% | ⚠️ Lambda hardcoded bug |
 | `config_lambda-fix_2025-12-17.yaml` | 2025-12-13 | epoch=47 | 24.93% | ✅ Lambda fix applied |
 
+## Post-thesis Phase 1b variant
+
+`config_infilling_v2.yaml` ("Proposal A", added 2026-06-10, see
+[`docs/analysis/INFILLING_OPTIMIZATION.md`](../../docs/analysis/INFILLING_OPTIMIZATION.md))
+is a post-thesis fine-tuning experiment from the Phase-1 `epoch=49` checkpoint, not a
+thesis config. Its `defaults: [config]` entry resolves relative to this directory, so it
+does not compose from here; to run it, copy it back to `conf/` and pass
+`--config-name=config_infilling_v2` to `midit/train_infilling.py`.
+
 ## Usage
 
 To reproduce a specific experiment (⚠️ the `cp` below **overwrites** the live

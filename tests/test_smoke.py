@@ -48,7 +48,7 @@ def _compose(config_name, overrides=()):
         return compose(config_name=config_name, overrides=list(overrides))
 
 
-@pytest.mark.parametrize("config_name", ["config", "config_infilling", "config_infilling_v2"])
+@pytest.mark.parametrize("config_name", ["config", "config_infilling"])
 def test_compose_config(config_name):
     cfg = _compose(config_name)
     assert cfg.model.d_model == 512
