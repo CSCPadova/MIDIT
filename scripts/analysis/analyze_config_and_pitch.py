@@ -54,7 +54,7 @@ V1_PARAMS = dict(
     use_controls=False,
 )
 
-# ─── V2 config ── proposed in CLAUDE.md Task 1 ───────────────────────────────
+# ─── V2 config ── V2 tokenizer proposal ──────────────────────────────────────
 # NOTE: max_bar_embedding is NOT a TokenizerConfig parameter in miditok 3.x.
 #       It was available in older versions. This script will flag it accordingly.
 V2_PARAMS_FULL = dict(
@@ -68,8 +68,8 @@ V2_PARAMS_FULL = dict(
     use_programs=True,
     special_tokens=["PAD", "BOS", "EOS", "MASK"],
     use_controls=False,
-    max_bar_embedding=8,                         # from CLAUDE.md -- may not be supported
-    delete_equal_successive_tempo_changes=True,  # from CLAUDE.md -- reduces redundant tokens
+    max_bar_embedding=8,                         # V2 proposal -- may not be supported
+    delete_equal_successive_tempo_changes=True,  # V2 proposal -- reduces redundant tokens
     delete_equal_successive_time_sig_changes=True,
 )
 
