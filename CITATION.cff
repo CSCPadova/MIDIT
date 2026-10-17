@@ -5,7 +5,7 @@ title: "MIDIT: Multi-Track Symbolic Music Infilling via BERT-Style Pre-Training 
 authors:
   - family-names: Zanetti
     given-names: Simone
-repository-code: "https://github.com/SimoneZanetti00/MIDIT"
+repository-code: "https://github.com/CSCPadova/MIDIT"
 license: MIT
 keywords:
   - symbolic music

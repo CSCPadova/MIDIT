@@ -80,7 +80,7 @@ MIDIT is an open source project and we love to receive contributions from our co
    git push origin feature/your-feature-name
    ```
 
-6. **Create a Pull Request** to the `dev` branch (or `main` if `dev` doesn't exist yet)
+6. **Create a Pull Request** to the `master` branch
 
 ## Important Guidelines
 
@@ -188,8 +188,8 @@ The core team reviews Pull Requests on a regular basis. Here's what to expect:
 
 1. **Initial Review**: We'll review your PR within a few days and provide feedback
 2. **Feedback Loop**: Please respond to feedback within two weeks. We may close PRs that show no activity
-3. **Approval**: Once approved, a maintainer will merge your PR into the `dev` branch
-4. **Release**: Changes in `dev` will be merged to `main` during regular releases
+3. **Approval**: Once approved, a maintainer will merge your PR into `master`
+4. **Release**: Releases are tagged on `master`
 
 ## Development Tips
 

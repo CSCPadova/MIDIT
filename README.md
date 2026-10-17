@@ -84,7 +84,7 @@ MIDIT is a BERT-style masked language model for symbolic multi-track music infil
 ## Quickstart
 
 ```bash
-git clone https://github.com/SimoneZanetti00/MIDIT.git && cd MIDIT && uv sync
+git clone https://github.com/CSCPadova/MIDIT.git && cd MIDIT && uv sync
 uv run hf download SimoneZanetti00/MIDIT-checkpoints midit-infilling-epoch05.ckpt --local-dir logs/checkpoints/
 uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid \
     --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
@@ -129,7 +129,7 @@ independently, which can produce duplicate notes (6 here).
 
 ## Links
 
-[Thesis PDF — Release v1.0](https://github.com/SimoneZanetti00/MIDIT/releases/latest)·
+[Thesis PDF — Release v1.0](https://github.com/CSCPadova/MIDIT/releases/latest)·
 [Checkpoints on Hugging Face](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints) ·
 [Errata](docs/ERRATA.md) ·
 [Cite](CITATION.cff)
@@ -333,7 +333,7 @@ The preprocessed dataset is not distributed (66 GB); see
 Requires **Python 3.12** and [uv](https://github.com/astral-sh/uv).
 
 ```bash
-git clone https://github.com/SimoneZanetti00/MIDIT.git
+git clone https://github.com/CSCPadova/MIDIT.git
 cd MIDIT
 uv sync                     # add --group eval for the evaluation scripts
 ```
