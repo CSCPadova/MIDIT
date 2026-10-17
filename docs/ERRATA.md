@@ -4,12 +4,13 @@ Corrections to the printed MSc thesis *MIDIT: Multi-Track Symbolic Music Infilli
 via BERT-Style Pre-Training and Distribution-Aware Fine-Tuning* (University of
 Padova, A.Y. 2025/2026).
 
-**All reported results are computed on the released checkpoints
-(`midit-phase1-epoch14.ckpt`, `midit-infilling-epoch05.ckpt`).** The loss-weight
-errata concern only how the training configuration is described and do not affect
-any result. The only reported values that change are the GC column of Table 5.11
-and the reference line of Figure 5.5 (seed-set averaging, see below); no
-conclusion changes. Figure 2.9, an illustration of the token stream, has incorrect
+**All reported results except the zero-shot (ZS) row of Table 5.15 are computed on
+the released checkpoints (`midit-phase1-epoch14.ckpt`, `midit-infilling-epoch05.ckpt`).**
+The loss-weight errata concern only how the training configuration is described and
+do not affect any result. The only reported values that change are the GC column of
+Table 5.11 and the reference line of Figure 5.5 (seed-set averaging, see below);
+these corrections change no conclusion. The ZS row of Table 5.15 was computed on a
+different checkpoint and has not been recomputed (see below). Figure 2.9, an illustration of the token stream, has incorrect
 token labels; no result depends on it.
 
 ## Figure 2.9 — REMI+ token-stream example (p. 15)
@@ -97,7 +98,22 @@ released checkpoints.
   position is affected. This is the same seed-set issue as the Table 5.11 GC
   column; no conclusion changes.
 
+## Table 5.15 — MIDIT ZS row
+
+- The zero-shot samples (`outputs/samples_zs_1000`) were generated on 2026-06-01
+  (SLURM job 4532198, log verified on the cluster; launcher
+  `slurm/generate_samples_zs.sh`) from the Phase-1 checkpoint `epoch=49`
+  (val_loss 2.3866) of a separate post-thesis run, not from the thesis zero-shot
+  model (epoch 14, `midit-phase1-epoch14.ckpt`).
+- The printed value 71.02 therefore does not correspond to the thesis zero-shot
+  model; it has not been recomputed.
+- The FT row, the upper bound and all other zero-shot results (Tables 5.3, 5.4,
+  5.9) are not affected.
+
 ## Pending verification
 
-- **Hardware:** pending verification.
+- **Hardware (Phase 1):** the printed thesis states an NVIDIA L40S; the Phase-1
+  launchers committed in that period (e.g. `slurm/train_phase1_v2_50k_safe.sh`)
+  request an A40. No job log was checked, so the README states only the GPU
+  memory (48 GB, which both GPUs have).
 - **Training schedule:** pending verification.

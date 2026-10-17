@@ -29,7 +29,6 @@ needs_eval = pytest.mark.skipif(not HAS_EVAL_DEPS, reason="needs `uv sync --grou
 @pytest.mark.parametrize("module", [
     "midit",
     "midit.infer",
-    "midit.loss",
     "midit.model",
     "midit.model.model_factory",
     "midit.data.lakh_dataset",

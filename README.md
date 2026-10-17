@@ -31,6 +31,8 @@ MIDIT is a BERT-style masked language model for symbolic multi-track music infil
   d_z = 0.33), pitch-class entropy is statistically indistinguishable (p = 0.47), and
   the autoregressive model shows higher groove consistency (0.911 vs 0.840 for MIDIT).
 
+## How it works
+
 ````text
                       Input MIDI
                            │
@@ -284,7 +286,6 @@ MIDIT/
 │   ├── data/
 │   │   ├── lakh_dataset.py            # Dataset, chunking, song-level split, tokenizer config
 │   │   └── masking.py                 # TokenLevelMasking, BarFillMasking
-│   ├── loss/                          # Leftover from the project template — not used
 │   ├── train_phase1.py                # Phase 1: MLM pre-training
 │   ├── train_infilling.py             # Phase 1b: BarFillMasking fine-tuning
 │   └── infer.py                       # Infilling inference (validation set)
@@ -506,7 +507,7 @@ see [`slurm/README.md`](slurm/README.md)). Use the `uv run` command above to tra
 | Best checkpoint | epoch 14, val_loss 2.7254 |
 | Loss weights λ | Pitch 3.0 · Velocity 1.5 · Duration 1.0 · Program 1.5 · Position 0.5 · Bar 0.0 · Tempo 1.0 · TimeSig 0.5 · Rest 1.0 |
 | Precision | bf16 · gradient clipping 1.0 |
-| Hardware | 1 × NVIDIA A40 48 GB *(pending verification)* |
+| Hardware | 1 × 48 GB NVIDIA GPU (DEI cluster) |
 
 *Optimizer settings and loss weights are the hyperparameters stored in the
 released checkpoints. The stored `bar_level_masking=True` is an unused
@@ -625,11 +626,14 @@ Disclosed and quantified in the thesis:
 A few statements in the printed thesis need correction: some descriptions of the
 training configuration differ from the released checkpoints (e.g. the
 Tempo/TimeSig/Rest loss weights in Table 4.1), the GC column of Table 5.11
-averaged a different set of seeds than stated in its caption, and the token labels
-of the illustrative Figure 2.9 are wrong. The corrections are
-listed in [`docs/ERRATA.md`](docs/ERRATA.md). All reported results are computed on
-the released checkpoints; apart from the GC column of Table 5.11 and the
-reference line of Figure 5.5, no reported value changes, and no conclusion changes.
+averaged a different set of seeds than stated in its caption, the zero-shot (ZS) row
+of Table 5.15 was computed on samples from a post-thesis checkpoint rather than the
+thesis zero-shot model, and the token labels of the illustrative Figure 2.9 are
+wrong. The corrections are listed in [`docs/ERRATA.md`](docs/ERRATA.md). All other
+reported results are computed on the released checkpoints; apart from the GC column
+of Table 5.11 and the reference line of Figure 5.5, no reported value changes, and
+these two corrections change no conclusion. The ZS value of Table 5.15 has not been
+recomputed.
 
 ---
 
