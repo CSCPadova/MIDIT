@@ -1,0 +1,171 @@
+========================================================================
+PITCH & TOKEN ANALYSIS -- MIDIT LAKH MIDI DATASET
+Dataset  : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\data\midi_files\lmd_full
+Date     : 2026-03-18 11:44:31
+========================================================================
+
+  Total files found : 168,385
+  Sample size       : 400  (seed=42)
+
+[0] PARSING 400 FILES  (4 workers, miditoolkit)...
+------------------------------------------------------------------------
+  Done in 43.8s  (0.11s/file)
+  OK     : 400 / 400
+  Failed :   0 / 400
+
+========================================================================
+ANALYSIS 1 -- PITCH DIVERSITY  (non-drum unique MIDI pitch values)
+========================================================================
+
+  Files with at least one melodic note : 400 / 400
+  Files with 0 melodic notes (drums only): 0 / 400
+
+  Unique pitch stats (melodic files only):
+    Mean   : 39.9
+    Median : 39.0
+    Min    : 5
+    Max    : 85
+    StdDev : 14.8
+
+  Bucket                     Count   Sample%   Est.full  Bar chart
+  ------------------------  ------  --------  ---------  --------------------------
+  0 pitches  (no melody)         0      0.0%          0  [--------------------------]
+  1-4 pitches                    0      0.0%          0  [--------------------------]
+  5-9 pitches                    2      0.5%        842  [--------------------------]
+  10-19 pitches                 35      8.8%     14,734  [##------------------------]
+  20-35 pitches                116     29.0%     48,832  [########------------------]
+  36-60 pitches                213     53.2%     89,665  [##############------------]
+  > 60 pitches                  34      8.5%     14,313  [##------------------------]
+
+  Files with 1-4 unique pitches  (loop/rhythmic) :    0 / 400  (0.0%)  -- est. 0 in full dataset
+  Files with 1-9 unique pitches  (very low div.) :    2 / 400  (0.5%)  -- est. 842 in full dataset
+
+
+========================================================================
+ANALYSIS 2 -- ESTIMATED TOKEN COUNT DISTRIBUTION
+  (estimate: num_notes * 5 + num_bars * 2,  num_bars = duration_beats / 4)
+========================================================================
+
+  Token count estimate stats:
+    Mean   : 19,902
+    Median : 17,135
+    Min    : 92
+    Max    : 115,830
+    StdDev : 16,741
+
+  Bucket           Count   Sample%   Est.full  Bar chart
+  --------------  ------  --------  ---------  --------------------------
+  < 500               11      2.8%      4,631  [#-------------------------]
+  500 - 1k             6      1.5%      2,526  [--------------------------]
+  1k - 5k             59     14.8%     24,837  [####----------------------]
+  5k - 20k           156     39.0%     65,670  [##########----------------]
+  20k - 50k          141     35.2%     59,356  [#########-----------------]
+  > 50k               27      6.8%     11,366  [##------------------------]
+
+  Below 500 tokens  (near-empty)  : 11 / 400  (2.8%)  -- est. 4,631 in full dataset
+  Above 50,000 tokens (very long) : 27 / 400  (6.8%)  -- est. 11,366 in full dataset
+
+========================================================================
+ANALYSIS 3 -- MAX MELODIC INSTRUMENTS FILTER SIMULATION
+  (counts unique non-drum program numbers per file)
+========================================================================
+
+  Unique melodic programs stats:
+    Mean   : 6.0
+    Median : 6.0
+    Min    : 1
+    Max    : 26
+
+  Distribution of unique melodic programs per file (top 20):
+   Programs   Files       %  Bar chart
+  ---------  ------  ------  --------------------------
+          1      75   18.8%  [#####---------------------]
+          2      19    4.8%  [#-------------------------]
+          3      24    6.0%  [##------------------------]
+          4      32    8.0%  [##------------------------]
+          5      32    8.0%  [##------------------------]
+          6      48   12.0%  [###-----------------------]
+          7      47   11.8%  [###-----------------------]
+          8      29    7.2%  [##------------------------]
+          9      28    7.0%  [##------------------------]
+         10      17    4.2%  [#-------------------------]
+         11      10    2.5%  [#-------------------------]
+         12      15    3.8%  [#-------------------------]
+         13      10    2.5%  [#-------------------------]
+         14       5    1.2%  [--------------------------]
+         15       3    0.8%  [--------------------------]
+         16       2    0.5%  [--------------------------]
+         21       2    0.5%  [--------------------------]
+         22       1    0.2%  [--------------------------]
+         26       1    0.2%  [--------------------------]
+        20+       4    1.0%
+
+  Filter simulation (remove files with MORE than N melodic instruments):
+   Max instr   Removed   Survives   Survival%   Est.survive
+  ----------  --------  ---------  ----------  ------------
+           4       250        150       37.5%        63,144
+           6       170        230       57.5%        96,821
+           8        94        306       76.5%       128,815
+          10        49        351       87.8%       147,758
+          12        24        376       94.0%       158,282
+          16         4        396       99.0%       166,701
+
+========================================================================
+ANALYSIS 4 -- SILENCE RATIO ESTIMATION
+  (estimate: (total_dur_ticks - sum_note_dur_ticks) / total_dur_ticks)
+  Note: clamped to [0,1] -- polyphony causes sum_note_dur > total_dur
+========================================================================
+
+  Silence ratio stats:
+    Mean   : 0.4%
+    Median : 0.0%
+    Min    : 0.0%
+    Max    : 64.0%
+    StdDev : 4.2%
+
+  Bucket                     Count   Sample%   Est.full  Bar chart
+  ------------------------  ------  --------  ---------  --------------------------
+  0%   (heavy polyphony)       395     98.8%    166,280  [##########################]
+  0-10%                          1      0.2%        421  [--------------------------]
+  10-25%                         0      0.0%          0  [--------------------------]
+  25-50%                         3      0.8%      1,263  [--------------------------]
+  50-75%                         1      0.2%        421  [--------------------------]
+  > 75% silence                  0      0.0%          0  [--------------------------]
+
+  Files with silence > 50% : 1 / 400  (0.2%)  -- est. 421 in full dataset
+
+  OK: silence ratio is low across files.
+
+  Top 10 highest-silence files:
+   Silence%    Notes    Bars  File
+  ---------  -------  ------  ----------------------------------------
+      64.0%       42       6  3eac830f2c719ed11919d85538510bf3.mid
+
+========================================================================
+SUMMARY
+========================================================================
+  Files analyzed           : 400
+
+  [1] Pitch diversity:
+    Files with 0 melodic notes    :    0 / 400  (0.0%)
+    Files with 1-4 unique pitches :    0 / 400  (0.0%)
+    Files with 1-9 unique pitches :    2 / 400  (0.5%)
+    Median unique pitches (melodic): 39
+
+  [2] Token count estimate:
+    Below 500 (near-empty) :   11 / 400  (2.8%)
+    Above 50,000 (very long):   27 / 400  (6.8%)
+    Median estimate           : 17,135 tokens
+
+  [3] Max instruments filter:
+    Max  6 instruments -> removes  170 / 400  (42.5%),  survives 57.5%
+    Max 10 instruments -> removes   49 / 400  (12.2%),  survives 87.8%
+    Max 16 instruments -> removes    4 / 400  (1.0%),  survives 99.0%
+
+  [4] Silence ratio:
+    Files with > 50% silence :    1 / 400  (0.2%)
+    Median silence ratio     : 0.0%
+
+  Analysis time  : 54.9s
+  Report saved   : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\logs\pitch_and_token_analysis.txt
+========================================================================

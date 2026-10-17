@@ -1,0 +1,144 @@
+========================================================================
+QUALITY FILTER SIMULATION -- MIDIT LAKH MIDI DATASET
+Dataset  : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\data\midi_files\lmd_full
+Date     : 2026-03-18 11:29:50
+========================================================================
+
+  Total files found        : 168,385
+  Reference (known total)  : 168,385
+  Sample size              : 500  (seed=42)
+
+[0] PARSING 500 FILES  (4 workers, miditoolkit)...
+------------------------------------------------------------------------
+  Done in 38.0s  (0.08s/file)
+  OK     : 500 / 500
+  Failed :   0 / 500
+
+========================================================================
+ANALYSIS A -- BAR COUNT DISTRIBUTION
+  (estimate: duration_beats / 4, assuming 4/4 time)
+========================================================================
+
+  Bucket             Count   Sample%   Est. full  Bar chart
+  ----------------  ------  --------  ----------  --------------------------
+  < 8   bars            19      3.8%       6,399  [#-------------------------]
+  8-15  bars            13      2.6%       4,378  [#-------------------------]
+  16-31 bars            41      8.2%      13,808  [##------------------------]
+  32-63 bars            97     19.4%      32,667  [#####---------------------]
+  64-127 bars          255     51.0%      85,876  [#############-------------]
+  >= 128 bars           75     15.0%      25,258  [####----------------------]
+
+  Files with < 8 bars (0 chunks, auto-discarded): 19 / 500  (3.8%)
+  Estimated lost in full 168,385-file dataset : ~6,399
+
+  Bar count stats (non-zero):
+    Mean   : 85.0 bars
+    Median : 81.0 bars
+    Min    : 1
+    Max    : 400
+
+========================================================================
+ANALYSIS B -- COMBINED QUALITY FILTER SIMULATION
+========================================================================
+
+[B1] PER-FILTER STATISTICS  (each filter applied independently)
+------------------------------------------------------------------------
+
+  Filter                          Removed  % sample   Est. full  Bar chart
+  ------------------------------  -------  --------  ----------  --------------------------
+  F1: Constant velocity                64     12.8%      21,553  [###-----------------------]
+    (All notes have identical velocity value)
+
+  F2: Near-constant velocity           84     16.8%      28,289  [####----------------------]
+    (Top-1 velocity bin > 90% of notes)
+
+  F3: Duration < 15s                   16      3.2%       5,388  [#-------------------------]
+    (File is too short to contain useful musical content)
+
+  F4: Note count < 50                   7      1.4%       2,357  [--------------------------]
+    (File has too few notes)
+
+  F5: Bar count < 8                    19      3.8%       6,399  [#-------------------------]
+    (Not enough bars to produce any 8-bar chunk)
+
+[B2] COMBINED FILTER  (union -- removed if ANY filter triggers)
+------------------------------------------------------------------------
+
+  Total removed (union)   :    94 / 500  (18.8%)
+  Surviving files         :   406 / 500  (81.2%)
+
+  Estimated in full 168,385-file dataset:
+    Removed : ~31,656  (18.8%)
+    Survive : ~136,729  (81.2%)
+
+[B3] FILTER OVERLAP  (files removed by multiple filters)
+------------------------------------------------------------------------
+
+  How many files are caught by exactly N filters:
+    0 flag(s)  (pass all filters      ):   406  (81.2%)
+    1 flag(s)  (caught by 1 filter(s) ):    23  (4.6%)
+    2 flag(s)  (caught by 2 filter(s) ):    58  (11.6%)
+    3 flag(s)  (caught by 3 filter(s) ):     5  (1.0%)
+    4 flag(s)  (caught by 4 filter(s) ):     4  (0.8%)
+    5 flag(s)  (caught by 5 filter(s) ):     4  (0.8%)
+
+[B4] INCREMENTAL FILTER CASCADE  (filters applied in order)
+------------------------------------------------------------------------
+
+  Shows how many files remain after each filter is added cumulatively.
+
+  After filter                         Remaining   % of original
+  -----------------------------------  ---------  --------------
+  (start -- no filters)                      500          100.0%
+  F1: Constant velocity                      436           87.2%
+  F2: Near-constant velocity                 416           83.2%
+  F3: Duration < 15s                         408           81.6%
+  F4: Note count < 50                        408           81.6%
+  F5: Bar count < 8                          406           81.2%
+
+[B5] SURVIVING FILES  (pass all 5 filters)
+------------------------------------------------------------------------
+
+  Count   : 406
+
+  Duration (sec):
+    Mean   204.1s   Median 203.9s   Min 25.1s   Max 1200.3s
+  Notes per file:
+    Mean   4396   Median 3752   Min 72   Max 23006
+  Bar count (est.):
+    Mean   92.4   Median 87.0   Min 9   Max 400
+  Top-vel% (max velocity concentration):
+    Mean   24.2%   Median 15.6%   Max 89.5%
+
+[B6] ESTIMATED CHUNK YIELD AFTER FILTERING
+------------------------------------------------------------------------
+
+  Chunk count per file = bar_count_est // 8  (bars_per_chunk=8)
+
+  Avg chunks/surviving file : 11.1
+  Chunks in sample          : 4520
+  Est. total chunks (full)  : ~1,522,200
+
+  With pitch augmentation x11 (+/-5 semitones):
+    Est. augmented chunks   : ~16,544,209
+
+========================================================================
+SUMMARY
+========================================================================
+  Files analyzed           : 500
+
+  Filter rates (independent):
+    F1: Constant velocity          :   64 / 500  (12.8%)
+    F2: Near-constant velocity     :   84 / 500  (16.8%)
+    F3: Duration < 15s             :   16 / 500  (3.2%)
+    F4: Note count < 50            :    7 / 500  (1.4%)
+    F5: Bar count < 8              :   19 / 500  (3.8%)
+
+  Combined removal (union) :   94 / 500  (18.8%)
+  Survival rate            :  406 / 500  (81.2%)
+
+  Est. usable files (full) : ~136,729 / 168,385  (81.2%)
+
+  Analysis time  : 46.6s
+  Report saved   : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\logs\quality_filter_simulation.txt
+========================================================================

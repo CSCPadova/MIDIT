@@ -1,0 +1,163 @@
+========================================================================
+PROGRAM / INSTRUMENT DISTRIBUTION ANALYSIS -- MIDIT REMI+ V1 CONFIG
+Dataset  : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\data\midi_files\lmd_full
+Date     : 2026-03-18 10:45:22
+========================================================================
+
+  Total files in dataset : 168,385
+  Sample size            : 300  (seed=42)
+
+[1] TOKENIZING 300 FILES  (4 workers)...
+------------------------------------------------------------------------
+  Done in 39.0s  (0.13s/file)
+  OK     :  300 / 300
+  Failed :    0 / 300
+
+[2] GM INSTRUMENT FAMILY DISTRIBUTION
+------------------------------------------------------------------------
+
+  Total notes analyzed : 1,157,798  across 300 files
+  (One Program token per note in REMI+ stream)
+
+  Family                   Notes        %  Bar chart                         Flag
+  ------------------------------------------------------------------------
+  Drums                  343,802   29.69%  [########--------------------]  
+  Piano                  223,780   19.33%  [#####-----------------------]  
+  Chromatic Perc          12,381    1.07%  [----------------------------]  
+  Organ                   37,077    3.20%  [----------------------------]  
+  Guitar                 247,101   21.34%  [#####-----------------------]  
+  Bass                    88,924    7.68%  [##--------------------------]  
+  Strings                 12,479    1.08%  [----------------------------]  
+  Ensemble                63,123    5.45%  [#---------------------------]  
+  Brass                   28,984    2.50%  [----------------------------]  
+  Reed                    29,157    2.52%  [----------------------------]  
+  Pipe                    14,449    1.25%  [----------------------------]  
+  Synth Lead              21,603    1.87%  [----------------------------]  
+  Synth Pad               13,048    1.13%  [----------------------------]  
+  Other                   21,890    1.89%  [----------------------------]  
+
+  Sum check: 1,157,798 notes across all families (should equal 1,157,798)
+
+[3] FLAGS
+------------------------------------------------------------------------
+
+  No single GM family exceeds 40.0% of notes.
+  Dataset appears reasonably balanced across instrument families.
+
+  Top 5 families by note count:
+    Drums                  343,802  (29.7%)
+    Guitar                 247,101  (21.3%)
+    Piano                  223,780  (19.3%)
+    Bass                    88,924  (7.7%)
+    Ensemble                63,123  (5.5%)
+
+[4] SINGLE-PROGRAM AND DRUMS-ONLY FILES
+------------------------------------------------------------------------
+
+  Files with drums      :  209 / 300  (69.7%)
+  Files without drums   :   91 / 300  (30.3%)
+  Drums-only files      :    0 / 300  (0.0%)  (all notes = Program_-1)
+  Single-program files  :   53 / 300  (17.7%)  (1 unique instrument)
+  No program tokens     :    0 / 300  (0.0%)  (empty or unreadable)
+
+  Single-program files breakdown (top 10 programs):
+   Program  Name                          Family               Files
+  ----------------------------------------------------------------
+         0  Acoustic Grand Piano          Piano                   36
+        24  Nylon Guitar                  Guitar                   5
+         1  Bright Acoustic Piano         Piano                    4
+         6  Harpsichord                   Piano                    3
+         3  Honky-tonk Piano              Piano                    1
+        16  Drawbar Organ                 Organ                    1
+         7  Clavinet                      Piano                    1
+        30  Distortion Guitar             Guitar                   1
+        70  Bassoon                       Reed                     1
+
+  Estimated drums-only files in full dataset: ~0  (0.0%)
+
+[5] TOP 10 INDIVIDUAL PROGRAM VALUES  (by note count)
+------------------------------------------------------------------------
+
+  Rank    Prog  Name                          Family                   Notes        %    Files
+  --------------------------------------------------------------------------------
+  1         -1  Drums/Percussion              Drums                  343,802   29.69%    209/300
+  2          0  Acoustic Grand Piano          Piano                  158,365   13.68%    144/300
+  3         25  Steel Guitar                  Guitar                  85,671    7.40%     66/300
+  4         30  Distortion Guitar             Guitar                  47,908    4.14%     41/300
+  5         33  Finger Bass                   Bass                    36,942    3.19%     74/300
+  6         24  Nylon Guitar                  Guitar                  33,666    2.91%     49/300
+  7         27  Clean Guitar                  Guitar                  29,606    2.56%     52/300
+  8         48  String Ensemble 1             Ensemble                27,310    2.36%     66/300
+  9          1  Bright Acoustic Piano         Piano                   21,260    1.84%     33/300
+  10        28  Muted Guitar                  Guitar                  18,564    1.60%     29/300
+
+  Total unique Program values seen : 125
+  Programs with < 0.1% of notes   : 47
+  (These instruments are very underrepresented in the sample)
+
+[6] UNIQUE PROGRAMS PER FILE
+------------------------------------------------------------------------
+
+  Mean   : 6.6
+  Median : 7.0
+  Min    : 1
+  Max    : 27
+  StdDev : 4.3
+
+    # programs   Files        %  Bar chart
+  ----------------------------------------------------
+             1      53    17.7%  [###-------------------]
+             2      13     4.3%  [----------------------]
+             3      15     5.0%  [#---------------------]
+             4      16     5.3%  [#---------------------]
+             5      22     7.3%  [#---------------------]
+             6      27     9.0%  [#---------------------]
+             7      28     9.3%  [##--------------------]
+             8      35    11.7%  [##--------------------]
+             9      24     8.0%  [#---------------------]
+            10      17     5.7%  [#---------------------]
+            11      16     5.3%  [#---------------------]
+            12       7     2.3%  [----------------------]
+            13      11     3.7%  [----------------------]
+            14       8     2.7%  [----------------------]
+            15       3     1.0%  [----------------------]
+            16       2     0.7%  [----------------------]
+            22       1     0.3%  [----------------------]
+          > 20       3     1.0%
+
+[7] FAMILY CO-OCCURRENCE  (how often families appear together)
+------------------------------------------------------------------------
+  (% of files that contain at least one note from each family pair)
+
+  Family                   Drums      Guitar       Piano        Bass    Ensemble       Organ
+  ------------------------------------------------------------------------------------------
+  Drums                    69.7%       49.3%       45.3%       59.3%       44.0%       18.7%
+  Guitar                   49.3%       55.3%       34.7%       47.0%       31.7%       15.3%
+  Piano                    45.3%       34.7%       68.3%       41.7%       31.3%       12.3%
+  Bass                     59.3%       47.0%       41.7%       63.0%       39.3%       17.7%
+  Ensemble                 44.0%       31.7%       31.3%       39.3%       47.0%       10.7%
+  Organ                    18.7%       15.3%       12.3%       17.7%       10.7%       21.0%
+
+========================================================================
+SUMMARY
+========================================================================
+  Files analyzed              :      300
+  Total notes                 : 1,157,798
+  Avg notes/file              :    3,859
+  Unique Program values seen  :      125
+  Avg unique programs/file    :      6.6
+
+  Top 3 families by note count:
+    Drums               29.7%
+    Guitar              21.3%
+    Piano               19.3%
+
+  Drums-only files            :   0 / 300  (0.0%)
+  Single-program files        :  53 / 300  (17.7%)
+  Files with drums            : 209 / 300  (69.7%)
+
+  Class imbalance (notes): most=343,802  least=12,381  ratio=28x
+
+  Analysis time  : 39.0s
+  Report saved   : C:\Users\simoz\OneDrive\Desktop\Midit_14\MIDIT\logs\program_distribution_analysis.txt
+========================================================================

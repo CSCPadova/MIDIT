@@ -66,20 +66,17 @@ class FlanT5TextEncoder(nn.Module):
         hidden_states = encoder_outputs.last_hidden_state  # (batch_size, seq_length, hidden_size)
         
         # Pool the output (use mean pooling across sequence length)
-        if attention_mask is not None:
-            # Expand attention mask for broadcasting
-            mask_expanded = attention_mask.unsqueeze(-1).expand(hidden_states.size()).float()
-            sum_hidden = torch.sum(hidden_states * mask_expanded, dim=1)
-            sum_mask = torch.clamp(mask_expanded.sum(dim=1), min=1e-9)
-            pooled = sum_hidden / sum_mask
-        else:
-            pooled = hidden_states.mean(dim=1)
-        
-        # Project to target dimension
-        pooled = self.projection(pooled)
-        
-        return pooled
+        # NO pooling - keep all tokens!
+# hidden_states shape: (batch, text_seq_len, hidden_size)
 
+# Project each token
+        if attention_mask is not None:
+            # Apply projection to all tokens
+            projected = self.projection(hidden_states)  # (batch, text_seq_len, embed_dim)
+        else:
+            projected = self.projection(hidden_states)
+
+        return projected  # (batch, text_seq_len, embed_dim) - TUTTI i token!
 
 # Keep the old TextEncoder for backward compatibility (but mark as deprecated)
 class TextEncoder(nn.Module):

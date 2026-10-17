@@ -1,46 +1,142 @@
-defaults:
-    - /hydra/callbacks:
-        - log_job_return_callback
-    - override /hydra/launcher: submitit_slurm
-    - _self_
+# ============================================================================
+# MIDIT Configuration - Masked Transformer for REMI+ MIDI Generation
+# ============================================================================
 
-data:
-    data_dir: data
-    logs_dir: logs
-    num_workers: 1
-    max_midi_length: 1024
-    max_text_length: 256
-    midi_vocab_size: 512
-    text_vocab_size: 10000
+# ============================================================================
+# TOKENIZER CONFIGURATION
+# INFORMATIONAL ONLY — not read by code. Tokenizer is hardcoded
+# in midit/data/lakh_dataset.py. Values shown here for documentation.
+# ============================================================================
+tokenizer:
+    type: REMI
+    pitch_range: [21, 109]
+    beat_res: {"0,4": 8, "4,12": 4}   # V2 Python: {(0,4):8, (4,12):4}
+    num_velocities: 32
+    use_programs: true
+    one_token_stream_for_programs: true
+    use_pitchdrum_tokens: true
+    use_chords: false
+    use_rests: true
+    use_tempos: true
+    use_time_signatures: true
+    use_controls: false
+    special_tokens: ["PAD", "BOS", "EOS", "MASK"]
+    delete_equal_successive_tempo_changes: true
+    delete_equal_successive_time_sig_changes: true
+    vocab_size: 550
 
+# ============================================================================
+# CHUNKING CONFIGURATION (Flexible preprocessing)
+# ============================================================================
+chunking:
+    # Chunking strategy
+    strategy: bar_based  # 'bar_based' or 'token_based'
+
+    # Bar-based chunking parameters
+    bars_per_chunk: 8  # Number of bars per chunk (8, 16, 24, 32)
+
+    # Token-based chunking parameters
+    tokens_per_chunk: 4096  # Fixed token count per chunk
+
+    # Filtering and limits
+    max_tokens: 8192        # Hard limit (safety)
+    min_tokens_per_bar: 10  # Filter out empty bars
+    filter_empty_bars: true
+
+    # Preprocessing paths
+    raw_data_dir: data/lakh_clean
+    # Override from SLURM script — this local path is not used on cluster
+    preprocessed_dir: data/preprocessed_v2_test
+
+# ============================================================================
+# MASKING CONFIGURATION
+# ============================================================================
+masking:
+    mask_prob: 0.15
+    bar_level: false         # true = BarLevelMasking, false = TokenLevelMasking (BERT-style)
+    bar_mask_prob: 0.4       # usato solo se bar_level: true
+    type_mask_ratio: 0.8     # usato solo se bar_level: true
+    mask_strategy: bert      # 80% MASK, 10% random, 10% unchanged
+
+# ============================================================================
+# LAMBDA WEIGHTS (Per-token-type loss weights)
+# ============================================================================
+lambda_weights:
+    pitch: 3.0         # triplicato — il tipo più importante e più difficile
+    velocity: 1.5      # invariato
+    duration: 1.0      # invariato
+    program: 1.5       # ridotto leggermente (già buono a 55%)
+    position: 0.5      # invariato
+    bar: 0.0           # zeroed: rare or trivial tokens cause high loss variance
+    tempo: 0.0         # zeroed: rare or trivial tokens cause high loss variance (~5 masked/step → ±0.45 loss variance)
+    timesig: 0.0       # zeroed: rare or trivial tokens cause high loss variance
+    rest: 0.5          # halved: rare token, excess variance at 1.0
+
+# ============================================================================
+# MODEL CONFIGURATION
+# ============================================================================
 model:
+    type: masked_transformer
+    vocab_size: 550     # vocab_size computed dynamically from tokenizer at runtime
     d_model: 512
     nhead: 8
-    num_encoder_layers: 6
-    num_decoder_layers: 6
+    num_encoder_layers: 12
     dim_feedforward: 2048
     dropout: 0.1
-    max_seq_length: 1024
+    max_seq_length: 8192
 
-text_encoder:
-    model_name: google/flan-t5-base
-    freeze: true
+    # Special tokens
+    special_tokens:
+        pad: 0
+        bos: 1
+        eos: 2
+        mask: 3
 
-diffusion:
-    timesteps: 1000
-    beta_schedule: linear
-
+# ============================================================================
+# TRAINING CONFIGURATION
+# ============================================================================
 train:
-    accelerator: gpu
+    phase: 1
     batch_size: 8
-    epochs: 10
-    fast_run: false
+    epochs: 50
+    accelerator: gpu           # ← NUOVO!
+    devices: 1                 # ← NUOVO!
+    lr: 1.2e-3          # eff16 baseline; eff64 should use 1.8e-3 (not 2.4e-3) if instability observed
+    weight_decay: 0.01
+    warmup_steps: 1500
+    gradient_clip_val: 1.0
+    precision: bf16            # Cambia anche: 16-mixed è più safe
+    accumulate_grad_batches: 4
+    limit_train_batches: 25000    # 25000 batches / 4 accumulate = 6250 steps/epoch x 50 epochs = 312500 total steps (~8.5h/epoch on A40)
+    limit_val_batches: 1000       # cap val at 1000 batches (8000 samples, ~600k masked tokens) — full val would take 4h+ per check
 
-optim:
-    lr: 0.0001
+    # Checkpointing
+    save_top_k: 3
+    monitor: val_loss
 
+    # Logging
+    log_every_n_steps: 50
+    val_check_interval: 0.25
+
+# ============================================================================
+# LOGGING CONFIGURATION
+# ============================================================================
 logging:
-    use_wandb: true
-    use_tensorboard: true
-    wandb_project: midit
-    wandb_entity: null
+    use_wandb: false       # Enable via CLI: logging.use_wandb=true
+    wandb_project: MIDIT-Phase1
+
+# ============================================================================
+# DATA PATHS
+# ============================================================================
+paths:
+    # Phase 1: Pre-training
+    lakh_dir: data/lakh_clean
+    preprocessed_phase1: data/preprocessed_phase1
+
+    # Phase 2: Fine-tuning
+    midicaps_dir: data/midicaps
+    preprocessed_phase2: data/preprocessed_phase2
+
+    # Outputs
+    checkpoints_dir: checkpoints
+    logs_dir: logs

@@ -1,0 +1,134 @@
+======================================================================
+ANALYSIS B -- CONFIG V2 VOCAB IMPACT
+Date      : 2026-03-18 09:57:44
+MidiTok   : 3.0.6.post1
+======================================================================
+
+[B1] V2 PARAMETER SUPPORT CHECK
+----------------------------------------------------------------------
+  Parameter                                             Value                   Status
+  --------------------------------------------------------------------
+  max_bar_embedding                                     8                       [NOT SUPPORTED in miditok 3.0.6.post1]
+  delete_equal_successive_tempo_changes                 True                    [SUPPORTED]
+  delete_equal_successive_time_sig_changes              True                    [SUPPORTED]
+
+  NOTE: 1 param(s) from CLAUDE.md are absent from
+  TokenizerConfig in miditok 3.0.6.post1:
+    - max_bar_embedding = 8
+      (This param existed in older miditok versions. In v3.x the
+       bar embedding is handled differently. Will be skipped.)
+
+[B2] TOKENIZER CREATION
+----------------------------------------------------------------------
+  V1 tokenizer : OK  (vocab = 518)
+  V2 tokenizer : OK  (vocab = 550)
+
+[B3] VOCAB SIZE COMPARISON
+----------------------------------------------------------------------
+  V1 vocab size : 518
+  V2 vocab size : 550
+  Delta         : +32 tokens
+
+  ****************************************************************
+  * CRITICAL: VOCAB SIZE CHANGED BY +32 TOKENS                  *
+  *                                                              *
+  * Current model embedding layer expects exactly 518 tokens    *
+  * V2 config produces 550 tokens -- shapes do NOT match      *
+  *                                                              *
+  * Consequence: V2 preprocessing is INCOMPATIBLE with the      *
+  * current trained model (Run 3, epoch 48).                    *
+  * You MUST train from scratch if you adopt the V2 config.     *
+  ****************************************************************
+
+[B4] VOCAB BREAKDOWN BY TOKEN TYPE
+----------------------------------------------------------------------
+
+  Type                   V1     V2   Delta  Note
+  --------------------------------------------------
+  BOS                     1      1      +0
+  Bar                     1      1      +0
+  Duration               32     64     +32 *** CHANGED ***
+  EOS                     1      1      +0
+  MASK                    1      1      +0
+  PAD                     1      1      +0
+  Pitch                  89     89      +0
+  PitchDrum              62     62      +0
+  Position               96     96      +0
+  Program               129    129      +0
+  Rest                   32     32      +0
+  Tempo                  32     32      +0
+  TimeSig                 9      9      +0
+  Velocity               32     32      +0
+
+[B5] WHICH TOKENS WERE ADDED / REMOVED
+----------------------------------------------------------------------
+
+  ADDED (33 tokens):
+    [Duration]  Duration_10.0.4, Duration_10.1.4, Duration_10.2.4, Duration_10.3.4, Duration_11.0.4, Duration_11.1.4 ... (33 total)
+
+  REMOVED (1 tokens):
+    [Duration]  Duration_4.0.8
+
+  Root cause of vocab change:
+    beat_res {(0,4):8} -> {(0,4):8, (4,12):4}
+    The (4,12):4 range adds Duration tokens for notes longer than
+    4 beats (e.g. Duration_4.1.4 through Duration_11.3.4).
+    These represent note durations from 4+ beats up to 12 beats.
+    Most MIDI notes are shorter -- these tokens will be rare in practice.
+
+[B6] FILE-LEVEL TOKENIZATION COMPARISON  (10 files)
+----------------------------------------------------------------------
+
+  File                                             V1       V2    Delta   Delta%
+  ----------------------------------------------------------------------
+  fed0d864747ce7b40663d087ecc1f8e7.mid          8,753    8,753       +0    +0.0%
+  2c4918b3afce2a6f336d137d091a8764.mid         14,784   14,783       -1    -0.0%
+  09a73c52539dab532fc9295380eb99d8.mid         12,875   12,875       +0    +0.0%
+  6c15137a6bcc4568dcb3d43ebc71675e.mid         30,526   30,523       -3    -0.0%
+  607d5fe0b86c00233459731dec0f2ab2.mid         18,292   18,292       +0    +0.0%
+  58358c09bfc7c4f30a013f277c39b341.mid          6,080    6,080       +0    +0.0%
+  377e13bd6b604a0c7f5190bc7b59e52c.mid         38,455   38,454       -1    -0.0%
+  28b153fe3849f178434100773f5c540f.mid         18,168   18,168       +0    +0.0%
+  d943a121bb79e26accd1727ecfc5d115.mid          5,276    5,276       +0    +0.0%
+  225b81d08f8033b9dd4c700a2406428c.mid          9,454    9,454       +0    +0.0%
+
+  Token count delta across 10 files:
+    Mean   : -0.5
+    Median : +0.0
+    Min    : -3
+    Max    : +0
+
+  Note: delta=0 for most files means their notes have durations
+  <= 4 beats, so the new Duration tokens are not triggered.
+  Files with long notes (held > 4 beats) will produce different
+  Duration tokens under V2 (and these are NEW vocab IDs).
+
+======================================================================
+ANALYSIS B -- SUMMARY & DECISION GUIDE
+======================================================================
+
+  V1 vocab size              : 518 tokens
+  V2 vocab size              : 550 tokens
+  Vocab delta                : +32 tokens
+
+  Params applied from v2     : ['delete_equal_successive_tempo_changes', 'delete_equal_successive_time_sig_changes']
+  Params skipped (unsupported): ['max_bar_embedding']
+
+  COMPATIBILITY:
+    INCOMPATIBLE -- vocab changed.
+    The extended beat_res adds 32 Duration tokens.
+    These tokens have NEW IDs that the current model has never seen.
+
+  OPTIONS:
+    A) Keep V1 beat_res={(0,4):8} -- use only delete_equal_successive_*
+       -> Vocab stays at 518. Fine-tune from Run 3 checkpoint.
+    B) Use full V2 config -- vocab becomes 550.
+       -> Must train from scratch. Cannot reuse Run 3 weights.
+       -> V2 can represent longer durations more accurately.
+
+  max_bar_embedding=8 NOTE:
+    This param does NOT exist in miditok 3.0.6.post1.
+    Bar tokens remain ['Bar_None'] (1 token) regardless.
+    Positional bar info within a chunk is not encoded by the tokenizer.
+    (Could be added via absolute position embedding in the model instead.)
+======================================================================
