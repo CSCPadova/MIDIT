@@ -129,7 +129,7 @@ independently, which can produce duplicate notes (6 here).
 
 ## Links
 
-[Thesis PDF — Release v1.0 (to be published)](https://github.com/SimoneZanetti00/MIDIT/releases) ·
+[Thesis PDF — Release v1.0](https://github.com/SimoneZanetti00/MIDIT/releases/latest)·
 [Checkpoints on Hugging Face](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints) ·
 [Errata](docs/ERRATA.md) ·
 [Cite](CITATION.cff)
