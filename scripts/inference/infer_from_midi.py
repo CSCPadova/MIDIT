@@ -10,11 +10,13 @@ From Python (e.g. a demo), with the repository root on sys.path:
     paths = infill_midi('song.mid', 'logs/checkpoints/midit-infilling-epoch05.ckpt',
                         mask_bars=[3, 4, 5], start_bar=0, output_dir='outputs/my_song')
 """
-import argparse, sys, tempfile, torch, io
+import argparse, json, sys, tempfile, torch
 from pathlib import Path
 
-if __name__ == '__main__':
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+# The model prints emoji when it is built; Windows consoles default to cp1252. Applies
+# both to the command line and to callers that import infill_midi().
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -47,8 +49,9 @@ def infill_midi(midi_path, checkpoint, mask_bars=(3, 4, 5), start_bar=0,
                 output_dir='outputs/infilling', skip_filters=False):
     """Infill `mask_bars` (0-indexed within the 8-bar window at `start_bar`) of a MIDI file.
 
-    Writes original.mid, masked.mid and reconstructed.mid to `output_dir` and
-    returns their paths as a dict keyed by file name.
+    Writes original.mid, masked.mid and reconstructed.mid to `output_dir`, plus
+    tokens.json with their token ids (used by inspect_infill.py to find the bars),
+    and returns the paths as a dict keyed by file name.
     """
     mask_bars = list(mask_bars)
     output_dir = Path(output_dir)
@@ -92,6 +95,11 @@ def infill_midi(midi_path, checkpoint, mask_bars=(3, 4, 5), start_bar=0,
         ('reconstructed.mid', recon_tokens),
     ]:
         save_midi(tok, tokenizer, output_dir / fname)
+    (output_dir / 'tokens.json').write_text(json.dumps({
+        'start_bar': start_bar, 'mask_bars': mask_bars,
+        'original': tokens.tolist(), 'masked': masked_tokens.tolist(),
+        'reconstructed': recon_tokens.tolist(),
+    }))
 
     id_to_token = lookups['id_to_token']
     n_notes = sum(
@@ -106,11 +114,11 @@ def infill_midi(midi_path, checkpoint, mask_bars=(3, 4, 5), start_bar=0,
     print(f'  Chunk tokens : {len(tokens)}  |  Notes in chunk: {n_notes}')
     print(f'  Bars masked  : {mask_bars}')
     print(f'  Output dir   : {output_dir.resolve()}')
-    for f in ('original.mid', 'masked.mid', 'reconstructed.mid'):
+    for f in ('original.mid', 'masked.mid', 'reconstructed.mid', 'tokens.json'):
         print(f'    {f}')
     print('=' * 52)
 
-    return {f: output_dir / f for f in ('original.mid', 'masked.mid', 'reconstructed.mid')}
+    return {f: output_dir / f for f in ('original.mid', 'masked.mid', 'reconstructed.mid', 'tokens.json')}
 
 
 def main():

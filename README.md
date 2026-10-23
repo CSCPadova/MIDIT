@@ -96,7 +96,7 @@ Windows (PowerShell):
 uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
 ```
 
-Runs on CPU; writes `original.mid`, `masked.mid` and `reconstructed.mid` (details in [Quickstart](#-quickstart--infilling-on-your-own-midi) below).
+Runs on CPU; writes `original.mid`, `masked.mid` and `reconstructed.mid`, plus their token ids in `tokens.json` (details in [Quickstart](#-quickstart--infilling-on-your-own-midi) below).
 
 ## Inspecting a reconstruction
 
@@ -411,7 +411,8 @@ Windows (PowerShell):
 uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
 ```
 
-Produces `original.mid`, `masked.mid` and `reconstructed.mid` in `--output_dir`.
+Produces `original.mid`, `masked.mid` and `reconstructed.mid` in `--output_dir`, plus
+`tokens.json` with their token ids (used by `inspect_infill.py` to locate the bars).
 Replace `--midi_path` with your own file to infill it; the two files in
 [`examples/`](examples/) come from the Lakh MIDI Dataset (CC BY 4.0, attribution
 in [`examples/README.md`](examples/README.md)).

@@ -5,12 +5,24 @@ window, starting at tick 0) and prints, for each onset in the masked bars, the
 original and the MIDIT notes, followed by a short summary. Writes no files.
 
     python scripts/inference/inspect_infill.py --output_dir outputs/example/ --mask_bars 3 4 5
+
+The bars are the window's Bar tokens, not musical bars: a long silence is one Rest
+token, so one window bar can span several musical bars, and because MidiTok times a
+Rest from the end of the previous note, reconstructed.mid can have a slightly
+different timeline from original.mid. The bar boundaries of each file are therefore
+taken from its token ids in tokens.json (written by infer_from_midi.py).
 """
-import argparse, sys
+import argparse, json, sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+
+from miditok import TokSequence
 from symusic import Score
+
+from midit.infer import build_tokenizer
 
 PITCH_CLASSES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -24,27 +36,55 @@ def load_score(path):
     return Score.from_midi(Path(path).read_bytes())
 
 
-def bar_boundaries(score, n_bars):
-    """Tick boundaries of the first `n_bars` bars, following the file's time signatures."""
-    tpq = score.ticks_per_quarter
-    time_sigs = sorted(score.time_signatures, key=lambda ts: ts.time)
-    bounds, t = [0], 0
-    for _ in range(n_bars):
-        current = [ts for ts in time_sigs if ts.time <= t]
-        num, den = (current[-1].numerator, current[-1].denominator) if current else (4, 4)
-        t += tpq * 4 * num // den
-        bounds.append(t)
-    return bounds
+def bar_ticks(ids, tokenizer):
+    """Tick of every Bar token in `ids`, plus the tick at which the next bar would start.
+
+    Each tick is read from MidiTok's own decoder: the prefix ending at that Bar token
+    is decoded with one marker note at position 0 on an unused program. The marker is
+    the last event, so it cannot change any earlier timing.
+    """
+    vocab = tokenizer.vocab
+    id_to_token = {v: k for k, v in vocab.items()}
+    bar_id = vocab['Bar_None']
+    ids = [int(i) for i in ids]
+    used = {int(id_to_token[i].split('_')[1]) for i in ids if id_to_token.get(i, '').startswith('Program_')}
+    program = next(p for p in range(127, -1, -1) if p not in used)
+    velocity = next(k for k in vocab if k.startswith('Velocity_'))
+    duration = min((k for k in vocab if k.startswith('Duration_')), key=vocab.get)
+    marker = [vocab['Position_0'], vocab[f'Program_{program}'], vocab['Pitch_60'],
+              vocab[velocity], vocab[duration]]
+    ticks = []
+    for end in [i + 1 for i, t in enumerate(ids) if t == bar_id] + [None]:
+        prefix = ids[:end] if end is not None else ids + [bar_id]
+        score = tokenizer(TokSequence(ids=prefix + marker))
+        ticks.append(next(n.time for t in score.tracks
+                          if t.program == program and not t.is_drum for n in t.notes))
+    return ticks
+
+
+def window_grids(out):
+    """Bar ticks of original.mid and reconstructed.mid, and a warning if approximated."""
+    tokenizer = build_tokenizer()
+    tokens_path = out / 'tokens.json'
+    if tokens_path.exists():
+        data = json.loads(tokens_path.read_text())
+        return bar_ticks(data['original'], tokenizer), bar_ticks(data['reconstructed'], tokenizer), None
+    # Older output folders: re-tokenizing original.mid reproduces its bars, but the bars
+    # of reconstructed.mid can only be approximated by those of original.mid.
+    grid = bar_ticks(tokenizer(load_score(out / 'original.mid')).ids, tokenizer)
+    return grid, grid, ('tokens.json not found (older infer_from_midi.py output): the bars of '
+                        'reconstructed.mid are taken from original.mid, which can be off after a '
+                        'long rest that follows a masked note.')
 
 
 def collect_notes(score, bars, bounds):
-    """(bar, onset, pitch, program, is_drum) for every note starting in `bars`."""
+    """(bar, offset in bar, pitch, program, is_drum) for every note starting in `bars`."""
     notes = []
     for track in score.tracks:
         for n in track.notes:
             for b in bars:
                 if bounds[b] <= n.time < bounds[b + 1]:
-                    notes.append((b, n.time, n.pitch, track.program, track.is_drum))
+                    notes.append((b, n.time - bounds[b], n.pitch, track.program, track.is_drum))
     return notes
 
 
@@ -70,7 +110,7 @@ def main():
         description='Print original vs MIDIT notes in the masked bars of an '
                     'infer_from_midi.py output folder (writes no files)')
     parser.add_argument('--output_dir', required=True,
-                        help='Folder with original.mid and reconstructed.mid from infer_from_midi.py')
+                        help='Folder with original.mid, reconstructed.mid and tokens.json from infer_from_midi.py')
     parser.add_argument('--mask_bars', type=int, nargs='+', default=[3, 4, 5],
                         help='Masked bars, 0-indexed within the 8-bar window (default: 3 4 5)')
     args = parser.parse_args()
@@ -83,12 +123,12 @@ def main():
     if recon.ticks_per_quarter != tpq:
         sys.exit(f'ticks_per_quarter differs: original {tpq}, reconstructed {recon.ticks_per_quarter}')
 
-    bounds = bar_boundaries(orig, max(bars) + 1)
-    if min(bars) < 0 or bounds[max(bars)] >= orig.end():
-        sys.exit(f'--mask_bars {bars} out of range for {out / "original.mid"}')
+    grid_o, grid_r, warning = window_grids(out)
+    if min(bars) < 0 or max(bars) + 1 >= len(grid_o):
+        sys.exit(f'--mask_bars {bars} out of range for {out / "original.mid"} ({len(grid_o) - 1} bars)')
 
-    orig_notes = collect_notes(orig, bars, bounds)
-    recon_notes = collect_notes(recon, bars, bounds)
+    orig_notes = collect_notes(orig, bars, grid_o)
+    recon_notes = collect_notes(recon, bars, grid_r)
     names = track_names(orig, recon)
 
     by_onset = defaultdict(lambda: ([], []))
@@ -102,16 +142,21 @@ def main():
     print(f'Folder         : {out}')
     print(f'Masked bars    : {bars} (0-indexed within the 8-bar window)')
     print(f'Time signatures: {ts_str}  |  tpq {tpq}  |  bar ticks '
-          + ', '.join(f'{b}:[{bounds[b]},{bounds[b + 1]})' for b in bars))
+          + ', '.join(f'{b}:[{grid_o[b]},{grid_o[b + 1]})' for b in bars))
+    if grid_r != grid_o:
+        print('                 reconstructed.mid bar ticks '
+              + ', '.join(f'{b}:[{grid_r[b]},{grid_r[b + 1]})' for b in bars))
+    if warning:
+        print(f'Warning        : {warning}')
     print()
     print('Per onset  (note:program, "drums" for drum notes; notes sorted by pitch)')
-    beat_ticks = {b: tpq * 4 // next((t.denominator for t in reversed(ts) if t.time <= bounds[b]), 4)
+    beat_ticks = {b: tpq * 4 // next((t.denominator for t in reversed(ts) if t.time <= grid_o[b]), 4)
                   for b in bars}
     exact = pc = pairs = unpaired = 0
-    for (bar, onset), (o, r) in sorted(by_onset.items()):
+    for (bar, offset), (o, r) in sorted(by_onset.items()):
         o.sort(key=lambda n: (n[4], n[2], n[3]))
         r.sort(key=lambda n: (n[4], n[2], n[3]))
-        beat = 1 + (onset - bounds[bar]) / beat_ticks[bar]
+        beat = 1 + offset / beat_ticks[bar]
         print(f'  bar {bar} beat {beat:<6g} | orig : {" ".join(fmt(n) for n in o) or "-"}')
         print(f'  {"":17} | MIDIT: {" ".join(fmt(n) for n in r) or "-"}')
         # Pair pitched notes by pitch order within the onset; drums are not compared.
@@ -149,7 +194,7 @@ def main():
     print('    MIDIT   : ' + '  '.join(f'{k} {v}' for k, v in r_pc.most_common(5)))
 
     def n_duplicates(notes):
-        keys = [(n[1], n[2], n[3], n[4]) for n in notes]
+        keys = [(n[0], n[1], n[2], n[3], n[4]) for n in notes]
         return len(keys) - len(set(keys))
 
     print(f'  Duplicate notes (same pitch + program + onset): MIDIT {n_duplicates(recon_notes)}  '
