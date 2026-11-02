@@ -326,7 +326,7 @@ and, in the layout at thesis submission, at commit [`835e149`](https://github.co
 | **Infill bars of your own MIDI file** | a checkpoint only (CPU is enough) | `scripts/inference/infer_from_midi.py` | [Quickstart](#-quickstart--infilling-on-your-own-midi) |
 | Infill held-out validation songs | checkpoint + preprocessed dataset | `midit/infer.py`, `scripts/inference/generate_samples_batch.py` | [Dataset-backed inference](#dataset-backed-inference) |
 | Train Phase 1 / Phase 1b | preprocessed dataset + GPU | `midit/train_phase1.py`, `midit/train_infilling.py` | [Training](#%EF%B8%8F-training) |
-| Reproduce the evaluation | generated samples (+ dataset for cloze accuracy) | `scripts/evaluation/`, `scripts/verification/` | [Evaluation](#-evaluation) |
+| Reproduce the evaluation | samples generated from the dataset (cloze accuracy: the dataset itself; JS reference: the raw Lakh files; Anticipatory MT baseline: a separate environment, see [`scripts/evaluation/baselines/anticipatory/`](scripts/evaluation/baselines/anticipatory/README.md)) | `scripts/evaluation/`, `scripts/verification/` | [Evaluation](#-evaluation) |
 
 The preprocessed dataset is not distributed (66 GB); see
 [Reproducing the dataset](#-reproducing-the-dataset).
@@ -369,12 +369,12 @@ Pretrained weights are hosted on the [Hugging Face Hub](https://huggingface.co/S
 Download both into `logs/checkpoints/`:
 
 ```bash
-uv pip install huggingface_hub    # or: pip install huggingface_hub
-
-hf download SimoneZanetti00/MIDIT-checkpoints \
+uv run hf download SimoneZanetti00/MIDIT-checkpoints \
     midit-infilling-epoch05.ckpt midit-phase1-epoch14.ckpt \
     --local-dir logs/checkpoints/
 ```
+
+(`huggingface_hub`, which provides `hf`, is already installed by `uv sync`.)
 
 Weights contain the Lightning `state_dict` + hyperparameters only (optimizer state removed). Trained on the Lakh MIDI Dataset; released for research purposes.
 
@@ -476,10 +476,15 @@ rebuild it from scratch:
    ```bash
    uv run python scripts/preprocessing/preprocess_v2.py \
        --output_dir data/preprocessed_v2_50k \
-       --num_workers 32
+       --num_workers 32 --max_files 50000 --seed 42
    ```
 
-   Optional flags: `--max_files N` (0 = all), `--dry_run`, `--seed 42`.
+   The thesis dataset is a 50,000-file sample of `lmd_full`; without `--max_files`
+   all files are processed. The exact command of the thesis run was not recorded:
+   `--max_files 50000 --seed 42` (a seeded sample of the sorted file list, on Linux)
+   is consistent with the 441,518 `.pt` files above (50,000 × 80.3% kept × 11
+   transpositions), but has not been re-run to confirm that it selects the same files.
+   Other flags: `--dry_run`.
 
 > **Tokenizer note.** The MidiTok REMI+ config is rebuilt in code (see the
 > `TokenizerConfig` above), never shipped as a file. The 550-token vocabulary is
