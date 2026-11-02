@@ -9,9 +9,12 @@ Simone Zanetti · MSc thesis, Data Science, University of Padova, 2025/26 · Sup
 [![Lightning](https://img.shields.io/badge/Lightning-2.x-792EE5.svg)](https://lightning.ai/)
 [![MidiTok](https://img.shields.io/badge/MidiTok-REMI%2B-green.svg)](https://github.com/Natooz/MidiTok)
 [![Checkpoints](https://img.shields.io/badge/🤗%20Hub-checkpoints-yellow.svg)](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints)
+[![Demo](https://img.shields.io/badge/🤗%20Spaces-demo-blue.svg)](https://huggingface.co/spaces/SimoneZanetti00/MIDIT-demo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
+
+**Try it online:** the [MIDIT demo on Hugging Face Spaces](https://huggingface.co/spaces/SimoneZanetti00/MIDIT-demo) infills bars of an uploaded MIDI file or of a validation example. Audio examples: [presentation video](https://www.youtube.com/watch?v=ywxU9QwpMJg).
 
 ## What it is
 
@@ -129,7 +132,9 @@ independently, which can produce duplicate notes (6 here).
 
 ## Links
 
-[Thesis PDF — Release v1.0](https://github.com/CSCPadova/MIDIT/releases/latest)·
+[Thesis PDF](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints/blob/main/MIDIT_thesis.pdf) ·
+[Demo](https://huggingface.co/spaces/SimoneZanetti00/MIDIT-demo) ·
+[Presentation video](https://www.youtube.com/watch?v=ywxU9QwpMJg) ·
 [Checkpoints on Hugging Face](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints) ·
 [Errata](docs/ERRATA.md) ·
 [Cite](CITATION.cff)
@@ -309,8 +314,8 @@ MIDIT/
 ```
 
 Historical scripts, the full set of SLURM launchers and the 2026-07 audit notes are not
-in the tree. They are preserved at the `archive-full-tree` tag (layout before this
-slimming) and, in the layout at thesis submission, at the `thesis-final` tag.
+in the tree. They are preserved at commit [`aa8423b`](https://github.com/CSCPadova/MIDIT/tree/aa8423b3bfda7bbfa3e418753db74d8c1dfe0fcc) (tagged `archive-full-tree` in the original repository), the layout before this slimming,
+and, in the layout at thesis submission, at commit [`835e149`](https://github.com/CSCPadova/MIDIT/tree/835e1495ec7533efd44d199b562a9e351505d61d) (tagged `thesis-final` in the original repository).
 
 ---
 
@@ -342,13 +347,13 @@ Windows: if `uv sync` fails with a hardlink / cloud-file error (e.g. under
 OneDrive), run `uv sync --link-mode=copy`.
 
 > The code state at thesis submission, before this repository reorganisation, is
-> tagged `thesis-final`.
+> commit [`835e149`](https://github.com/CSCPadova/MIDIT/tree/835e1495ec7533efd44d199b562a9e351505d61d).
 
 Run repository commands through `uv run` so they use the locked environment. On
 Windows, this avoids shell-specific activation commands. `uv run python -m midit`
 (and the `infer` console command) is an alias for `midit/infer.py`; the examples
 below use the explicit scripts. See [`scripts/README.md`](scripts/README.md) for a maintained
-map of the scripts; the historical ones are in `research/` at the `archive-full-tree` tag.
+map of the scripts; the historical ones are in `research/` at commit [`aa8423b`](https://github.com/CSCPadova/MIDIT/tree/aa8423b3bfda7bbfa3e418753db74d8c1dfe0fcc).
 
 ---
 

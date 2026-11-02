@@ -25,5 +25,5 @@ are the dataset's MD5 identifiers), © Colin Raffel, distributed under the
 removed (tempo, time-signature and key-signature events kept) and the result was
 re-saved with `symusic` by an early tokenizer-validation script
 (`scripts/validate_tokenization.py`, commit `91ffcbb`). They are copies of
-`thesis_materials/04_figures_data/validation_output/original_<id>.mid` at the
-`thesis-final` tag (`research/thesis_materials/...` at `archive-full-tree`).
+`thesis_materials/04_figures_data/validation_output/original_<id>.mid` at
+commit [`835e149`](https://github.com/CSCPadova/MIDIT/tree/835e1495ec7533efd44d199b562a9e351505d61d) (tagged `thesis-final` in the original repository) (`research/thesis_materials/...` at commit [`aa8423b`](https://github.com/CSCPadova/MIDIT/tree/aa8423b3bfda7bbfa3e418753db74d8c1dfe0fcc) (tagged `archive-full-tree` in the original repository)).

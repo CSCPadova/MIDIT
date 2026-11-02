@@ -30,4 +30,4 @@ dataset) or for the cloze evaluation
 (`scripts/evaluation/evaluate_phase1_accuracy_DIRECT.py`).
 
 The other launchers (project templates, test runs, post-thesis and V1 runs, audit
-jobs) are preserved at the `archive-full-tree` tag.
+jobs) are preserved at commit [`aa8423b`](https://github.com/CSCPadova/MIDIT/tree/aa8423b3bfda7bbfa3e418753db74d8c1dfe0fcc) (tagged `archive-full-tree` in the original repository).
