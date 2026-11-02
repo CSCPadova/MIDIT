@@ -5,8 +5,8 @@
 **Author:** generated from a full audit of `train_infilling.py`, `lakh_dataset.py`, `masking.py`, `config_infilling.yaml`, `config.yaml`.
 
 > **Post-thesis experiment.** Proposal A is not a thesis model. Its launcher
-> `slurm/train_infilling_v2.sh` is no longer in the tree; it is preserved at the
-> `archive-full-tree` tag. Its config is archived as
+> `slurm/train_infilling_v2.sh` is no longer in the tree; it is preserved at
+> commit [`aa8423b`](https://github.com/CSCPadova/MIDIT/tree/aa8423b3bfda7bbfa3e418753db74d8c1dfe0fcc) (tagged `archive-full-tree` in the original repository). Its config is archived as
 > `conf/configs_archive/config_infilling_v2.yaml`; the `conf/config_infilling_v2.yaml`
 > paths below refer to its original location.
 

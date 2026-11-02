@@ -103,12 +103,15 @@ def _init_worker():
 
 # ── Per-file worker ───────────────────────────────────────────────────────────
 
-def _process_file(args: tuple) -> dict:
+def _process_file(args: tuple, skip_filters: bool = False) -> dict:
     """
     Process one MIDI file: apply quality filters, tokenize with pitch shifting.
 
     Args:
         args: (midi_path, output_dir, shifts, dry_run)
+        skip_filters: evaluate the quality filters but tokenize anyway (used by
+            scripts/inference/infer_from_midi.py --skip_filters); the status then
+            reports the first filter that failed. The dataset pipeline keeps the default.
 
     Returns:
         dict with keys:
@@ -142,9 +145,11 @@ def _process_file(args: tuple) -> dict:
 
         # ── Quality filters ────────────────────────────────────────────────────
 
+        failed = None   # first failed filter
+
         # F1: too sparse
         if len(all_notes) < F1_MIN_NOTES:
-            return {"path": str(midi_path), "status": "skipped_f1", "pt_count": 0, "error": None}
+            failed = "skipped_f1"
 
         # F2: too short
         if all_notes:
@@ -153,18 +158,21 @@ def _process_file(args: tuple) -> dict:
         else:
             duration_sec = 0.0
 
-        if duration_sec < F2_MIN_DURATION_S:
-            return {"path": str(midi_path), "status": "skipped_f2", "pt_count": 0, "error": None}
+        if failed is None and duration_sec < F2_MIN_DURATION_S:
+            failed = "skipped_f2"
 
         # F3: near-constant velocity
         vel_counts  = _Counter(n.velocity for n in all_notes)
         top_vel_pct = max(vel_counts.values()) / len(all_notes) if all_notes else 0.0
-        if top_vel_pct > F3_MAX_VEL_PCT:
-            return {"path": str(midi_path), "status": "skipped_f3", "pt_count": 0, "error": None}
+        if failed is None and top_vel_pct > F3_MAX_VEL_PCT:
+            failed = "skipped_f3"
+
+        if failed is not None and not skip_filters:
+            return {"path": str(midi_path), "status": failed, "pt_count": 0, "error": None}
 
         # ── Dry run: filters passed, nothing to save ───────────────────────────
         if dry_run:
-            return {"path": str(midi_path), "status": "ok", "pt_count": 0, "error": None}
+            return {"path": str(midi_path), "status": failed or "ok", "pt_count": 0, "error": None}
 
         # ── Tokenize each shift and save .pt ──────────────────────────────────
         stem     = Path(midi_path).stem
@@ -253,12 +261,12 @@ def _process_file(args: tuple) -> dict:
             # Partial success is still 'ok'; errors are logged separately
             return {
                 "path": str(midi_path),
-                "status": "ok",
+                "status": failed or "ok",
                 "pt_count": pt_count,
                 "error": "; ".join(errors),
             }
 
-        return {"path": str(midi_path), "status": "ok", "pt_count": pt_count, "error": None}
+        return {"path": str(midi_path), "status": failed or "ok", "pt_count": pt_count, "error": None}
 
     except Exception as e:
         return {

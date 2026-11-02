@@ -9,9 +9,12 @@ Simone Zanetti · MSc thesis, Data Science, University of Padova, 2025/26 · Sup
 [![Lightning](https://img.shields.io/badge/Lightning-2.x-792EE5.svg)](https://lightning.ai/)
 [![MidiTok](https://img.shields.io/badge/MidiTok-REMI%2B-green.svg)](https://github.com/Natooz/MidiTok)
 [![Checkpoints](https://img.shields.io/badge/🤗%20Hub-checkpoints-yellow.svg)](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints)
+[![Demo](https://img.shields.io/badge/🤗%20Spaces-demo-blue.svg)](https://huggingface.co/spaces/SimoneZanetti00/MIDIT-demo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
+
+**Try it online:** the [MIDIT demo on Hugging Face Spaces](https://huggingface.co/spaces/SimoneZanetti00/MIDIT-demo) infills bars of an uploaded MIDI file or of a validation example. Audio examples: [presentation video](https://www.youtube.com/watch?v=ywxU9QwpMJg).
 
 ## What it is
 
@@ -96,7 +99,7 @@ Windows (PowerShell):
 uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
 ```
 
-Runs on CPU; writes `original.mid`, `masked.mid` and `reconstructed.mid` (details in [Quickstart](#-quickstart--infilling-on-your-own-midi) below).
+Runs on CPU; writes `original.mid`, `masked.mid` and `reconstructed.mid`, plus their token ids in `tokens.json` (details in [Quickstart](#-quickstart--infilling-on-your-own-midi) below).
 
 ## Inspecting a reconstruction
 
@@ -129,7 +132,9 @@ independently, which can produce duplicate notes (6 here).
 
 ## Links
 
-[Thesis PDF — Release v1.0](https://github.com/CSCPadova/MIDIT/releases/latest)·
+[Thesis PDF](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints/blob/main/MIDIT_thesis.pdf) ·
+[Demo](https://huggingface.co/spaces/SimoneZanetti00/MIDIT-demo) ·
+[Presentation video](https://www.youtube.com/watch?v=ywxU9QwpMJg) ·
 [Checkpoints on Hugging Face](https://huggingface.co/SimoneZanetti00/MIDIT-checkpoints) ·
 [Errata](docs/ERRATA.md) ·
 [Cite](CITATION.cff)
@@ -309,8 +314,8 @@ MIDIT/
 ```
 
 Historical scripts, the full set of SLURM launchers and the 2026-07 audit notes are not
-in the tree. They are preserved at the `archive-full-tree` tag (layout before this
-slimming) and, in the layout at thesis submission, at the `thesis-final` tag.
+in the tree. They are preserved at commit [`aa8423b`](https://github.com/CSCPadova/MIDIT/tree/aa8423b3bfda7bbfa3e418753db74d8c1dfe0fcc) (tagged `archive-full-tree` in the original repository), the layout before this slimming,
+and, in the layout at thesis submission, at commit [`835e149`](https://github.com/CSCPadova/MIDIT/tree/835e1495ec7533efd44d199b562a9e351505d61d) (tagged `thesis-final` in the original repository).
 
 ---
 
@@ -321,7 +326,7 @@ slimming) and, in the layout at thesis submission, at the `thesis-final` tag.
 | **Infill bars of your own MIDI file** | a checkpoint only (CPU is enough) | `scripts/inference/infer_from_midi.py` | [Quickstart](#-quickstart--infilling-on-your-own-midi) |
 | Infill held-out validation songs | checkpoint + preprocessed dataset | `midit/infer.py`, `scripts/inference/generate_samples_batch.py` | [Dataset-backed inference](#dataset-backed-inference) |
 | Train Phase 1 / Phase 1b | preprocessed dataset + GPU | `midit/train_phase1.py`, `midit/train_infilling.py` | [Training](#%EF%B8%8F-training) |
-| Reproduce the evaluation | generated samples (+ dataset for cloze accuracy) | `scripts/evaluation/`, `scripts/verification/` | [Evaluation](#-evaluation) |
+| Reproduce the evaluation | samples generated from the dataset (cloze accuracy: the dataset itself; JS reference: the raw Lakh files; Anticipatory MT baseline: a separate environment, see [`scripts/evaluation/baselines/anticipatory/`](scripts/evaluation/baselines/anticipatory/README.md)) | `scripts/evaluation/`, `scripts/verification/` | [Evaluation](#-evaluation) |
 
 The preprocessed dataset is not distributed (66 GB); see
 [Reproducing the dataset](#-reproducing-the-dataset).
@@ -342,13 +347,13 @@ Windows: if `uv sync` fails with a hardlink / cloud-file error (e.g. under
 OneDrive), run `uv sync --link-mode=copy`.
 
 > The code state at thesis submission, before this repository reorganisation, is
-> tagged `thesis-final`.
+> commit [`835e149`](https://github.com/CSCPadova/MIDIT/tree/835e1495ec7533efd44d199b562a9e351505d61d).
 
 Run repository commands through `uv run` so they use the locked environment. On
 Windows, this avoids shell-specific activation commands. `uv run python -m midit`
 (and the `infer` console command) is an alias for `midit/infer.py`; the examples
 below use the explicit scripts. See [`scripts/README.md`](scripts/README.md) for a maintained
-map of the scripts; the historical ones are in `research/` at the `archive-full-tree` tag.
+map of the scripts; the historical ones are in `research/` at commit [`aa8423b`](https://github.com/CSCPadova/MIDIT/tree/aa8423b3bfda7bbfa3e418753db74d8c1dfe0fcc).
 
 ---
 
@@ -364,12 +369,12 @@ Pretrained weights are hosted on the [Hugging Face Hub](https://huggingface.co/S
 Download both into `logs/checkpoints/`:
 
 ```bash
-uv pip install huggingface_hub    # or: pip install huggingface_hub
-
-hf download SimoneZanetti00/MIDIT-checkpoints \
+uv run hf download SimoneZanetti00/MIDIT-checkpoints \
     midit-infilling-epoch05.ckpt midit-phase1-epoch14.ckpt \
     --local-dir logs/checkpoints/
 ```
+
+(`huggingface_hub`, which provides `hf`, is already installed by `uv sync`.)
 
 Weights contain the Lightning `state_dict` + hyperparameters only (optimizer state removed). Trained on the Lakh MIDI Dataset; released for research purposes.
 
@@ -411,7 +416,8 @@ Windows (PowerShell):
 uv run python scripts/inference/infer_from_midi.py --midi_path examples/0000799e8672292fe6f0fff08554ca40.mid --checkpoint logs/checkpoints/midit-infilling-epoch05.ckpt --mask_bars 3 4 5 --start_bar 12 --output_dir outputs/example/
 ```
 
-Produces `original.mid`, `masked.mid` and `reconstructed.mid` in `--output_dir`.
+Produces `original.mid`, `masked.mid` and `reconstructed.mid` in `--output_dir`, plus
+`tokens.json` with their token ids (used by `inspect_infill.py` to locate the bars).
 Replace `--midi_path` with your own file to infill it; the two files in
 [`examples/`](examples/) come from the Lakh MIDI Dataset (CC BY 4.0, attribution
 in [`examples/README.md`](examples/README.md)).
@@ -470,10 +476,15 @@ rebuild it from scratch:
    ```bash
    uv run python scripts/preprocessing/preprocess_v2.py \
        --output_dir data/preprocessed_v2_50k \
-       --num_workers 32
+       --num_workers 32 --max_files 50000 --seed 42
    ```
 
-   Optional flags: `--max_files N` (0 = all), `--dry_run`, `--seed 42`.
+   The thesis dataset is a 50,000-file sample of `lmd_full`; without `--max_files`
+   all files are processed. The exact command of the thesis run was not recorded:
+   `--max_files 50000 --seed 42` (a seeded sample of the sorted file list, on Linux)
+   is consistent with the 441,518 `.pt` files above (50,000 × 80.3% kept × 11
+   transpositions), but has not been re-run to confirm that it selects the same files.
+   Other flags: `--dry_run`.
 
 > **Tokenizer note.** The MidiTok REMI+ config is rebuilt in code (see the
 > `TokenizerConfig` above), never shipped as a file. The 550-token vocabulary is

@@ -1,8 +1,8 @@
 # Script guide
 
 Scripts that reproduce the MIDIT pipeline and the thesis results. Historical,
-exploratory and V1-tokenizer scripts are in `research/` at the `archive-full-tree`
-tag; the pre-reorganisation layout is preserved in the `thesis-final` tag.
+exploratory and V1-tokenizer scripts are in `research/` at commit [`aa8423b`](https://github.com/CSCPadova/MIDIT/tree/aa8423b3bfda7bbfa3e418753db74d8c1dfe0fcc) (tagged `archive-full-tree` in the original repository);
+the pre-reorganisation layout is preserved at commit [`835e149`](https://github.com/CSCPadova/MIDIT/tree/835e1495ec7533efd44d199b562a9e351505d61d) (tagged `thesis-final` in the original repository).
 
 Run everything from the repository root with `uv run python ...`. Scripts that need
 a dataset, checkpoint or cluster storage say so in their `--help`. The evaluation
@@ -20,7 +20,7 @@ checkpoints.
 | | `analyze_preprocessed_v2_dataset.py` | Statistics of the preprocessed V2 dataset | Ch. 3 dataset analysis |
 | | `thesis_mini_analyses.py` | Per-class frequencies, loss-weight audit, sequence lengths | Ch. 3–4 analyses |
 | `inference/` | `infer_from_midi.py` | Infill bars of any MIDI file (also importable: `infill_midi()`) | README quickstart |
-| | `inspect_infill.py` | Print original vs MIDIT notes per onset in the masked bars of an `infer_from_midi.py` output (writes no files) | README "Inspecting a reconstruction" |
+| | `inspect_infill.py` | Print original vs MIDIT notes per onset in the masked bars of an `infer_from_midi.py` output; bars are taken from the Bar tokens in `tokens.json`, since a long rest is one REMI bar (writes no files) | README "Inspecting a reconstruction" |
 | | `generate_samples_batch.py` | Generate N validation samples with one model load | evaluation sample sets |
 | `evaluation/` | `evaluate_phase1_accuracy_DIRECT.py` | Cloze Top-1/Top-5 accuracy per token type | Fig. 5.1, cloze results |
 | | `compute_infilling_metrics.py` | CP / GS / PCHE implementation (library + CLI) | Ch. 5 infilling metrics |
@@ -40,7 +40,7 @@ checkpoints.
 | | `probe_no_cheat.py` | Runtime probe: inference cannot copy masked tokens | "genuinely generative" check |
 | | `token_diff_masked_bars.py` | Token-level diff of masked bars vs ground truth | "genuinely generative" check |
 | | `build_sample_manifest.py` | Builds `sample_manifest.csv` (matched sample set) | Table 5.17 sample set |
-| `figures/` | `generate_architecture.py`, `preprocessing_pipeline_v2.py`, `generate_piano_roll_figure.py` | Figure scripts (default output `docs/img/`, not versioned). The output of `generate_architecture.py` is no longer used in the README, which shows the architecture as a Mermaid diagram. The thesis figures are in the thesis PDF (corrections in [`../docs/ERRATA.md`](../docs/ERRATA.md)); the original PNGs are at the `thesis-final` tag, e.g. `git show thesis-final:figures/val_loss_curve.png > val_loss_curve.png` | Fig. 3.4 |
+| `figures/` | `generate_architecture.py`, `preprocessing_pipeline_v2.py`, `generate_piano_roll_figure.py` | Figure scripts (default output `docs/img/`, not versioned). The output of `generate_architecture.py` is no longer used in the README, which shows the architecture as a Mermaid diagram. The thesis figures are in the thesis PDF (corrections in [`../docs/ERRATA.md`](../docs/ERRATA.md)); the original PNGs are at commit [`835e149`](https://github.com/CSCPadova/MIDIT/tree/835e1495ec7533efd44d199b562a9e351505d61d), e.g. `git show 835e149:figures/val_loss_curve.png > val_loss_curve.png` | Fig. 3.4 |
 
 ## Notes
 
