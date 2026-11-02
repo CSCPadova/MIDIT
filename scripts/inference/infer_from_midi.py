@@ -60,16 +60,21 @@ def infill_midi(midi_path, checkpoint, mask_bars=(3, 4, 5), start_bar=0,
     print('[1/5] Preprocessing MIDI (shift=0)...')
     _init_worker()
     with tempfile.TemporaryDirectory() as tmpdir:
-        result = _process_file((midi_path, tmpdir, [0], False))
-        if result['status'] != 'ok':
+        result = _process_file((midi_path, tmpdir, [0], False), skip_filters=skip_filters)
+        status = result['status']
+        if status in ('skipped_unreadable', 'error'):
+            raise RuntimeError(f"Preprocessing failed ({status}): {result.get('error')}")
+        if status != 'ok':
             if skip_filters:
-                print(f"  Warning: filter {result['status']} bypassed (--skip_filters active)")
+                print(f"  Warning: filter {status} bypassed (--skip_filters active)")
             else:
                 raise RuntimeError(
-                    f"Preprocessing failed ({result['status']}): {result.get('error')}\n"
+                    f"Preprocessing failed ({status}): {result.get('error')}\n"
                     "  F1=sparse(<50 notes), F2=short(<15s), F3=constant velocity"
                 )
         pt_path = Path(tmpdir) / f'{Path(midi_path).stem}.pt'
+        if not pt_path.exists():
+            raise RuntimeError(f"Tokenization produced no sequence ({status}): {result.get('error')}")
         print(f'[2/5] Extracting 8-bar chunk (start_bar={start_bar})...')
         tokens, bar_positions, total_bars = _extract_chunk(pt_path, start_bar)
 
